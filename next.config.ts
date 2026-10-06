@@ -14,7 +14,9 @@ const supabaseWs = supabaseOrigin.replace(/^https:/, "wss:");
 // every page dynamic. Moving to nonces is tracked as a follow-up in docs/security.md.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  // Vercel Analytics is served from /_vercel/insights (same origin) in production; the debug build
+  // used in development comes from va.vercel-scripts.com.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${supabaseOrigin}`,
   "font-src 'self' data:",

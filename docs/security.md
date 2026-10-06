@@ -33,6 +33,7 @@ Checklist A-110 : RLS, secrets, en-têtes, dépendances (`npm audit`), Security 
   rendrait toutes les pages dynamiques (perte du cache statique). À réévaluer avant la v1.0.0.
 - Les tuiles de carte, l'analytics et toute autre origine externe sont **bloqués par défaut** : les ajouter
   explicitement dans `next.config.ts` (`img-src`, `connect-src`…) avec la PR qui les introduit.
+- Vercel Analytics (`<Analytics />` dans `layout.tsx`) fonctionne en production via `/_vercel/insights` (même origine, donc couvert par `'self'`) ; il doit être activé dans le dashboard Vercel (onglet Analytics). Pensez à l'indiquer dans la politique de confidentialité (RGPD, A-113).
 - Après le premier déploiement, passer l'URL de production dans un scanner d'en-têtes
   (https://securityheaders.com) et consigner le résultat ici.
 - HSTS est envoyé sans `preload` : n'ajouter `preload` qu'après décision explicite (difficile à annuler).
