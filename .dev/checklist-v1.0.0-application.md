@@ -1,0 +1,139 @@
+# Checklist v1.0.0 — Application (Phase 1)
+
+> Prérequis : [Phase 0 terminée](./checklist-v1.0.0-organisation.md).
+> Contraintes de charge : voir [`constraints.md`](./constraints.md).
+> **Ordre strict.** Chaque étape = 1 ou plusieurs PRs, avec tests + doc.
+
+---
+
+## Étape 1.1 — Schéma de base & fondations BDD
+- [ ] **A-001** Migrations Supabase versionnées dans `supabase/migrations/` (jamais d'édition manuelle en prod) — _`supabase db reset` rejoue tout_
+- [ ] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription — _inscription crée un profil_
+- [ ] **A-003** Tables de rôles/permissions (voir 1.3) et table `moderation_actions` (ban, mute, historique) — _schéma documenté dans `docs/database.md`_
+- [ ] **A-004** Index sur toutes les colonnes filtrées/jointes (pseudo, user_id, created_at) ⚡ — _`EXPLAIN` sur requêtes clés_
+- [ ] **A-005** Génération des types TS depuis le schéma (`supabase gen types`) — _types importés partout, zéro type écrit à la main_
+- [ ] **A-006** Seed de dev (`supabase/seed.sql`) avec un compte par rôle — _documenté_
+
+## Étape 1.2 — Authentification sécurisée 🔒
+- [ ] **A-010** Supabase Auth via `@supabase/ssr` (cookies httpOnly, pas de token en localStorage) — _session SSR fonctionnelle_
+- [ ] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_
+- [ ] **A-012** SMTP custom configuré (limite e-mails du free tier) — _e-mails reçus_
+- [ ] **A-013** Politique de mot de passe + protection contre fuites (leaked password protection si dispo) + CAPTCHA (Turnstile/hCaptcha) sur signup/login 🆕 — _bots bloqués_
+- [ ] **A-014** Middleware Next.js : rafraîchit la session, protège les routes privées — _route privée inaccessible déconnecté_
+- [ ] **A-015** **RLS activée sur TOUTES les tables du schéma `public`**, politique « deny by default » — _test CI qui échoue si une table n'a pas RLS_
+- [ ] **A-016** Politiques RLS écrites par table (select/insert/update/delete séparées), avec `(select auth.uid())` pour la perf ⚡ — _tests pgTAP accès OK/KO_
+- [ ] **A-017** `service_role` utilisée uniquement côté serveur (Route Handlers/Server Actions), jamais exposée — _grep CI sur `NEXT_PUBLIC_`_
+- [ ] **A-018** Vérifier que `anon` n'a aucun droit inattendu (`REVOKE` explicite) — _audit des grants_
+- [ ] **A-019** Rate limit sur les endpoints d'auth (login, reset) — _429 après N essais_
+- [ ] **A-020** Utiliser le Supabase Security Advisor (lints) et corriger tous les warnings 🆕 — _0 warning_
+
+## Étape 1.3 — Permissions granulaires par rôle 🔒
+> Objectif : régler **absolument chaque rôle séparément**, côté backend (BDD), pas côté UI.
+
+- [ ] **A-030** Modèle RBAC en tables : `roles`, `permissions` (clé unique ex. `message.send`, `user.ban`), `role_permissions` — _aucune permission codée en dur dans le front_
+- [ ] **A-031** Liste initiale des rôles (à valider avec toi) : `user`, `moderator`, `admin`, `super_admin` (développeurs) — _documentée dans `docs/permissions.md`_
+- [ ] **A-032** Catalogue exhaustif des permissions (nomenclature `ressource.action`) — _fichier unique source de vérité_
+- [ ] **A-033** Fonction SQL `has_permission(user_id, 'perm.key')` (`SECURITY DEFINER`, `search_path` fixé) utilisée par les politiques RLS — _testée_
+- [ ] **A-034** Permissions injectées dans le JWT via **Custom Access Token Hook** (évite une requête BDD par action) ⚡ — _claims présents dans le token_
+- [ ] **A-035** Matrice rôle × permission éditable depuis le panneau admin (écrit en BDD) — _changer une permission d'un rôle prend effet sans redéploiement_
+- [ ] **A-036** Overrides par utilisateur (grant/deny ciblé) 🆕 — _un deny prime sur un grant_
+- [ ] **A-037** Hiérarchie de rôles : on ne peut pas agir sur un rôle ≥ au sien — _modo ne peut pas ban un admin (test)_
+- [ ] **A-038** Vérification des permissions côté serveur sur chaque Server Action/Route Handler **en plus** de la RLS — _helper unique `requirePermission()`_
+- [ ] **A-039** Audit log : toute modification de rôle/permission est tracée (qui, quoi, quand) 🆕 — _table `audit_logs` en lecture seule pour non-admins_
+- [ ] **A-040** Tests automatisés : pour chaque rôle, chaque permission autorisée/refusée — _matrice testée en CI_
+
+## Étape 1.4 — Contrôle total des Admins absolus (développeurs) 🔒
+- [ ] **A-050** Rôle `super_admin` : toutes les permissions, non retirables par un autre rôle — _verrou en BDD_
+- [ ] **A-051** **Bannissement** ciblé : durée (temporaire/permanent), raison, bannissement effectif immédiat (révocation des sessions + blocage RLS) — _user banni déconnecté et bloqué_
+- [ ] **A-052** **Mute** ciblé : durée + raison, bloque l'envoi de messages mais pas la lecture — _vérifié côté BDD_
+- [ ] **A-053** Expiration automatique des sanctions temporaires (vérif à la lecture, pas de cron lourd) ⚡ — _sanction expirée = levée_
+- [ ] **A-054** Levée manuelle d'une sanction + historique complet — _audit_
+- [ ] **A-055** Panneau admin `/admin` protégé : liste/recherche des users, rôles, sanctions, logs — _accès super_admin uniquement_
+- [ ] **A-056** Actions supplémentaires : suspendre/supprimer un compte, forcer la déconnexion, reset du profil (pseudo/avatar), shadow-ban 🆕 — _à GARDER ou RETIRER_
+- [ ] **A-057** Mode « maintenance / lecture seule globale » activable par un admin (kill switch) 🆕 — _bascule sans redéploiement_
+- [ ] **A-058** Protection anti-lockout : impossible de retirer le dernier `super_admin` 🆕 — _contrainte en BDD_
+- [ ] **A-059** Les super_admins sont créés uniquement via migration/SQL manuel, jamais via l'UI publique 🔒 — _documenté dans `runbook.md`_
+- [ ] **A-060** 2FA (TOTP) obligatoire pour les rôles admin 🆕 🔒 — _non contournable_
+
+## Étape 1.5 — Compression des données avant envoi à la BDD ⚡
+> ⚠️ La compression rend un champ **illisible/non filtrable par SQL**. À réserver aux gros champs non requêtés (contenu long, payload JSON, historique). Les colonnes filtrées/triées/protégées par RLS restent en clair.
+
+- [ ] **A-070** Décision documentée (ADR) : quels champs sont compressés, lesquels restent en clair — _ADR validé_
+- [ ] **A-071** Module `src/lib/compression/` : compress/decompress (CompressionStream gzip côté client, `zlib` côté serveur), format versionné (`v1:` + base64 ou `bytea`) — _tests aller-retour_
+- [ ] **A-072** Seuil minimal : ne pas compresser les petits payloads (gain négatif) ⚡ — _seuil configurable_
+- [ ] **A-073** Limite de taille avant ET après décompression (protection contre « zip bomb ») 🔒 — _rejet au-delà du max_
+- [ ] **A-074** Validation du contenu **après décompression** côté serveur (Zod) — _jamais de confiance au client_
+- [ ] **A-075** Mesure du gain réel (taille avant/après, CPU) sur données représentatives — _résultat consigné dans la doc_
+
+## Étape 1.6 — Cache ⚡
+- [ ] **A-080** Cartographie des données lues fréquemment et de leur TTL (profils, rôles/permissions, listes) — _tableau dans `docs/architecture.md`_
+- [ ] **A-081** Cache client (TanStack Query / SWR) : `staleTime`, déduplication des requêtes identiques, pas de refetch au focus inutile — _vérifié dans l'onglet réseau_
+- [ ] **A-082** Cache serveur Next.js (`unstable_cache`/`use cache`/`revalidateTag`) pour les données partagées — _invalidation par tag testée_
+- [ ] **A-083** Cache des permissions (JWT claims + cache court) — _0 requête BDD par vérification de permission courante_
+- [ ] **A-084** Invalidation propre : toute écriture invalide les clés concernées — _pas de donnée périmée visible_
+- [ ] **A-085** Headers HTTP (`Cache-Control`, ETag) pour les assets/avatars ; avatars servis via CDN/Supabase Storage avec cache long + nom de fichier versionné — _bande passante réduite_
+- [ ] **A-086** Option : Redis gratuit (Upstash) si le cache en mémoire serverless s'avère insuffisant 🆕 — _à décider après mesure_
+
+## Étape 1.7 — Mises à jour groupées (batching des changements de profil) ⚡
+- [ ] **A-090** Couche « write queue » côté client : les changements (pseudo, avatar, préférences…) sont **accumulés** localement (dernier état gagne par champ) — _10 modifs = 1 requête_
+- [ ] **A-091** Flush déclenché par : délai d'inactivité (ex. 5–10 s), taille max, fermeture/masquage de page (`visibilitychange` + `sendBeacon`) — _aucune perte à la fermeture_
+- [ ] **A-092** Envoi en **une seule requête** vers une fonction RPC SQL qui applique tout en une transaction — _atomique_
+- [ ] **A-093** Persistance temporaire de la file (localStorage/IndexedDB) pour survivre à un refresh/crash — _reprise testée_
+- [ ] **A-094** Retry avec backoff exponentiel + gestion de conflits (version/`updated_at`) — _pas d'écrasement silencieux_
+- [ ] **A-095** Validation serveur identique à l'instantané (pseudo unique, taille avatar, permissions) et retour d'erreurs par champ — _erreur claire à l'UI_
+- [ ] **A-096** Upload d'avatar : redimensionnement/compression côté client avant envoi, limite de taille & types MIME, stockage Supabase Storage — _avatar ≤ taille max_
+- [ ] **A-097** UI optimiste : l'utilisateur voit le changement immédiatement avant la synchro 🆕 — _indicateur « synchronisé »_
+
+## Étape 1.8 — Ralentissement contrôlé / anti-surcharge (messages) ⚡
+- [ ] **A-100** Rate limit **par utilisateur** (ex. N msgs / fenêtre glissante) appliqué côté serveur ET en BDD — _contournement client impossible_
+- [ ] **A-101** Rate limit **par IP** pour les non-authentifiés (Vercel Firewall rules / Upstash Ratelimit) — _429 + `Retry-After`_
+- [ ] **A-102** Ralentissement progressif (throttle/backpressure) plutôt que blocage brutal : file d'envoi côté client avec cadence adaptative — _l'UI informe « envoi ralenti »_
+- [ ] **A-103** Limite globale de débit alignée sur les quotas Realtime Supabase ; au-dessus : mise en file + dégradation (ex. messages groupés) — _test de charge ≥ 200 users simulés_
+- [ ] **A-104** Anti-flood : détection de doublons/rafales, taille max de message, cooldown après rafale — _spam bloqué_
+- [ ] **A-105** Un seul canal Realtime par client, désabonnement propre au démontage — _≤ 1 connexion/onglet_
+- [ ] **A-106** Réception : regrouper l'affichage (batch de rendu toutes les X ms) pour ne pas figer le navigateur 🆕 ⚡ — _200 msgs/s sans freeze_
+- [ ] **A-107** Test de charge (k6/Artillery) avec scénario 200 users simultanés ; seuils (p95, taux d'erreur) documentés 🆕 — _rapport dans `docs/`_
+- [ ] **A-108** Les utilisateurs mute/ban sont filtrés **avant** la file (économie de charge) — _vérifié_
+
+## Étape 1.9 — Pages de l’application (squelette + contenu)
+> Squelette déjà en place : groupes de routes `(auth)` (`/login`, `/register`) et `(app)` (`/`, `/messages`, `/calendar`, `/map`) avec barre de navigation mobile.
+
+- [x] **A-120** Squelette des routes et navigation basse (mobile-first, safe-area iOS) — _`npm run build` génère les 6 routes_
+- [ ] **A-121** Garde d’accès : `(app)` redirige vers `/login` si non connecté ; `(auth)` redirige vers `/` si déjà connecté 🔒 — _testé E2E_
+- [ ] **A-122** Login / Register : formulaires, validation (Zod), erreurs par champ, états de chargement — _parcours E2E OK_
+- [ ] **A-123** **Accueil** (récap / dashboard) : résumé des prochains événements, messages non lus, infos clés — _données issues du cache (1.6)_
+- [ ] **A-124** **Messagerie** : messages privés + groupes (modèle de données, RLS par membre, permissions `message.*`) — _soumis au throttling (1.8)_
+- [ ] **A-125** **Calendrier** : vue par jour + détail d’un événement — _lecture cachée, écriture protégée par permissions_
+- [ ] **A-126** **Carte** : infos et positions des manifestations (choix de la lib de carte à trancher via ADR : Leaflet/OSM gratuit vs Mapbox/Google, quotas) 🆕 — _marqueurs + fiche détail_
+- [ ] **A-127** Respect de la vie privée sur la carte : positions de manifestations uniquement (pas de géolocalisation des utilisateurs sans consentement) 🆕 🔒 — _décision documentée_
+
+## Étape 1.10 — PWA iOS & Android
+> Base déjà en place : `manifest.ts`, `public/sw.js` minimal, icônes générées depuis `logo_app.png`, meta iOS (`appleWebApp`, `viewport-fit=cover`), en-têtes anti-cache du SW.
+
+- [x] **A-130** Manifest, enregistrement du service worker (prod uniquement), meta iOS, icône apple-touch — _manifest et `sw.js` servis avec les bons en-têtes_
+- [~] **A-131** Icônes générées depuis `logo_symbol.png` « B. » (192, 512, maskable, apple-touch 180, favicon) — _reste : validation visuelle sur appareils réels + écrans de démarrage iOS optionnels_
+- [ ] **A-132** Stratégie hors-ligne dans `sw.js` : coquille de l’app en cache, page `/offline`, **jamais** de cache des réponses authentifiées/sensibles 🔒 — _mode avion testé_
+- [ ] **A-133** Stratégie de mise à jour du SW (nouvelle version → message « mettre à jour ») 🆕 — _pas d’ancienne version bloquée_
+- [ ] **A-134** Invite d’installation : bouton « Installer » sur Android (`beforeinstallprompt`) + explication « Partager → Sur l’écran d’accueil » sur iOS 🆕 — _testée sur appareils réels_
+- [ ] **A-135** Notifications push (Web Push + VAPID) : **iOS 16.4+ uniquement si l’app est installée sur l’écran d’accueil** ; abonnements stockés en BDD, envoi côté serveur — _reçue sur iOS et Android_
+- [ ] **A-136** Session persistante en mode standalone (cookies Supabase OK dans la PWA iOS) 🔒 — _reste connecté après fermeture_
+- [ ] **A-137** Audit Lighthouse PWA + tests sur iPhone et Android réels (HTTPS requis, Vercel OK) — _installable, score validé_
+
+## Étape 1.11 — Finalisation v1.0.0
+- [ ] **A-110** Revue sécurité complète (RLS, secrets, en-têtes, dépendances) 🔒 — _rapport signé_
+- [ ] **A-111** Documentation complète et à jour (README, architecture, permissions, DB, runbook) 📚 — _relecture par quelqu'un qui n'a pas écrit le code_
+- [ ] **A-112** Pages d'erreur, états de chargement, accessibilité de base (clavier, contrastes) 🆕 — _Lighthouse ≥ 90_
+- [ ] **A-113** Pages légales/RGPD : politique de confidentialité, export et suppression des données utilisateur 🆕 🔒 — _suppression de compte fonctionnelle_
+- [ ] **A-114** Vérification des quotas free tier en conditions réelles (Supabase + Vercel dashboards) — _marge ≥ 20 %_
+- [ ] **A-115** Changelog + tag `v1.0.0` + release GitHub — _publié_
+
+---
+
+## ✅ Critère de sortie v1.0.0
+- Un user peut s'inscrire, se connecter, modifier son profil (batché), envoyer des messages (throttlés).
+- Chaque rôle est configurable individuellement ; un super_admin peut ban/mute n'importe qui.
+- RLS prouvée par tests ; aucun accès possible hors permissions.
+- Test de charge 200 users simultanés validé sur les quotas gratuits.
+
+## Backlog (hors v1.0.0)
+_(vide — y noter toute idée qui déborde)_
