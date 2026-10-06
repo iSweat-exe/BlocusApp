@@ -8,7 +8,7 @@
 
 ## Étape 1.1 — Schéma de base & fondations BDD
 - [ ] **A-001** Migrations Supabase versionnées dans `supabase/migrations/` (jamais d'édition manuelle en prod) — _`supabase db reset` rejoue tout_
-- [ ] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription — _inscription crée un profil_
+- [ ] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription — _première connexion OAuth crée un profil_
 - [ ] **A-003** Tables de rôles/permissions (voir 1.3) et table `moderation_actions` (ban, mute, historique) — _schéma documenté dans `docs/database.md`_
 - [ ] **A-004** Index sur toutes les colonnes filtrées/jointes (pseudo, user_id, created_at) ⚡ — _`EXPLAIN` sur requêtes clés_
 - [ ] **A-005** Génération des types TS depuis le schéma (`supabase gen types`) — _types importés partout, zéro type écrit à la main_
@@ -16,13 +16,13 @@
 
 ## Étape 1.2 — Authentification sécurisée 🔒
 - [ ] **A-010** Supabase Auth via `@supabase/ssr` (cookies httpOnly, pas de token en localStorage) — _session SSR fonctionnelle_
-- [ ] **A-011** Inscription / connexion / déconnexion / mot de passe oublié (sans vérification d'e-mail, voir R5) — _parcours E2E OK_
+- [ ] **A-011** Connexion / déconnexion via OAuth **Google, Discord et Instagram** (pas d'e-mail/mot de passe, pas de vérification d'e-mail, pas de « mot de passe oublié » : voir R5 et décisions d'auth) — _parcours E2E OK_
 - [ ] **A-014** Middleware Next.js : rafraîchit la session, protège les routes privées — _route privée inaccessible déconnecté_
 - [ ] **A-015** **RLS activée sur TOUTES les tables du schéma `public`**, politique « deny by default » — _test CI qui échoue si une table n'a pas RLS_
 - [ ] **A-016** Politiques RLS écrites par table (select/insert/update/delete séparées), avec `(select auth.uid())` pour la perf ⚡ — _tests pgTAP accès OK/KO_
 - [ ] **A-017** `service_role` utilisée uniquement côté serveur (Route Handlers/Server Actions), jamais exposée — _grep CI sur `NEXT_PUBLIC_`_
 - [ ] **A-018** Vérifier que `anon` n'a aucun droit inattendu (`REVOKE` explicite) — _audit des grants_
-- [ ] **A-019** Rate limit sur les endpoints d'auth (login, reset) — _429 après N essais_
+- [ ] **A-019** Rate limit sur les endpoints d'auth (login, callback OAuth) — _429 après N essais_
 - [ ] **A-020** Utiliser le Supabase Security Advisor (lints) et corriger tous les warnings 🆕 — _0 warning_
 
 ## Étape 1.3 — Permissions granulaires par rôle 🔒

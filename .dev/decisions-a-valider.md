@@ -38,6 +38,11 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 | A-112 | Accessibilité + Lighthouse | ✅ GARDER, facultatif (peu important) |
 | A-113 | RGPD : export/suppression de compte | ☐ GARDER ☐ RETIRER |
 
+## Décisions d'authentification
+- Pas d'authentification e-mail/mot de passe (trop complexe pour notre infra) : pas de « mot de passe oublié », un utilisateur qui perd son accès recrée un compte.
+- Fournisseurs privilégiés : **Google, Discord et Instagram** (OAuth).
+- ⚠️ À vérifier avant A-011 : Supabase Auth gère nativement Google et Discord ; Instagram n'est pas un fournisseur natif (il passe par Meta/Facebook ou un OIDC personnalisé).
+
 ## Questions ouvertes
 1. Quels rôles exacts veux-tu (au-delà de `user`, `moderator`, `admin`, `super_admin`) ?
 2. Que sont les « messages » : chat temps réel, commentaires, messages privés ?
