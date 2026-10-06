@@ -1,0 +1,24 @@
+name: Feature / checklist item
+description: A planned piece of work from the v1.0.0 checklists
+labels: ["type: feature"]
+body:
+  - type: input
+    id: checklist
+    attributes:
+      label: Checklist ID
+      description: Example `A-015` or `O-030`. Work outside the checklists goes to the Backlog first.
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description and validation criteria
+    validations:
+      required: true
+  - type: input
+    id: assignee
+    attributes:
+      label: Owner (developer or LLM operator)
+      description: Declare the owner BEFORE starting to avoid two people on the same domain.
+    validations:
+      required: true

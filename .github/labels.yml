@@ -1,0 +1,13 @@
+# Reference list of labels (create them in GitHub: Issues > Labels).
+- { name: "type: feature", color: "0e8a16", description: "New functionality from the checklists" }
+- { name: "type: bug", color: "d73a4a", description: "Something is broken" }
+- { name: "type: docs", color: "0075ca", description: "Documentation only" }
+- { name: "type: chore", color: "cfd3d7", description: "Tooling, deps, CI" }
+- { name: "type: llm-task", color: "5319e7", description: "Task prepared for an LLM agent" }
+- { name: "area: auth", color: "fbca04", description: "Authentication and sessions" }
+- { name: "area: permissions", color: "fbca04", description: "Roles and permissions" }
+- { name: "area: database", color: "fbca04", description: "Schema, migrations, RLS" }
+- { name: "area: pwa", color: "fbca04", description: "PWA, service worker, push" }
+- { name: "area: perf", color: "fbca04", description: "Cache, batching, throttling" }
+- { name: "priority: high", color: "b60205", description: "Blocks the current step" }
+- { name: "security", color: "b60205", description: "Security-sensitive change" }

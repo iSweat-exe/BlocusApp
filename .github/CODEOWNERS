@@ -1,0 +1,9 @@
+# Sensitive areas require a review from the code owner.
+# Replace/extend with a GitHub team when the team grows.
+* @iSweat-exe
+/supabase/ @iSweat-exe
+/src/lib/supabase/ @iSweat-exe
+/src/server/ @iSweat-exe
+/.github/ @iSweat-exe
+/CLAUDE.md @iSweat-exe
+/next.config.ts @iSweat-exe

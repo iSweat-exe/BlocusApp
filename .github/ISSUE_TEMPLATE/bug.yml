@@ -1,0 +1,27 @@
+name: Bug report
+description: Something does not work as expected
+labels: ["type: bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Expected vs actual behaviour.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Device, OS, browser, PWA installed or not, app version/commit.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Never paste secrets or personal data.

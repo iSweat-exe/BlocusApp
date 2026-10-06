@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BlocusApp
 
-## Getting Started
+Application mobile-first (PWA iOS/Android) construite avec **Next.js (App Router) + React + TypeScript +
+Tailwind CSS 4 + Supabase**, déployée sur **Vercel** (offres gratuites). Cible : ~1000 utilisateurs,
+~200 simultanés.
 
-First, run the development server:
+> Avant toute contribution (développeur **ou** LLM) : lire [`CLAUDE.md`](./CLAUDE.md) et le dossier
+> [`.dev/`](./.dev/README.md).
+
+## Prérequis
+
+- Node.js **22+** (voir `.nvmrc`, recommandé : 24) et npm
+- Un projet Supabase (dev) — URL et clés dans `.env.local`
+- Git configuré avec accès au dépôt GitHub
+
+## Installation (< 10 min)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/iSweat-exe/BlocusApp.git
+cd BlocusApp
+npm install            # installe aussi les hooks Git (husky)
+cp .env.example .env.local
+# remplir .env.local avec les valeurs de votre projet Supabase de DEV
+npm run dev            # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Variables d'environnement : voir [`.env.example`](./.env.example). Ne jamais commiter un fichier `.env*`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Commande                | Rôle                                       |
+| ----------------------- | ------------------------------------------ |
+| `npm run dev`           | Serveur de développement                   |
+| `npm run build`         | Build de production                        |
+| `npm run lint`          | ESLint                                     |
+| `npm run typecheck`     | `next typegen` + `tsc --noEmit`            |
+| `npm run format`        | Prettier (écriture) — `format:check` en CI |
+| `npm run test`          | Tests unitaires (Vitest)                   |
+| `npm run test:coverage` | Tests unitaires + couverture               |
+| `npm run test:e2e`      | Tests end-to-end (Playwright)              |
 
-## Learn More
+## Organisation du projet
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/app/        Routes (App Router) : (auth) = login/register, (app) = pages connectées
+src/components/ Composants partagés
+src/features/   Code par domaine métier (1 dossier = 1 domaine)
+src/lib/        Code partagé : clients Supabase, utilitaires, couche data
+src/server/     Code exécuté uniquement côté serveur
+docs/           Documentation technique (architecture, base de données, permissions…)
+.dev/           Pilotage : checklists v1.0.0, contraintes, décisions, recettes LLM
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [Architecture](./docs/architecture.md) · [Conventions](./docs/conventions.md) ·
+  [Workflow Git](./docs/git-workflow.md)
+- [Base de données](./docs/database.md) · [Permissions](./docs/permissions.md) ·
+  [Sécurité](./docs/security.md) · [Runbook](./docs/runbook.md)
+- [Décisions d'architecture (ADR)](./docs/adr/README.md)
 
-## Deploy on Vercel
+## Déploiement
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Vercel : une **preview** par pull request, la **production** uniquement depuis `main`
+(voir [`docs/runbook.md`](./docs/runbook.md)). Attention : l'offre Vercel Hobby est réservée à un usage
+non commercial.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contribuer
+
+1. Choisir une case des checklists (`.dev/`), déclarer l'owner dans l'issue.
+2. Créer une branche `feat/…`, `fix/…`, `docs/…` ou `chore/…`.
+3. Commits en **Conventional Commits** (anglais), code et commentaires en **anglais**.
+4. Ouvrir une PR avec le template, CI verte + 1 review humaine, squash merge.

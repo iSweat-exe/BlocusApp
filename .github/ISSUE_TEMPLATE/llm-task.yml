@@ -1,0 +1,29 @@
+name: LLM task
+description: A well-scoped task meant to be executed by an LLM agent
+labels: ["type: llm-task"]
+body:
+  - type: input
+    id: checklist
+    attributes:
+      label: Checklist ID
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One precise outcome. Mention the files/folders the agent may touch.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Rules from CLAUDE.md that matter here, things the agent must NOT do.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Tests to pass, docs to update, behaviour to verify.
+    validations:
+      required: true
