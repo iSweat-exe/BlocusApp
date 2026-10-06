@@ -7,3 +7,6 @@ public
 package-lock.json
 skills-lock.json
 *.md
+coverage
+playwright-report
+test-results

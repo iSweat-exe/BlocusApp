@@ -32,6 +32,7 @@ jobs:
       - run: npm run format:check
       - run: npm run lint -- --max-warnings=0
       - run: npm run typecheck
+      - run: npm run test:coverage
       - run: npm run build
         env:
           # Placeholders: the build must not depend on real secrets.
@@ -110,3 +111,23 @@ jobs:
       - run: npm ci
       # Only production dependencies block the pipeline; dev-tool advisories are handled by Dependabot.
       - run: npm audit --omit=dev --audit-level=high
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

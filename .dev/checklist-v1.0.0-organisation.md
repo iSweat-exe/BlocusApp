@@ -10,7 +10,7 @@
 - [ ] **O-002** `git init`, branche par défaut `main`, `.gitignore` Node/Next/Vercel (`.env*` ignorés sauf `.env.example`) — _aucun secret versionné_
 - [ ] **O-003** Scaffold Next.js (App Router) + TypeScript strict + ESLint + Prettier — _`npm run build` passe_
 - [x] **O-004** Verrouiller les versions : `engines` dans `package.json`, `.nvmrc`, `package-lock.json` commité — _même version Node pour tous_
-- [~] **O-005** Scripts npm standard : `dev`, `build`, `lint`, `typecheck`, `format` faits ; `test` après O-060 — _documentés dans le README_
+- [x] **O-005** Scripts npm standard : `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `format` — _documentés dans le README_
 - [ ] **O-006** Fichier `.env.example` listant toutes les variables (sans valeurs) — _onboarding sans question_
 - [ ] **O-007** Créer les projets Supabase (dev + prod) et Vercel, lier Vercel ↔ GitHub — _preview deploy sur chaque PR_
 
@@ -43,7 +43,7 @@
 - [x] **O-031** Vérification des commits/titres de PR au format Conventional Commits en CI — _CI rouge sinon_
 - [x] **O-032** Scan de secrets (gitleaks) 🆕 🔒 — _CI rouge si secret détecté_
 - [x] **O-033** Audit des dépendances (`npm audit` + Dependabot/Renovate) — _PRs automatiques hebdo_
-- [ ] **O-034** Migrations Supabase testées en CI sur une base jetable (`supabase db reset` + tests RLS) 🆕 — _CI rouge si migration cassée_
+- [~] **O-034** Migrations Supabase testées en CI sur une base jetable (`supabase db reset` + tests RLS) 🆕 — _CI rouge si migration cassée_ (reste : brancher `supabase db reset` + tests en CI dès la première migration, étape 1.1)
 - [~] **O-035** Déploiement : preview par PR, prod uniquement depuis `main` — _vérifié_ (reste : lier le dépôt à Vercel, voir O-007)
 
 ## Étape 0.5 — Organisation multi-développeurs avec LLMs
@@ -63,13 +63,13 @@
 - [x] **O-053** Règle « pas de PR sans doc » : si le comportement, le schéma ou une permission change → doc modifiée dans la **même PR** — _case dans le template de PR_
 - [ ] **O-054** Doc auto-générée quand possible : types Supabase (`supabase gen types`), schéma de BDD, liste des permissions — _script `npm run docs:gen`_
 - [ ] **O-055** Vérification en CI que les types/doc générés sont à jour (diff = échec) — _CI rouge si doc périmée_
-- [ ] **O-056** TSDoc (en anglais) sur toutes les fonctions publiques des couches `lib/` et `server/` — _règle ESLint `jsdoc` ou revue_
+- [x] **O-056** TSDoc (en anglais) sur toutes les fonctions publiques des couches `lib/` et `server/` — _règle ESLint `jsdoc` ou revue_
 
 ## Étape 0.7 — Qualité & tests
-- [ ] **O-060** Framework de tests unitaires (Vitest) + Testing Library — _`npm test` passe_
-- [ ] **O-061** Tests E2E (Playwright) sur les parcours critiques (login, ban, permissions) — _tournent en CI_
-- [ ] **O-062** Tests des politiques RLS (pgTAP ou tests SQL) : chaque table a un test « accès autorisé / refusé » 🔒 — _obligatoire pour toute nouvelle table_
-- [ ] **O-063** Seuil de couverture minimal sur `lib/` et `server/` (ex. 70 %) 🆕 — _CI_
+- [x] **O-060** Framework de tests unitaires (Vitest) + Testing Library — _`npm test` passe_
+- [x] **O-061** Tests E2E (Playwright) sur les parcours critiques (login, ban, permissions) — _tournent en CI_
+- [~] **O-062** Tests des politiques RLS (pgTAP ou tests SQL) : chaque table a un test « accès autorisé / refusé » 🔒 — _obligatoire pour toute nouvelle table_ (reste : écrire les tests pgTAP dans `supabase/tests/` dès l'étape 1.1, quand les tables existent)
+- [x] **O-063** Seuil de couverture minimal sur `lib/` et `server/` (ex. 70 %) 🆕 — _CI_
 
 ## Étape 0.8 — Sécurité & opérations de base
 - [x] **O-070** Gestion des secrets : variables Vercel + `.env.local` ; rotation documentée — _`runbook.md`_
