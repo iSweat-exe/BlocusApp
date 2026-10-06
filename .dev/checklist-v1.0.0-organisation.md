@@ -12,7 +12,7 @@
 - [x] **O-004** Verrouiller les versions : `engines` dans `package.json`, `.nvmrc`, `package-lock.json` commité — _même version Node pour tous_
 - [x] **O-005** Scripts npm standard : `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `format` — _documentés dans le README_
 - [x] **O-006** Fichier `.env.example` listant toutes les variables (sans valeurs) — _onboarding sans question_
-- [ ] **O-007** Créer les projets Supabase (dev + prod) et Vercel, lier Vercel ↔ GitHub — _preview deploy sur chaque PR_
+- [x] **O-007** Créer les projets Supabase (dev + prod) et Vercel, lier Vercel ↔ GitHub — _preview deploy sur chaque PR_ (validé par @iSweat-exe)
 
 ## Étape 0.2 — Conventions de code (stack Next.js / React / TypeScript)
 - [x] **O-010** TypeScript `strict: true`, `noUncheckedIndexedAccess`, interdiction de `any` (règle ESLint) — _CI échoue sinon_
@@ -24,14 +24,14 @@
 - [x] **O-016** Validation des entrées avec un schéma (ex. Zod) à **chaque** frontière (API, Server Actions, formulaires) — _documenté_
 - [x] **O-017** Gestion d'erreurs uniforme (type `Result`/codes d'erreur) et logs sans données personnelles — _documenté_
 - [x] **O-018** **Tous les commentaires, noms de variables, messages de commit, JSDoc : en anglais** (règle ESLint/relecture) — _vérifié en revue de PR_
-- [ ] **O-019** Les textes UI utilisateur passent par un fichier de traductions (i18n) 🆕 — _aucun texte FR en dur dans les composants_
+- [ ] **O-019** _(facultatif, non prioritaire)_ Les textes UI utilisateur passent par un fichier de traductions (i18n) 🆕 — _aucun texte FR en dur dans les composants_
 
 ## Étape 0.3 — Convention Git & GitHub
 - [x] **O-020** Adopter **Conventional Commits** : `type(scope): description` (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`, `build`) — _documenté avec exemples_
 - [x] **O-021** `commitlint` + `husky` : hook `commit-msg` qui rejette les messages invalides — _commit non conforme impossible_
 - [x] **O-022** Hook `pre-commit` (`lint-staged` : lint + prettier + typecheck rapide) — _rapide (< 10 s)_
 - [x] **O-023** Stratégie de branches : `main` (protégée, = prod), `develop` optionnel, branches `feat/…`, `fix/…`, `docs/…`, `chore/…` — _nommage documenté_
-- [ ] **O-024** Protection de `main` : PR obligatoire, 1 review min, CI verte, pas de force-push, historique linéaire (squash merge) — _réglages GitHub appliqués_
+- [x] **O-024** Protection de `main` : PR obligatoire, 1 review min, CI verte, pas de force-push, historique linéaire (squash merge) — _réglages GitHub appliqués_ (validé par @iSweat-exe)
 - [x] **O-025** Template de PR (`.github/pull_request_template.md`) : description, lien issue, checklist (tests, docs, migration, RLS) — _affiché à chaque PR_
 - [x] **O-026** Templates d'issues (bug, feature, tâche LLM) + labels standards — _créés sur GitHub_
 - [x] **O-027** `CODEOWNERS` : les dossiers sensibles (`supabase/migrations`, auth, permissions) nécessitent un reviewer désigné 🔒 — _fichier actif_
@@ -44,7 +44,7 @@
 - [x] **O-032** Scan de secrets (gitleaks) 🆕 🔒 — _CI rouge si secret détecté_
 - [x] **O-033** Audit des dépendances (`npm audit` + Dependabot/Renovate) — _PRs automatiques hebdo_
 - [~] **O-034** Migrations Supabase testées en CI sur une base jetable (`supabase db reset` + tests RLS) 🆕 — _CI rouge si migration cassée_ (reste : brancher `supabase db reset` + tests en CI dès la première migration, étape 1.1)
-- [~] **O-035** Déploiement : preview par PR, prod uniquement depuis `main` — _vérifié_ (reste : lier le dépôt à Vercel, voir O-007)
+- [x] **O-035** Déploiement : preview par PR, prod uniquement depuis `main` — _vérifié_ (Vercel liée au dépôt sur la branche `main`, vérifié par @iSweat-exe)
 
 ## Étape 0.5 — Organisation multi-développeurs avec LLMs
 - [x] **O-040** `CLAUDE.md` (et `AGENTS.md` pointant vers le même contenu) à la racine : stack, commandes, conventions, interdits — _un LLM peut coder sans contexte oral_

@@ -5,17 +5,17 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 ## Points d'attention (pas des idées, des risques réels)
 | # | Sujet | Pourquoi c'est important |
 |---|---|---|
-| R1 | Vercel Hobby = **non commercial** | Si l'app est monétisée ou d'entreprise, il faut Pro (CGU Vercel). |
+| R1 | Vercel Hobby = **non commercial** | ✅ Accepté : l'app ne génère pas d'argent, Hobby suffit. |
 | R2 | 200 users simultanés = limite Realtime free tier | Zéro marge : prévoir 1 canal/client, dégradation gracieuse, voire polling pour le non-critique. |
 | R3 | Compression ≠ requêtable | On ne peut pas filtrer/indexer/protéger par RLS un champ compressé → à limiter aux gros blobs. |
-| R4 | Pas de backups fiables en free tier | Export régulier à planifier (O-073). |
-| R5 | E-mails d'auth très limités par défaut | SMTP custom indispensable avant l'ouverture publique (A-012). |
+| R4 | Pas de backups fiables en free tier | ✅ Accepté : pas de backup prévu, la perte de données est tolérée (O-073 reste une procédure best-effort). |
+| R5 | E-mails d'auth très limités par défaut | ✅ Accepté : aucune vérification d'e-mail prévue, risque toléré. |
 | R6 | Projet Supabase mis en pause si inactif | Ping périodique ou usage régulier. |
 
 ## Idées ajoutées (🆕)
 | ID | Idée | Décision |
 |---|---|---|
-| O-019 | i18n : aucun texte UI en dur | ☐ GARDER ☐ RETIRER |
+| O-019 | i18n : aucun texte UI en dur | ✅ GARDER, facultatif (non prioritaire) |
 | O-032 | Scan de secrets (gitleaks) en CI | ☐ GARDER ☐ RETIRER |
 | O-034 | Tests de migrations + RLS en CI | ☐ GARDER ☐ RETIRER |
 | O-045 | Bibliothèque de prompts/recettes LLM | ☐ GARDER ☐ RETIRER |
@@ -23,7 +23,7 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 | O-063 | Seuil de couverture de tests | ☐ GARDER ☐ RETIRER |
 | O-072 | Monitoring d'erreurs (Sentry free) | ☐ GARDER ☐ RETIRER |
 | O-073 | Procédure de backup/restauration | ☐ GARDER ☐ RETIRER |
-| A-013 | CAPTCHA + leaked password protection | ☐ GARDER ☐ RETIRER |
+| A-013 | CAPTCHA + leaked password protection | ❌ RETIRER (supprimé de la checklist) |
 | A-020 | Security Advisor Supabase à 0 warning | ☐ GARDER ☐ RETIRER |
 | A-036 | Overrides de permission par utilisateur | ☐ GARDER ☐ RETIRER |
 | A-039 | Audit log des changements de rôles | ☐ GARDER ☐ RETIRER |
@@ -35,11 +35,11 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 | A-097 | UI optimiste + indicateur de synchro | ☐ GARDER ☐ RETIRER |
 | A-106 | Rendu des messages par lots | ☐ GARDER ☐ RETIRER |
 | A-107 | Test de charge k6/Artillery | ☐ GARDER ☐ RETIRER |
-| A-112 | Accessibilité + Lighthouse | ☐ GARDER ☐ RETIRER |
+| A-112 | Accessibilité + Lighthouse | ✅ GARDER, facultatif (peu important) |
 | A-113 | RGPD : export/suppression de compte | ☐ GARDER ☐ RETIRER |
 
 ## Questions ouvertes
 1. Quels rôles exacts veux-tu (au-delà de `user`, `moderator`, `admin`, `super_admin`) ?
 2. Que sont les « messages » : chat temps réel, commentaires, messages privés ?
-3. L'app est-elle commerciale (impact sur Vercel Hobby) ?
-4. Langue de la documentation : français (actuel) ou anglais ? (les commentaires de code restent en anglais)
+3. L'app est-elle commerciale (impact sur Vercel Hobby) ? ✅ Non, elle ne génère pas d'argent (R1).
+4. Langue de la documentation : ✅ **français** ; commentaires de code en **anglais** (décidé).

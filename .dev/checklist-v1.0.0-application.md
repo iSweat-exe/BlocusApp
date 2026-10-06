@@ -18,7 +18,6 @@
 - [ ] **A-010** Supabase Auth via `@supabase/ssr` (cookies httpOnly, pas de token en localStorage) — _session SSR fonctionnelle_
 - [ ] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_
 - [ ] **A-012** SMTP custom configuré (limite e-mails du free tier) — _e-mails reçus_
-- [ ] **A-013** Politique de mot de passe + protection contre fuites (leaked password protection si dispo) + CAPTCHA (Turnstile/hCaptcha) sur signup/login 🆕 — _bots bloqués_
 - [ ] **A-014** Middleware Next.js : rafraîchit la session, protège les routes privées — _route privée inaccessible déconnecté_
 - [ ] **A-015** **RLS activée sur TOUTES les tables du schéma `public`**, politique « deny by default » — _test CI qui échoue si une table n'a pas RLS_
 - [ ] **A-016** Politiques RLS écrites par table (select/insert/update/delete séparées), avec `(select auth.uid())` pour la perf ⚡ — _tests pgTAP accès OK/KO_
@@ -122,7 +121,7 @@
 ## Étape 1.11 — Finalisation v1.0.0
 - [ ] **A-110** Revue sécurité complète (RLS, secrets, en-têtes, dépendances) 🔒 — _rapport signé_
 - [ ] **A-111** Documentation complète et à jour (README, architecture, permissions, DB, runbook) 📚 — _relecture par quelqu'un qui n'a pas écrit le code_
-- [ ] **A-112** Pages d'erreur, états de chargement, accessibilité de base (clavier, contrastes) 🆕 — _Lighthouse ≥ 90_
+- [ ] **A-112** _(facultatif, peu important)_ Pages d'erreur, états de chargement, accessibilité de base (clavier, contrastes) 🆕 — _Lighthouse ≥ 90_
 - [ ] **A-113** Pages légales/RGPD : politique de confidentialité, export et suppression des données utilisateur 🆕 🔒 — _suppression de compte fonctionnelle_
 - [ ] **A-114** Vérification des quotas free tier en conditions réelles (Supabase + Vercel dashboards) — _marge ≥ 20 %_
 - [ ] **A-115** Changelog + tag `v1.0.0` + release GitHub — _publié_
