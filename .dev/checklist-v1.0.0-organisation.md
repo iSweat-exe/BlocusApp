@@ -35,16 +35,16 @@
 - [x] **O-025** Template de PR (`.github/pull_request_template.md`) : description, lien issue, checklist (tests, docs, migration, RLS) — _affiché à chaque PR_
 - [x] **O-026** Templates d'issues (bug, feature, tâche LLM) + labels standards — _créés sur GitHub_
 - [x] **O-027** `CODEOWNERS` : les dossiers sensibles (`supabase/migrations`, auth, permissions) nécessitent un reviewer désigné 🔒 — _fichier actif_
-- [ ] **O-028** Versionnage SemVer + `CHANGELOG.md` généré (ex. `release-please` / `changesets`) — _tag `v1.0.0` à la fin_
+- [x] **O-028** Versionnage SemVer + `CHANGELOG.md` généré (ex. `release-please` / `changesets`) — _tag `v1.0.0` à la fin_ (workflow release-please ajouté : activer « Allow GitHub Actions to create pull requests » dans les réglages du dépôt)
 - [x] **O-029** Taille de PR recommandée (< ~400 lignes) et « 1 PR = 1 case de checklist » — _documenté_
 
 ## Étape 0.4 — CI/CD
-- [ ] **O-030** GitHub Actions : `lint`, `typecheck`, `test`, `build` à chaque PR — _bloque le merge si rouge_
-- [ ] **O-031** Vérification des commits/titres de PR au format Conventional Commits en CI — _CI rouge sinon_
-- [ ] **O-032** Scan de secrets (gitleaks) 🆕 🔒 — _CI rouge si secret détecté_
-- [ ] **O-033** Audit des dépendances (`npm audit` + Dependabot/Renovate) — _PRs automatiques hebdo_
+- [x] **O-030** GitHub Actions : `lint`, `typecheck`, `test`, `build` à chaque PR — _bloque le merge si rouge_
+- [x] **O-031** Vérification des commits/titres de PR au format Conventional Commits en CI — _CI rouge sinon_
+- [x] **O-032** Scan de secrets (gitleaks) 🆕 🔒 — _CI rouge si secret détecté_
+- [x] **O-033** Audit des dépendances (`npm audit` + Dependabot/Renovate) — _PRs automatiques hebdo_
 - [ ] **O-034** Migrations Supabase testées en CI sur une base jetable (`supabase db reset` + tests RLS) 🆕 — _CI rouge si migration cassée_
-- [ ] **O-035** Déploiement : preview par PR, prod uniquement depuis `main` — _vérifié_
+- [~] **O-035** Déploiement : preview par PR, prod uniquement depuis `main` — _vérifié_ (reste : lier le dépôt à Vercel, voir O-007)
 
 ## Étape 0.5 — Organisation multi-développeurs avec LLMs
 - [x] **O-040** `CLAUDE.md` (et `AGENTS.md` pointant vers le même contenu) à la racine : stack, commandes, conventions, interdits — _un LLM peut coder sans contexte oral_
