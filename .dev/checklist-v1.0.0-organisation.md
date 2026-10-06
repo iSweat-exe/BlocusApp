@@ -7,11 +7,11 @@
 
 ## Étape 0.1 — Initialisation du dépôt
 - [x] **O-001** Créer le dépôt GitHub (privé) et pousser le projet — _dépôt accessible à l'équipe_
-- [ ] **O-002** `git init`, branche par défaut `main`, `.gitignore` Node/Next/Vercel (`.env*` ignorés sauf `.env.example`) — _aucun secret versionné_
-- [ ] **O-003** Scaffold Next.js (App Router) + TypeScript strict + ESLint + Prettier — _`npm run build` passe_
+- [x] **O-002** `git init`, branche par défaut `main`, `.gitignore` Node/Next/Vercel (`.env*` ignorés sauf `.env.example`) — _aucun secret versionné_
+- [x] **O-003** Scaffold Next.js (App Router) + TypeScript strict + ESLint + Prettier — _`npm run build` passe_
 - [x] **O-004** Verrouiller les versions : `engines` dans `package.json`, `.nvmrc`, `package-lock.json` commité — _même version Node pour tous_
 - [x] **O-005** Scripts npm standard : `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `format` — _documentés dans le README_
-- [ ] **O-006** Fichier `.env.example` listant toutes les variables (sans valeurs) — _onboarding sans question_
+- [x] **O-006** Fichier `.env.example` listant toutes les variables (sans valeurs) — _onboarding sans question_
 - [ ] **O-007** Créer les projets Supabase (dev + prod) et Vercel, lier Vercel ↔ GitHub — _preview deploy sur chaque PR_
 
 ## Étape 0.2 — Conventions de code (stack Next.js / React / TypeScript)
@@ -61,8 +61,8 @@
 - [x] **O-051** `docs/` structuré : `architecture.md`, `conventions.md`, `database.md`, `permissions.md`, `security.md`, `runbook.md` — _squelettes créés_
 - [x] **O-052** ADR (Architecture Decision Records) dans `docs/adr/` pour chaque décision structurante 🆕 — _modèle + ADR-001 « choix de la stack »_
 - [x] **O-053** Règle « pas de PR sans doc » : si le comportement, le schéma ou une permission change → doc modifiée dans la **même PR** — _case dans le template de PR_
-- [ ] **O-054** Doc auto-générée quand possible : types Supabase (`supabase gen types`), schéma de BDD, liste des permissions — _script `npm run docs:gen`_
-- [ ] **O-055** Vérification en CI que les types/doc générés sont à jour (diff = échec) — _CI rouge si doc périmée_
+- [ ] **O-054** Doc auto-générée quand possible : types Supabase (`supabase gen types`), schéma de BDD, liste des permissions — _script `npm run docs:gen`_ (reporté à l'étape 1.1 : nécessite le schéma et la CLI Supabase)
+- [ ] **O-055** Vérification en CI que les types/doc générés sont à jour (diff = échec) — _CI rouge si doc périmée_ (reporté à l'étape 1.1, avec O-054)
 - [x] **O-056** TSDoc (en anglais) sur toutes les fonctions publiques des couches `lib/` et `server/` — _règle ESLint `jsdoc` ou revue_
 
 ## Étape 0.7 — Qualité & tests
