@@ -6,7 +6,7 @@
 ---
 
 ## Étape 0.1 — Initialisation du dépôt
-- [ ] **O-001** Créer le dépôt GitHub (privé) et pousser le projet — _dépôt accessible à l'équipe_
+- [x] **O-001** Créer le dépôt GitHub (privé) et pousser le projet — _dépôt accessible à l'équipe_
 - [ ] **O-002** `git init`, branche par défaut `main`, `.gitignore` Node/Next/Vercel (`.env*` ignorés sauf `.env.example`) — _aucun secret versionné_
 - [ ] **O-003** Scaffold Next.js (App Router) + TypeScript strict + ESLint + Prettier — _`npm run build` passe_
 - [x] **O-004** Verrouiller les versions : `engines` dans `package.json`, `.nvmrc`, `package-lock.json` commité — _même version Node pour tous_
@@ -73,9 +73,9 @@
 
 ## Étape 0.8 — Sécurité & opérations de base
 - [x] **O-070** Gestion des secrets : variables Vercel + `.env.local` ; rotation documentée — _`runbook.md`_
-- [ ] **O-071** En-têtes de sécurité (CSP, HSTS, X-Frame-Options…) dans `next.config` 🔒 — _vérifié avec un scanner_
-- [ ] **O-072** Monitoring minimal des erreurs (Sentry free tier ou logs Vercel) 🆕 — _erreur de test remontée_
-- [ ] **O-073** Procédure de backup/restauration (le free tier n'a pas de backup auto fiable → export régulier) 🆕 🔒 — _testée une fois_
+- [x] **O-071** En-têtes de sécurité (CSP, HSTS, X-Frame-Options…) dans `next.config` 🔒 — _vérifié avec un scanner_ (vérifié par test E2E ; scanner externe à passer après le premier déploiement)
+- [~] **O-072** Monitoring minimal des erreurs (Sentry free tier ou logs Vercel) 🆕 — _erreur de test remontée_ (error boundaries en place ; décision Sentry : voir ADR-0003)
+- [~] **O-073** Procédure de backup/restauration (le free tier n'a pas de backup auto fiable → export régulier) 🆕 🔒 — _testée une fois_ (procédure écrite dans `docs/runbook.md` ; test de restauration à faire après la 1ère migration)
 
 ---
 

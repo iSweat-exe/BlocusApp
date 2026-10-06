@@ -26,3 +26,13 @@ Ne pas ouvrir d'issue publique : contacter directement les mainteneurs.
 ## Revue avant release
 
 Checklist A-110 : RLS, secrets, en-têtes, dépendances (`npm audit`), Security Advisor Supabase à 0 warning.
+
+## Limites connues de la CSP (suivi)
+
+- `script-src` autorise `'unsafe-inline'` car Next.js injecte des scripts inline ; passer à des **nonces**
+  rendrait toutes les pages dynamiques (perte du cache statique). À réévaluer avant la v1.0.0.
+- Les tuiles de carte, l'analytics et toute autre origine externe sont **bloqués par défaut** : les ajouter
+  explicitement dans `next.config.ts` (`img-src`, `connect-src`…) avec la PR qui les introduit.
+- Après le premier déploiement, passer l'URL de production dans un scanner d'en-têtes
+  (https://securityheaders.com) et consigner le résultat ici.
+- HSTS est envoyé sans `preload` : n'ajouter `preload` qu'après décision explicite (difficile à annuler).

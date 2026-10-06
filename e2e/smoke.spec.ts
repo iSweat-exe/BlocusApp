@@ -43,3 +43,24 @@ test.describe("PWA and SEO files", () => {
     expect(await (await request.get("/sitemap.xml")).text()).toContain("/login");
   });
 });
+
+test.describe("security headers", () => {
+  test("sends the baseline security headers", async ({ request }) => {
+    const headers = (await request.get("/login")).headers();
+    expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    expect(headers["x-frame-options"]).toBe("DENY");
+    expect(headers["referrer-policy"]).toBeTruthy();
+    expect(headers["strict-transport-security"]).toContain("max-age=");
+  });
+
+  test("renders pages without CSP violations", async ({ page }) => {
+    const violations: string[] = [];
+    page.on("console", (message) => {
+      if (message.text().includes("Content Security Policy")) violations.push(message.text());
+    });
+    await page.goto("/login");
+    await page.goto("/messages");
+    expect(violations).toEqual([]);
+  });
+});
