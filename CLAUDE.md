@@ -59,6 +59,9 @@ npm run build        # production build
 - Never disable or bypass RLS. Never edit an existing migration: add a new one.
 - Never use `--no-verify`, never force-push, never rewrite history on shared branches.
 - Never run destructive commands (drop, truncate, mass delete) against a real Supabase project.
+- Never run `npm audit fix --force` (it downgrades `eslint-config-next` to a breaking version and breaks
+  ESLint). Audit findings on dev-only tooling are handled by Dependabot; CI only blocks on production
+  dependencies (`npm audit --omit=dev --audit-level=high`).
 - Never change branch protection, CI secrets or deployment settings.
 - Never push to `main` once branch protection is enabled: open a PR.
 
