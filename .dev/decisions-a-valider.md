@@ -40,8 +40,7 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 
 ## Décisions d'authentification
 - Pas d'authentification e-mail/mot de passe (trop complexe pour notre infra) : pas de « mot de passe oublié », un utilisateur qui perd son accès recrée un compte.
-- Fournisseurs privilégiés : **Google, Discord et Instagram** (OAuth).
-- ⚠️ À vérifier avant A-011 : Supabase Auth gère nativement Google et Discord ; Instagram n'est pas un fournisseur natif (il passe par Meta/Facebook ou un OIDC personnalisé).
+- Fournisseurs : **Google et Discord** (OAuth, natifs dans Supabase Auth). Instagram est abandonné (trop complexe à implémenter).
 
 ## Questions ouvertes
 1. Quels rôles exacts veux-tu (au-delà de `user`, `moderator`, `admin`, `super_admin`) ?
