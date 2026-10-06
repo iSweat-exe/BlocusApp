@@ -15,7 +15,7 @@
 | Supabase DB | ~500 Mo | La compression des données utile ; prévoir purge/archivage. |
 | Supabase DB | connexions directes limitées | Passer par le pooler (Supavisor), jamais de connexion par requête serverless. |
 | Supabase projet | mise en pause après ~1 semaine d'inactivité | Prévoir un ping/cron (attention au quota Vercel Cron). |
-| Supabase Auth | e-mails SMTP par défaut très limités | Configurer un SMTP custom (Resend, Brevo…) avant toute ouverture publique. |
+| Supabase Auth | e-mails SMTP par défaut très limités | Aucun e-mail envoyé : pas de SMTP custom, pas de vérification d'e-mail (R5). |
 | Vercel Hobby | **usage non commercial uniquement** | Si l'app est commerciale / monétisée → plan Pro obligatoire (CGU). |
 | Vercel Hobby | durée de fonction, bande passante, invocations plafonnées | Cache + batch pour limiter les invocations. |
 

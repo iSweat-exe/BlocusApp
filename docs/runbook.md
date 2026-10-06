@@ -32,21 +32,11 @@ dev et prod ; ne jamais pointer une preview vers la base de production.
 Uniquement par migration SQL ou SQL manuel exécuté par un mainteneur, jamais via l'UI publique. Procédure
 détaillée à écrire à l'étape 1.4 (A-059).
 
-## Sauvegarde et restauration (O-073)
+## Sauvegarde et restauration
 
-L'offre gratuite de Supabase n'offre pas de sauvegarde automatique fiable : planifier un export régulier.
-
-```bash
-# Export complet (remplacer l'URI par la chaîne de connexion du POOLER, jamais commitée)
-pg_dump "$SUPABASE_DB_URL" --no-owner --format=custom --file=backup-YYYY-MM-DD.dump
-
-# Restauration vers une base VIERGE de test
-pg_restore --no-owner --dbname="$TARGET_DB_URL" backup-YYYY-MM-DD.dump
-```
-
-- Stocker les dumps hors du dépôt, chiffrés.
-- Fréquence recommandée : hebdomadaire, plus une avant chaque migration risquée.
-- **À faire** : tester une restauration complète une fois le schéma initial en place (étape 1.1).
+**Aucune sauvegarde n'est prévue** (décision R4, voir `.dev/decisions-a-valider.md`) : une perte de
+données est tolérée. Cloudflare R2 (free tier) pourrait héberger des exports `pg_dump` si le besoin
+apparaît, mais cela reste hors périmètre v1.0.0.
 
 ## Projet Supabase en pause
 

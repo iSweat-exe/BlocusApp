@@ -75,7 +75,6 @@
 - [x] **O-070** Gestion des secrets : variables Vercel + `.env.local` ; rotation documentée — _`runbook.md`_
 - [x] **O-071** En-têtes de sécurité (CSP, HSTS, X-Frame-Options…) dans `next.config` 🔒 — _vérifié avec un scanner_ (vérifié par test E2E ; scanner externe à passer après le premier déploiement)
 - [~] **O-072** Monitoring minimal des erreurs (Sentry free tier ou logs Vercel) 🆕 — _erreur de test remontée_ (error boundaries en place ; décision Sentry : voir ADR-0003)
-- [~] **O-073** Procédure de backup/restauration (le free tier n'a pas de backup auto fiable → export régulier) 🆕 🔒 — _testée une fois_ (procédure écrite dans `docs/runbook.md` ; test de restauration à faire après la 1ère migration)
 
 ---
 
@@ -83,4 +82,4 @@
 Un nouveau développeur (ou LLM) clone le dépôt, lance `npm install && npm run dev`, ouvre une PR conforme, la CI passe, et il n'a posé aucune question sur les conventions.
 
 ## Backlog (hors v1.0.0)
-_(vide — y noter toute idée qui déborde)_
+- Sauvegardes optionnelles (`pg_dump` vers Cloudflare R2, free tier ~10 Go) : techniquement possible, **aucune sauvegarde prévue** pour v1.0.0 (R4).

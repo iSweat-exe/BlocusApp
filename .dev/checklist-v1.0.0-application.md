@@ -16,8 +16,7 @@
 
 ## Étape 1.2 — Authentification sécurisée 🔒
 - [ ] **A-010** Supabase Auth via `@supabase/ssr` (cookies httpOnly, pas de token en localStorage) — _session SSR fonctionnelle_
-- [ ] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_
-- [ ] **A-012** SMTP custom configuré (limite e-mails du free tier) — _e-mails reçus_
+- [ ] **A-011** Inscription / connexion / déconnexion / mot de passe oublié (sans vérification d'e-mail, voir R5) — _parcours E2E OK_
 - [ ] **A-014** Middleware Next.js : rafraîchit la session, protège les routes privées — _route privée inaccessible déconnecté_
 - [ ] **A-015** **RLS activée sur TOUTES les tables du schéma `public`**, politique « deny by default » — _test CI qui échoue si une table n'a pas RLS_
 - [ ] **A-016** Politiques RLS écrites par table (select/insert/update/delete séparées), avec `(select auth.uid())` pour la perf ⚡ — _tests pgTAP accès OK/KO_

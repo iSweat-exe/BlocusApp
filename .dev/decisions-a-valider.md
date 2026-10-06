@@ -8,8 +8,8 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 | R1 | Vercel Hobby = **non commercial** | ✅ Accepté : l'app ne génère pas d'argent, Hobby suffit. |
 | R2 | 200 users simultanés = limite Realtime free tier | Zéro marge : prévoir 1 canal/client, dégradation gracieuse, voire polling pour le non-critique. |
 | R3 | Compression ≠ requêtable | On ne peut pas filtrer/indexer/protéger par RLS un champ compressé → à limiter aux gros blobs. |
-| R4 | Pas de backups fiables en free tier | ✅ Accepté : pas de backup prévu, la perte de données est tolérée (O-073 reste une procédure best-effort). |
-| R5 | E-mails d'auth très limités par défaut | ✅ Accepté : aucune vérification d'e-mail prévue, risque toléré. |
+| R4 | Pas de backups fiables en free tier | ✅ Accepté : pas de backup prévu, la perte de données est tolérée (O-073 retiré, aucune sauvegarde prévue ; Cloudflare R2 possible en théorie, hors périmètre). |
+| R5 | E-mails d'auth très limités par défaut | ✅ Accepté : aucune vérification d'e-mail prévue, risque toléré. Pas de SMTP : A-012 retiré, A-011 sans vérification d'e-mail. |
 | R6 | Projet Supabase mis en pause si inactif | Ping périodique ou usage régulier. |
 
 ## Idées ajoutées (🆕)
@@ -22,7 +22,7 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 | O-052 | ADR (journal des décisions d'architecture) | ☐ GARDER ☐ RETIRER |
 | O-063 | Seuil de couverture de tests | ☐ GARDER ☐ RETIRER |
 | O-072 | Monitoring d'erreurs (Sentry free) | ☐ GARDER ☐ RETIRER |
-| O-073 | Procédure de backup/restauration | ☐ GARDER ☐ RETIRER |
+| O-073 | Procédure de backup/restauration | ❌ RETIRER (aucune sauvegarde prévue) |
 | A-013 | CAPTCHA + leaked password protection | ❌ RETIRER (supprimé de la checklist) |
 | A-020 | Security Advisor Supabase à 0 warning | ☐ GARDER ☐ RETIRER |
 | A-036 | Overrides de permission par utilisateur | ☐ GARDER ☐ RETIRER |
