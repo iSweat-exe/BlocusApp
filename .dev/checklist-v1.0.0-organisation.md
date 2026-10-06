@@ -9,14 +9,14 @@
 - [ ] **O-001** Créer le dépôt GitHub (privé) et pousser le projet — _dépôt accessible à l'équipe_
 - [ ] **O-002** `git init`, branche par défaut `main`, `.gitignore` Node/Next/Vercel (`.env*` ignorés sauf `.env.example`) — _aucun secret versionné_
 - [ ] **O-003** Scaffold Next.js (App Router) + TypeScript strict + ESLint + Prettier — _`npm run build` passe_
-- [ ] **O-004** Verrouiller les versions : `engines` dans `package.json`, `.nvmrc`, `package-lock.json` commité — _même version Node pour tous_
-- [ ] **O-005** Scripts npm standard : `dev`, `build`, `lint`, `typecheck`, `test`, `format` — _documentés dans le README_
+- [x] **O-004** Verrouiller les versions : `engines` dans `package.json`, `.nvmrc`, `package-lock.json` commité — _même version Node pour tous_
+- [~] **O-005** Scripts npm standard : `dev`, `build`, `lint`, `typecheck`, `format` faits ; `test` après O-060 — _documentés dans le README_
 - [ ] **O-006** Fichier `.env.example` listant toutes les variables (sans valeurs) — _onboarding sans question_
 - [ ] **O-007** Créer les projets Supabase (dev + prod) et Vercel, lier Vercel ↔ GitHub — _preview deploy sur chaque PR_
 
 ## Étape 0.2 — Conventions de code (stack Next.js / React / TypeScript)
-- [ ] **O-010** TypeScript `strict: true`, `noUncheckedIndexedAccess`, interdiction de `any` (règle ESLint) — _CI échoue sinon_
-- [ ] **O-011** Config ESLint (`next/core-web-vitals`, `typescript-eslint`, règles hooks) + Prettier — _format auto à la sauvegarde_
+- [x] **O-010** TypeScript `strict: true`, `noUncheckedIndexedAccess`, interdiction de `any` (règle ESLint) — _CI échoue sinon_
+- [x] **O-011** Config ESLint (`next/core-web-vitals`, `typescript-eslint`, règles hooks) + Prettier — _format auto à la sauvegarde_
 - [ ] **O-012** Règles de nommage : fichiers `kebab-case`, composants `PascalCase`, hooks `useXxx`, constantes `UPPER_SNAKE_CASE` — _documenté dans `docs/conventions.md`_
 - [ ] **O-013** Structure de dossiers figée (ex. `src/app`, `src/features/<domaine>`, `src/lib`, `src/server`, `supabase/migrations`) — _schéma dans la doc_
 - [ ] **O-014** Règle Server Components par défaut ; `"use client"` uniquement si nécessaire — _documenté_
@@ -28,8 +28,8 @@
 
 ## Étape 0.3 — Convention Git & GitHub
 - [ ] **O-020** Adopter **Conventional Commits** : `type(scope): description` (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`, `build`) — _documenté avec exemples_
-- [ ] **O-021** `commitlint` + `husky` : hook `commit-msg` qui rejette les messages invalides — _commit non conforme impossible_
-- [ ] **O-022** Hook `pre-commit` (`lint-staged` : lint + prettier + typecheck rapide) — _rapide (< 10 s)_
+- [x] **O-021** `commitlint` + `husky` : hook `commit-msg` qui rejette les messages invalides — _commit non conforme impossible_
+- [x] **O-022** Hook `pre-commit` (`lint-staged` : lint + prettier + typecheck rapide) — _rapide (< 10 s)_
 - [ ] **O-023** Stratégie de branches : `main` (protégée, = prod), `develop` optionnel, branches `feat/…`, `fix/…`, `docs/…`, `chore/…` — _nommage documenté_
 - [ ] **O-024** Protection de `main` : PR obligatoire, 1 review min, CI verte, pas de force-push, historique linéaire (squash merge) — _réglages GitHub appliqués_
 - [ ] **O-025** Template de PR (`.github/pull_request_template.md`) : description, lien issue, checklist (tests, docs, migration, RLS) — _affiché à chaque PR_
