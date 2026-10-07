@@ -43,7 +43,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/calendar`   | Calendrier (jours et détails)            | Lecture : Guest ; écriture : autorisés     |
 | `(app)`  | `/map`        | Carte (tracé, position de la manifestation) | Lecture : Guest ; édition : gérants     |
 
-`/messages` n'existe pas publiquement (retrait : A-128).
+`/messages` n'existe pas (route supprimée, A-128) : la communication passe par Instagram. Messagerie = Backlog.
 
 ## Authentification (OAuth Discord)
 

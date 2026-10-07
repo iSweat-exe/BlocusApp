@@ -109,14 +109,14 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [ ] **A-108** Les utilisateurs mute/ban sont filtrés **avant** la file (économie de charge) — _vérifié_
 
 ## Étape 1.9 — Pages de l’application (squelette + contenu)
-> Squelette déjà en place : groupes de routes `(auth)` (`/login`, `/register`) et `(app)` (`/`, `/messages`, `/calendar`, `/map`) avec barre de navigation mobile. `/messages` doit disparaître (A-128).
+> Squelette déjà en place : groupes de routes `(auth)` (`/login`, `/register`) et `(app)` (`/`, `/calendar`, `/map`) avec barre de navigation mobile (3 onglets ; `/messages` supprimée, A-128).
 
 - [x] **A-120** Squelette des routes et navigation basse (mobile-first, safe-area iOS) — _`npm run build` génère les 6 routes_
 - [ ] **A-121** Garde d’accès : `(app)` en lecture seule pour un Guest (A-022), actions d'écriture redirigées vers `/login` ; `(auth)` redirige vers `/` si déjà connecté 🔒 — _testé E2E_
 - [ ] **A-122** Login / Register : formulaires, validation (Zod), erreurs par champ, états de chargement — _parcours E2E OK_
 - [~] **A-123a** Table `announcements` + RLS (lecture Guest, écriture `announcement.publish` / `announcement.delete`) + tests pgTAP — _fait, reste la PR de l'UI_
 - [~] **A-123b** **Accueil** : fil des **dernières actualités** (annonces…), plus récentes en premier ; publication réservée aux personnes autorisées (`announcement.publish`) ; lecture ouverte au Guest — _données issues du cache (1.6)_
-- [ ] **A-128** Retirer `/messages` : route supprimée (404) et onglet retiré de `src/components/app-nav.tsx` (+ test `app-nav.test.tsx`) — _`npm run build` sans `/messages`, 3 onglets_
+- [~] **A-128** Retirer `/messages` : route supprimée (404) et onglet retiré de `src/components/app-nav.tsx` (+ test `app-nav.test.tsx`) — _`npm run build` sans `/messages`, 3 onglets_
 - [ ] **A-125** **Calendrier** : vue par jour + détail d’un événement — _lecture cachée, écriture protégée par permissions_
 - [ ] **A-126** **Carte** : choix de la lib de carte via ADR (Leaflet/OSM gratuit vs Mapbox/Google, quotas, édition tactile) 🆕 — _ADR validé_
 - [ ] **A-126a** Affichage du **tracé des déplacements** (polyline / GeoJSON) sur la carte 🆕 — _tracé visible, lecture cachée (1.6)_

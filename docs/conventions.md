@@ -22,7 +22,7 @@ affichés à l'utilisateur sont en français pour l'instant (décision i18n en a
 ```
 src/app/<group>/<route>/page.tsx   Routes ; groupes (auth) et (app)
 src/components/                    Composants UI partagés (sans logique métier)
-src/features/<domaine>/            Composants, hooks, actions d'un domaine (messages, calendar, map…)
+src/features/<domaine>/            Composants, hooks, actions d'un domaine (announcements, calendar, map…)
 src/lib/                           Code partagé (supabase/, data/, compression/, validation/, utils)
 src/server/                        Code strictement serveur (service_role, jobs)
 supabase/migrations/               Migrations SQL (créé à l'étape 1.1)
