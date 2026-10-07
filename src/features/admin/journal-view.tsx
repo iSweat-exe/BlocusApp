@@ -79,14 +79,18 @@ export async function JournalView({ params }: { params: JournalParams }) {
 
       <nav aria-label="Pagination du journal" className="flex justify-between text-sm">
         {params.before ? (
-          <Link href={journalHref(params.action)} className="underline">
+          <Link href={journalHref(params.action)} prefetch={false} className="underline">
             ← Plus récentes
           </Link>
         ) : (
           <span />
         )}
         {page.value.nextCursor && (
-          <Link href={journalHref(params.action, page.value.nextCursor)} className="underline">
+          <Link
+            href={journalHref(params.action, page.value.nextCursor)}
+            prefetch={false}
+            className="underline"
+          >
             Plus anciennes →
           </Link>
         )}

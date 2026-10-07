@@ -48,6 +48,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
       <div className="flex items-center justify-between">
         <Link
           href={href(shiftMonth(month, -1))}
+          prefetch={false}
           aria-label="Mois précédent"
           className="flex h-11 w-11 items-center justify-center rounded-full text-xl active:bg-foreground/10"
         >
@@ -58,13 +59,18 @@ export async function CalendarView({ month, day }: { month: string; day: string 
             {formatMonthLabel(month)}
           </h2>
           {monthKeyOf(today) !== month && (
-            <Link href={href(monthKeyOf(today), today)} className="text-xs underline">
+            <Link
+              href={href(monthKeyOf(today), today)}
+              prefetch={false}
+              className="text-xs underline"
+            >
               Aujourd&apos;hui
             </Link>
           )}
         </div>
         <Link
           href={href(shiftMonth(month, 1))}
+          prefetch={false}
           aria-label="Mois suivant"
           className="flex h-11 w-11 items-center justify-center rounded-full text-xl active:bg-foreground/10"
         >
@@ -103,6 +109,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
                   key={cell.key}
                   role="gridcell"
                   href={href(month, cell.key)}
+                  prefetch={false}
                   aria-selected={isSelected}
                   aria-current={isToday ? "date" : undefined}
                   aria-label={`${formatDayKeyLong(cell.key)}${count ? `, ${count} événement${count > 1 ? "s" : ""}` : ""}`}

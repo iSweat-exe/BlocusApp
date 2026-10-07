@@ -49,6 +49,13 @@ const nextConfig: NextConfig = {
     return [
       { source: "/:path*", headers: securityHeaders },
       {
+        // Icons change rarely: let the browser and the CDN keep them instead of revalidating on every load.
+        source: "/icons/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" },
+        ],
+      },
+      {
         // The service worker must never be cached by the browser/CDN so updates apply quickly.
         source: "/sw.js",
         headers: [
