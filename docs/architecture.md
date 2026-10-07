@@ -25,16 +25,25 @@ Supabase
 4. **Aucun secret côté client** : `SUPABASE_SERVICE_ROLE_KEY` uniquement dans `src/server/`.
 5. Contraintes des offres gratuites : voir [`.dev/constraints.md`](../.dev/constraints.md).
 
+## Vision produit
+
+Gestion d'une manifestation dans une ville X : carte avec tracé des déplacements (éditable sur mobile,
+outils pour les gérants dont la déclaration de la position actuelle : GPS + heure), accueil = dernières
+actualités publiées par les personnes autorisées. Connexion Discord / Google ou mode Guest (lecture seule).
+Pas de messagerie pour l'instant (communication via Instagram). Notifications push PWA iOS/Android :
+priorité après l'authentification (A-135).
+
 ## Routes
 
-| Groupe   | Route         | Contenu                          | Accès                  |
-| -------- | ------------- | -------------------------------- | ---------------------- |
-| `(auth)` | `/login`      | Connexion                        | Public                 |
-| `(auth)` | `/register`   | Inscription                      | Public                 |
-| `(app)`  | `/`           | Accueil (récap / dashboard)      | Connecté (à implémenter) |
-| `(app)`  | `/messages`   | Messagerie (MP / groupes)        | Connecté               |
-| `(app)`  | `/calendar`   | Calendrier (jours et détails)    | Connecté               |
-| `(app)`  | `/map`        | Carte (infos positions manifs)   | Connecté               |
+| Groupe   | Route         | Contenu                                  | Accès                                      |
+| -------- | ------------- | ---------------------------------------- | ------------------------------------------ |
+| `(auth)` | `/login`      | Connexion (Discord, Google)              | Public                                     |
+| `(auth)` | `/register`   | Inscription                              | Public                                     |
+| `(app)`  | `/`           | Accueil (actualités)                     | Lecture : Guest ; publication : autorisés  |
+| `(app)`  | `/calendar`   | Calendrier (jours et détails)            | Lecture : Guest ; écriture : autorisés     |
+| `(app)`  | `/map`        | Carte (tracé, position de la manifestation) | Lecture : Guest ; édition : gérants     |
+
+`/messages` n'existe pas publiquement (retrait : A-128).
 
 ## PWA
 

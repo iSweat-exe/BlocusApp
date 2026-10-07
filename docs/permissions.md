@@ -17,11 +17,15 @@
 
 | Rôle          | Description                          |
 | ------------- | ------------------------------------ |
+| `guest`       | Non connecté (`anon`) : lecture seule, aucune interaction |
 | `user`        | Utilisateur standard                 |
+| `manager`     | Gérant de la manifestation (nom à valider) : annonces, tracé, position |
 | `moderator`   | Modération (mute, suppression)       |
 | `admin`       | Administration                       |
 | `super_admin` | Développeurs : contrôle total        |
 
 ## Catalogue des permissions
+
+Permissions déjà identifiées : `announcement.publish`, `map.route.edit`, `map.position.declare`.
 
 _À écrire : un tableau `permission × rôle` (source de vérité), généré depuis la base si possible._
