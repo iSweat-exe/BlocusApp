@@ -53,7 +53,9 @@ priorité après l'authentification (A-135).
 ## Authentification (OAuth Discord)
 
 `src/proxy.ts` rafraîchit les cookies de session (`updateSession`) sans jamais rediriger (le Guest lit).
-`/login` → Server Action `signInWithDiscord` (`src/features/auth/actions.ts`) → Discord → Supabase →
+`/login` → lien `<a href="/auth/login/discord">` → Route Handler GET (`src/app/auth/login/discord/route.ts`,
+posé du verifier PKCE puis redirection vers Supabase → Discord ; un simple lien fonctionne sans JavaScript, avant
+l'hydratation et dans une PWA installée) → Discord → Supabase →
 `/auth/callback` (Route Handler : échange PKCE `code` → session en cookies httpOnly, `next` validé par
 `safeRedirectPath`) → retour à l'app. `signOut` termine la session. Google = même flux, autre `provider`.
 

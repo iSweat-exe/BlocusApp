@@ -48,6 +48,18 @@ test.describe("app shell", () => {
     await page.waitForURL("**/login");
   });
 
+  test("the Discord login link redirects to the OAuth provider without JavaScript", async ({
+    request,
+  }) => {
+    const response = await request.get("/auth/login/discord", { maxRedirects: 0 });
+    expect(response.status()).toBe(307);
+    const location = new URL(response.headers()["location"] ?? "");
+    expect(location.pathname).toBe("/auth/v1/authorize");
+    expect(location.searchParams.get("provider")).toBe("discord");
+    // The PKCE verifier cookie travels with the redirect.
+    expect(response.headers()["set-cookie"]).toContain("code-verifier");
+  });
+
   test("sends Guests away from the profile page", async ({ page }) => {
     await page.goto("/profil");
     await page.waitForURL("**/login");
@@ -57,7 +69,9 @@ test.describe("app shell", () => {
   test("serves the public auth pages", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Continuer avec Discord" })).toBeVisible();
+    const discordLink = page.getByRole("link", { name: "Continuer avec Discord" });
+    await expect(discordLink).toBeVisible();
+    await expect(discordLink).toHaveAttribute("href", "/auth/login/discord");
     await page.goto("/register");
     await expect(page.getByRole("heading", { name: "Inscription" })).toBeVisible();
   });

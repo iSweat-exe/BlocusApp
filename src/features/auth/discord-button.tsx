@@ -1,26 +1,14 @@
-"use client";
-
-import { useFormStatus } from "react-dom";
-import { signInWithDiscord } from "./actions";
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="w-full rounded-lg bg-[#5865F2] px-4 py-3 font-medium text-white disabled:opacity-60"
-    >
-      {pending ? "Redirection…" : "Continuer avec Discord"}
-    </button>
-  );
-}
-
-/** "Continue with Discord" form wired to the `signInWithDiscord` Server Action. */
+/**
+ * "Continue with Discord" button. A plain `<a>` (not `next/link`, which would prefetch it and start an
+ * OAuth flow) pointing at the GET route that redirects to Discord: no JavaScript needed.
+ */
 export function DiscordButton() {
   return (
-    <form action={signInWithDiscord}>
-      <SubmitButton />
-    </form>
+    <a
+      href="/auth/login/discord"
+      className="block w-full rounded-lg bg-[#5865F2] px-4 py-3 text-center font-medium text-white"
+    >
+      Continuer avec Discord
+    </a>
   );
 }
