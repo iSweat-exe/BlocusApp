@@ -87,6 +87,14 @@ Overrides de permission par utilisateur (migration `20261007180000_permission_ma
 `set_user_permission()`. Fonctions : `effective_permissions(uuid)` (interne), `has_permission` et
 `custom_access_token_hook` (réécrits pour l'utiliser), `set_role_permission`, `set_user_permission`.
 
+### `moderation_actions`
+
+Sanctions (migration `20261007190000_create_bans.sql`) : `id`, `target_id` (sans FK : l'historique survit au
+compte), `kind` (`ban` | `mute`), `reason` (1-500), `created_by`, `created_at`, `expires_at` (null =
+permanent, doit être > `created_at`), `revoked_at`, `revoked_by`. Index `(target_id, created_at desc)` et
+`(created_at desc, id desc)`. RLS : lecture avec `user.ban` ou `user.mute` ; écriture via `ban_user()` et
+`revoke_sanction()` uniquement. `is_banned(uuid)` (interne) est utilisée par `effective_permissions` et le hook JWT.
+
 ## Développement local
 
 Docker requis. Les secrets Discord locaux viennent de l'environnement (`.env.example`).

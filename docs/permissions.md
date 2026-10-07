@@ -83,4 +83,13 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   `hierarchy_violation`, `privilege_escalation` (42501) ; `unknown_role`/`unknown_permission`/`unknown_user`/
   `invalid_effect` (22023). Chaque changement est journalisé (`role_permission.granted|revoked`,
   `user_permission.granted|denied|cleared`). Les claims suivent au prochain refresh du token (≤ 1 h).
+- **Bans (A-051, A-053, A-054)** (migration `20261007190000_...`) : `ban_user(cible, motif, expiration|null)`
+  (permission `user.ban`, rang strictement inférieur, jamais soi-même, motif 1-500 caractères, expiration
+  future, pas de double ban) et `revoke_sanction(id)` (lever avant terme ; `user.ban` pour un ban, `user.mute`
+  pour un mute). **Actif = non révoqué et non expiré, évalué à la lecture** (pas de cron). Un banni n'a
+  **aucune permission** (`effective_permissions` vide), ses sessions et refresh tokens sont supprimés, et le
+  hook JWT refuse de lui émettre un token (403 `account_banned`) tant que le ban est actif. Erreurs :
+  `forbidden`, `hierarchy_violation` (42501) ; `invalid_reason`, `invalid_expiry`, `unknown_user`,
+  `unknown_sanction`, `not_active` (22023) ; `already_banned` (23505). Journalisé : `user.banned`,
+  `sanction.revoked`. Le **mute** n'a pas encore de fonction : la table accepte déjà `kind = 'mute'`.
 - Reste à faire : hiérarchie pour ban/mute (A-051/A-052), audit (A-039), usage de `requirePermission` dans les futures actions.

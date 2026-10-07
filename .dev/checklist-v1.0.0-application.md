@@ -55,10 +55,10 @@ L'application sert à **gérer une manifestation dans une ville X** :
 
 ## Étape 1.4 — Contrôle total des Admins absolus (développeurs) 🔒
 - [ ] **A-050** Rôle `super_admin` : toutes les permissions, non retirables par un autre rôle — _verrou en BDD_
-- [ ] **A-051** **Bannissement** ciblé : durée (temporaire/permanent), raison, bannissement effectif immédiat (révocation des sessions + blocage RLS) — _user banni déconnecté et bloqué_
+- [~] **A-051** **Bannissement** ciblé : durée (temporaire/permanent), raison, bannissement effectif immédiat (révocation des sessions + blocage RLS) — _user banni déconnecté et bloqué_ (BDD faite ; reste l'UI)
 - [ ] **A-052** **Mute** ciblé : durée + raison, bloque l'envoi de messages mais pas la lecture — _vérifié côté BDD_
-- [ ] **A-053** Expiration automatique des sanctions temporaires (vérif à la lecture, pas de cron lourd) ⚡ — _sanction expirée = levée_
-- [ ] **A-054** Levée manuelle d'une sanction + historique complet — _audit_
+- [~] **A-053** Expiration automatique des sanctions temporaires (vérif à la lecture, pas de cron lourd) ⚡ — _sanction expirée = levée_ (BDD faite ; reste l'UI)
+- [~] **A-054** Levée manuelle d'une sanction + historique complet — _audit_ (BDD faite ; reste l'UI)
 - [~] **A-055** Panneau admin `/admin` : liste/recherche des users et changement de rôle (fait, accès `role.assign` = admin et super_admin) ; reste : sanctions, logs — _accès sans permission = 404_
 - [ ] **A-056** Actions supplémentaires : suspendre/supprimer un compte, forcer la déconnexion, reset du profil (pseudo/avatar), shadow-ban 🆕 — _à GARDER ou RETIRER_
 - [ ] **A-057** Mode « maintenance / lecture seule globale » activable par un admin (kill switch) 🆕 — _bascule sans redéploiement_
