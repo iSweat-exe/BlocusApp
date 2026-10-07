@@ -87,6 +87,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      events: {
+        Row: {
+          author_id: string | null;
+          created_at: string;
+          description: string;
+          ends_at: string | null;
+          id: string;
+          location: string;
+          starts_at: string;
+          title: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id?: string | null;
+          created_at?: string;
+          description?: string;
+          ends_at?: string | null;
+          id?: string;
+          location?: string;
+          starts_at: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          author_id?: string | null;
+          created_at?: string;
+          description?: string;
+          ends_at?: string | null;
+          id?: string;
+          location?: string;
+          starts_at?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "events_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       moderation_actions: {
         Row: {
           created_at: string;

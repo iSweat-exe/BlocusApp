@@ -118,7 +118,9 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-123b** **Accueil** : fil des **dernières actualités** (annonces…), plus récentes en premier ; publication réservée aux personnes autorisées (`announcement.publish`) ; lecture ouverte au Guest — _données issues du cache (1.6)_
 - [~] **A-128** Retirer `/messages` : route supprimée (404) et onglet retiré de `src/components/app-nav.tsx` (+ test `app-nav.test.tsx`) — _`npm run build` sans `/messages`, 3 onglets_
 - [~] **A-129** Page `/profil` (lecture) : pseudo, photo, identifiant, rôle, e-mail, fournisseur, date d'inscription, permissions — _édition du pseudo/avatar : étape 1.7 (batching)_
-- [ ] **A-125** **Calendrier** : vue par jour + détail d’un événement — _lecture cachée, écriture protégée par permissions_
+- [~] **A-125a** Table `events` + permissions `event.create` / `event.delete` + RLS (lecture Guest, écriture selon permission, pas de création dans le passé) + tests pgTAP — _fait ; reste l'UI_
+- [ ] **A-125b** **Calendrier** `/calendar` : grille de mois (repère sur les jours avec événements), liste des événements du jour sélectionné, détail `/calendar/[id]` ; les autorisés ajoutent un événement sur un jour (heure, titre, texte, lieu et fin facultatifs) et l'auteur peut le modifier — _lecture cachée, écriture protégée par permissions_
+- [ ] **A-125c** **Accueil** : un événement qui démarre dans moins de 30 min s'affiche tout en haut dans un encart distinct, fermable (mémorisé sur l'appareil), cliquable vers le détail — _disparaît au début de l'événement_
 - [ ] **A-126** **Carte** : choix de la lib de carte via ADR (Leaflet/OSM gratuit vs Mapbox/Google, quotas, édition tactile) 🆕 — _ADR validé_
 - [ ] **A-126a** Affichage du **tracé des déplacements** (polyline / GeoJSON) sur la carte 🆕 — _tracé visible, lecture cachée (1.6)_
 - [ ] **A-126b** **Édition du tracé sur mobile** : ajouter / déplacer / supprimer des points au doigt, annuler/rétablir, sauvegarde groupée (1.7) 🆕 — _testé au pouce sur iPhone et Android réels_
