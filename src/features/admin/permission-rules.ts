@@ -9,6 +9,8 @@ const PERMISSION_LABELS: Record<string, string> = {
   "role.assign": "Attribuer des rôles",
   "audit.read": "Consulter le journal d'audit",
   "permission.manage": "Gérer les permissions",
+  "event.create": "Créer des événements",
+  "event.delete": "Supprimer des événements",
 };
 
 /** Label shown for a permission, falling back to its description, then its key. */

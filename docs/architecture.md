@@ -40,7 +40,8 @@ priorité après l'authentification (A-135).
 | `(auth)` | `/login`      | Connexion (Discord, Google)              | Public                                     |
 | `(auth)` | `/register`   | Inscription                              | Public                                     |
 | `(app)`  | `/`           | Accueil (actualités)                     | Lecture : Guest ; publication : autorisés  |
-| `(app)`  | `/calendar`   | Calendrier (jours et détails)            | Lecture : Guest ; écriture : autorisés     |
+| `(app)`  | `/calendar`   | Calendrier : grille de mois (`?month=AAAA-MM&day=AAAA-MM-JJ`) et événements du jour | Lecture : Guest ; écriture : autorisés (`event.create`) |
+| `(app)`  | `/calendar/[id]` | Détail d'un événement                 | Lecture : Guest                            |
 | `(app)`  | `/map`        | Carte (tracé, position de la manifestation) | Lecture : Guest ; édition : gérants     |
 | `(app)`  | `/admin`      | Administration (utilisateurs, rôles)      | Une permission d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`) ; sinon 404, Guest → `/login` |
 | `(app)`  | `/admin/users/[id]` | Fiche utilisateur : sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
@@ -78,6 +79,14 @@ unique (non implémenté, voir le suivi dans la checklist).
 Les Server Actions `publishAnnouncement` / `deleteAnnouncement` appellent `requirePermission()` puis la RLS
 revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en texte brut (React échappe).
 Pagination et cache (A-080+) : étape 1.6.
+
+## Calendrier
+
+`/calendar` (`src/features/calendar/`) : grille de mois (lundi en premier), repère sur les jours qui ont des
+événements, liste du jour sélectionné ; détail sur `/calendar/[id]`. Les horaires sont stockés en **UTC** et
+saisis/affichés en **Europe/Paris** (`EVENT_TIME_ZONE` dans `time.ts`, conversion tenant compte de l'heure
+d'été). La page dépend de l'heure courante : elle appelle `await connection()` avant `new Date()` (sinon
+Next.js refuse le rendu en prérendu). Lecture via `src/lib/data/events.ts` (RLS : le Guest lit).
 
 ## PWA
 
