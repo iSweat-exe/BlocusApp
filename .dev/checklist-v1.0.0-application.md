@@ -50,7 +50,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [ ] **A-036** Overrides par utilisateur (grant/deny ciblé) 🆕 — _un deny prime sur un grant_
 - [~] **A-037** Hiérarchie de rôles : on ne peut pas agir sur un rôle ≥ au sien — _modo ne peut pas ban un admin (test)_
 - [~] **A-038** Vérification des permissions côté serveur sur chaque Server Action/Route Handler **en plus** de la RLS (helper fait, reste à l'utiliser dans les actions) — _helper unique `requirePermission()`_
-- [ ] **A-039** Audit log : toute modification de rôle/permission est tracée (qui, quoi, quand) 🆕 — _table `audit_logs` en lecture seule pour non-admins_
+- [~] **A-039** Audit log : toute modification de rôle/permission est tracée (qui, quoi, quand) 🆕 — _table `audit_logs` en lecture seule pour non-admins_ (BDD + journalisation des rôles faits ; reste l'UI et les autres actions)
 - [ ] **A-040** Tests automatisés : pour chaque rôle, chaque permission autorisée/refusée — _matrice testée en CI_
 
 ## Étape 1.4 — Contrôle total des Admins absolus (développeurs) 🔒

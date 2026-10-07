@@ -63,6 +63,22 @@ RLS : lecture pour `anon` et `authenticated` (Guest) ; insertion si `announcemen
 suppression si `announcement.delete`, ou de ses propres annonces si `announcement.publish`.
 Le pseudo de l'auteur n'est pas exposé aux Guests (`profiles` est réservé aux connectés).
 
+### `audit_logs`
+
+Journal des actions d'administration (migration `20261007170000_create_audit_log.sql`).
+
+| Colonne      | Type          | Notes                                                              |
+| ------------ | ------------- | ------------------------------------------------------------------ |
+| `id`         | `bigint` PK   | identité                                                           |
+| `actor_id`   | `uuid`        | auteur (`auth.uid()`), sans FK pour survivre à la suppression       |
+| `action`     | `text`        | `ressource.action` au passé, ex. `role.assigned`                   |
+| `target_id`  | `uuid`        | utilisateur visé, nullable                                         |
+| `details`    | `jsonb`       | contexte (ex. `{"from": "user", "to": "manager"}`)                 |
+| `created_at` | `timestamptz` | défaut `now()`                                                     |
+
+Index `(created_at desc, id desc)` (pagination par curseur), `actor_id`, `target_id`. RLS : `select` avec
+`audit.read` ; aucune écriture client. `assign_role()` journalise chaque changement de rôle.
+
 ## Développement local
 
 Docker requis. Les secrets Discord locaux viennent de l'environnement (`.env.example`).

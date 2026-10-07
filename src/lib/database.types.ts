@@ -59,6 +59,34 @@ export type Database = {
           },
         ];
       };
+      audit_logs: {
+        Row: {
+          action: string;
+          actor_id: string | null;
+          created_at: string;
+          details: NonNullable<Json>;
+          id: number;
+          target_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action: string;
+          actor_id?: string | null;
+          created_at?: string;
+          details?: NonNullable<Json>;
+          id?: never;
+          target_id?: string | null;
+        };
+        Update: {
+          action?: string;
+          actor_id?: string | null;
+          created_at?: string;
+          details?: NonNullable<Json>;
+          id?: never;
+          target_id?: string | null;
+        };
+        Relationships: [];
+      };
       permissions: {
         Row: {
           description: string;
@@ -170,6 +198,10 @@ export type Database = {
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       role_rank: { Args: { p_role: string }; Returns: number };
+      write_audit: {
+        Args: { p_action: string; p_details?: Json; p_target: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       [_ in never]: never;
