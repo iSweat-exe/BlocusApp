@@ -107,7 +107,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [ ] **A-104** Anti-flood : détection de doublons/rafales, taille max de message, cooldown après rafale — _spam bloqué_
 - [ ] **A-105** Un seul canal Realtime par client, désabonnement propre au démontage — _≤ 1 connexion/onglet_
 - [ ] **A-106** Réception : regrouper l'affichage (batch de rendu toutes les X ms) pour ne pas figer le navigateur 🆕 ⚡ — _200 msgs/s sans freeze_
-- [ ] **A-107** Test de charge (k6/Artillery) avec scénario 200 users simultanés ; seuils (p95, taux d'erreur) documentés 🆕 — _rapport dans `docs/`_
+- [x] **A-107** Test de charge (k6/Artillery) avec scénario 200 users simultanés ; seuils (p95, taux d'erreur) documentés 🆕 — _`docs/load-testing.md`, `load/`_
 - [ ] **A-108** Les utilisateurs mute/ban sont filtrés **avant** la file (économie de charge) — _vérifié_
 
 ## Étape 1.9 — Pages de l’application (squelette + contenu)

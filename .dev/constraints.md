@@ -25,3 +25,14 @@
 3. **Une seule source de permissions** : la BDD (RLS + fonctions SQL). Le front ne fait que masquer l'UI.
 4. **Dégradation gracieuse** : sous charge, on ralentit (queue/throttle) au lieu de planter.
 5. **Aucun secret côté client** : `service_role` uniquement côté serveur, jamais `NEXT_PUBLIC_`.
+
+## Budget de charge mesuré (voir `docs/performance.md` et `docs/load-testing.md`)
+
+| Mesure | Budget | Mesuré (200 utilisateurs, local) |
+|---|---|---|
+| Temps de réponse p95 / p99 | < 800 ms / < 2 s | 61 ms / 85 ms |
+| Taux d'erreur | < 1 % | 0 % |
+| CPU par page rendue | < 25 ms | ≈ 14 ms |
+| Poids d'une page | < 100 Ko | ≈ 66 Ko |
+| Lectures en base par page | < 5 % des pages | 0,5 % |
+| CPU actif Vercel (600 000 pages/mois) | < 70 % de ~4 h | ≈ 60 % (estimation) |
