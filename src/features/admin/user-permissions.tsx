@@ -30,7 +30,10 @@ export async function UserPermissions({
 
   if (!permissions.ok || !links.ok || !overrides.ok) {
     return (
-      <p role="alert" className="text-sm text-red-500">
+      <p
+        role="alert"
+        className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
+      >
         Impossible de charger les permissions de cet utilisateur.
       </p>
     );
@@ -50,12 +53,12 @@ export async function UserPermissions({
         Un refus l&apos;emporte sur le rôle. Tu ne peux accorder qu&apos;une permission que tu
         possèdes.
       </p>
-      <ul className="divide-y divide-foreground/10 rounded-lg border border-foreground/10 px-3">
+      <ul className="divide-y divide-foreground/10 rounded-2xl border border-foreground/10 bg-foreground/[0.03] px-4">
         {permissions.value.map((permission) => {
           const override = toOverride(overrideOf.get(permission.key));
           const state = effectiveState(roleHas.has(permission.key), override);
           return (
-            <li key={permission.key} className="flex items-center justify-between gap-3 py-2">
+            <li key={permission.key} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <p className="text-sm">{permissionLabel(permission.key, permission.description)}</p>
                 <p className={`text-xs ${state.allowed ? "text-green-600" : "text-foreground/60"}`}>

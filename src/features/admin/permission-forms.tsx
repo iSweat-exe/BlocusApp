@@ -40,7 +40,7 @@ export function RolePermissionToggle({
       <button
         type="submit"
         disabled={pending}
-        className="rounded border border-foreground/20 px-3 py-1 text-sm disabled:opacity-60"
+        className="min-h-10 rounded-xl border border-foreground/15 px-4 text-sm font-medium active:bg-foreground/5 disabled:opacity-60"
       >
         {pending ? "…" : currentlyGranted ? "Retirer" : "Accorder"}
       </button>
@@ -62,12 +62,13 @@ export function UserOverrideControls({
   canGrant: boolean;
 }) {
   const [state, action, pending] = useActionState(setUserPermission, INITIAL_STATE);
-  const buttonClass = "rounded border border-foreground/20 px-2 py-1 text-xs disabled:opacity-60";
+  const buttonClass =
+    "min-h-10 rounded-xl border border-foreground/15 px-3 text-xs font-medium active:bg-foreground/5 disabled:opacity-60";
   return (
     <form action={action} className="flex flex-col items-end gap-1">
       <input type="hidden" name="target" value={target} />
       <input type="hidden" name="permission" value={permission} />
-      <div className="flex gap-1">
+      <div className="flex flex-wrap justify-end gap-1">
         {canGrant && override !== "grant" && (
           <button
             type="submit"

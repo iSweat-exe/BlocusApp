@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { Select } from "@/components/select";
 import { banUser, type BanState } from "./sanction-actions";
 import { DURATION_LABELS, DURATION_PRESETS, type DurationPreset, REASON_MAX } from "./sanctions";
 
@@ -24,7 +25,7 @@ export function BanForm({ targetId }: { targetId: string }) {
     <form
       ref={formRef}
       action={action}
-      className="flex flex-col gap-3 rounded-lg border border-foreground/10 p-4"
+      className="flex flex-col gap-4 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4"
     >
       <h3 className="font-semibold">Bannir</h3>
       <input type="hidden" name="target" value={targetId} />
@@ -37,7 +38,7 @@ export function BanForm({ targetId }: { targetId: string }) {
           rows={3}
           maxLength={REASON_MAX}
           aria-invalid={state.fieldErrors?.reason ? true : undefined}
-          className="rounded border border-foreground/20 bg-background px-3 py-2 text-base"
+          className="rounded-xl border border-foreground/15 bg-background px-4 py-3 text-base"
         />
         {state.fieldErrors?.reason && (
           <span className="text-red-500">{state.fieldErrors.reason}</span>
@@ -46,18 +47,16 @@ export function BanForm({ targetId }: { targetId: string }) {
 
       <label className="flex flex-col gap-1 text-sm">
         Durée
-        <select
+        <Select
           name="duration"
+          label="Durée"
           value={duration}
-          onChange={(event) => setDuration(event.target.value as DurationPreset)}
-          className="rounded border border-foreground/20 bg-background px-3 py-2 text-base"
-        >
-          {DURATION_PRESETS.map((preset) => (
-            <option key={preset} value={preset}>
-              {DURATION_LABELS[preset]}
-            </option>
-          ))}
-        </select>
+          onChange={(next) => setDuration(next as DurationPreset)}
+          options={DURATION_PRESETS.map((preset) => ({
+            value: preset,
+            label: DURATION_LABELS[preset],
+          }))}
+        />
       </label>
 
       {duration === "custom" && (
@@ -68,7 +67,7 @@ export function BanForm({ targetId }: { targetId: string }) {
             value={localDate}
             onChange={(event) => setLocalDate(event.target.value)}
             required
-            className="rounded border border-foreground/20 bg-background px-3 py-2 text-base"
+            className="min-h-12 rounded-xl border border-foreground/15 bg-background px-4 text-base"
           />
           <input type="hidden" name="custom_expires_at" value={customIso} />
         </label>
@@ -89,7 +88,7 @@ export function BanForm({ targetId }: { targetId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-red-500 px-4 py-3 font-medium text-white disabled:opacity-60"
+        className="min-h-12 rounded-xl bg-red-500 px-4 py-3 font-semibold text-white active:bg-red-600 disabled:opacity-60"
       >
         {pending ? "Bannissement…" : "Bannir"}
       </button>

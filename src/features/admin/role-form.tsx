@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { changeRole, type ChangeRoleState } from "./actions";
+import { Select } from "@/components/select";
 import type { RoleInfo } from "./hierarchy";
 
 const INITIAL_STATE: ChangeRoleState = { status: "idle" };
@@ -19,25 +20,21 @@ export function RoleForm({
   const [state, action, pending] = useActionState(changeRole, INITIAL_STATE);
 
   return (
-    <form action={action} className="flex flex-col gap-1">
+    <form action={action} className="flex w-full flex-col gap-1">
       <input type="hidden" name="target" value={targetId} />
       <div className="flex items-center gap-2">
-        <select
+        <Select
           name="role"
+          label="Rôle"
+          size="sm"
           defaultValue={currentRole}
-          aria-label="Rôle"
-          className="rounded border border-foreground/20 bg-background px-2 py-1 text-sm"
-        >
-          {options.map((role) => (
-            <option key={role.key} value={role.key}>
-              {role.label}
-            </option>
-          ))}
-        </select>
+          options={options.map((role) => ({ value: role.key, label: role.label }))}
+          className="min-w-0 flex-1"
+        />
         <button
           type="submit"
           disabled={pending}
-          className="rounded bg-red-500 px-3 py-1 text-sm font-medium text-white disabled:opacity-60"
+          className="min-h-10 rounded-xl bg-red-500 px-4 text-sm font-semibold text-white active:bg-red-600 disabled:opacity-60"
         >
           {pending ? "…" : "Appliquer"}
         </button>
