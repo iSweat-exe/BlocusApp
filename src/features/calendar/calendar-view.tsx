@@ -90,7 +90,9 @@ export async function CalendarView({ month, day }: { month: string; day: string 
         {weeks.map((week) => (
           <div key={week[0]?.key} role="row" className="grid grid-cols-7 gap-1">
             {week.map((cell) => {
-              const count = byDay.get(cell.key)?.length ?? 0;
+              const dayEvents = byDay.get(cell.key) ?? [];
+              const count = dayEvents.length;
+              const open = dayEvents.filter((event) => !event.finished_at).length;
               const isSelected = cell.key === day;
               const isToday = cell.key === today;
               return (
@@ -113,7 +115,13 @@ export async function CalendarView({ month, day }: { month: string; day: string 
                   <span
                     aria-hidden="true"
                     className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
-                      count ? (isSelected ? "bg-white" : "bg-red-500") : "bg-transparent"
+                      count
+                        ? isSelected
+                          ? "bg-white"
+                          : open > 0
+                            ? "bg-red-500"
+                            : "bg-foreground/40"
+                        : "bg-transparent"
                     }`}
                   />
                 </Link>
@@ -135,12 +143,26 @@ export async function CalendarView({ month, day }: { month: string; day: string 
               <li key={event.id}>
                 <Link
                   href={`/calendar/${event.id}`}
-                  className="flex flex-col rounded-lg border border-foreground/10 p-3"
+                  aria-disabled={event.finished_at ? true : undefined}
+                  className={`flex flex-col rounded-lg border border-foreground/10 p-3 ${
+                    event.finished_at ? "bg-foreground/5 opacity-60" : ""
+                  }`}
                 >
-                  <span className="text-sm font-medium text-red-500">
-                    {formatTimeRange(event.starts_at, event.ends_at)}
+                  <span className="flex items-center justify-between gap-2">
+                    <span
+                      className={`text-sm font-medium ${event.finished_at ? "" : "text-red-500"}`}
+                    >
+                      {formatTimeRange(event.starts_at, event.ends_at)}
+                    </span>
+                    {event.finished_at && (
+                      <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-semibold">
+                        Terminé
+                      </span>
+                    )}
                   </span>
-                  <span className="font-semibold">{event.title}</span>
+                  <span className={`font-semibold ${event.finished_at ? "line-through" : ""}`}>
+                    {event.title}
+                  </span>
                   {event.location && (
                     <span className="text-sm text-foreground/60">{event.location}</span>
                   )}

@@ -4,6 +4,7 @@ import { getEvent } from "@/lib/data/events";
 import { getSessionPermissions } from "@/server/session";
 import { deleteEvent } from "./actions";
 import { EventForm } from "./event-form";
+import { FinishToggle } from "./finish-toggle";
 import { dayKeyOf, formatDayLong, formatTime, formatTimeRange, monthKeyOf } from "./time";
 
 /** Detail of one event: date, time, place and full text. Readable by Guests. */
@@ -23,7 +24,9 @@ export async function EventDetail({ id }: { id: string }) {
   const day = dayKeyOf(new Date(event.starts_at));
   const has = (permission: string) => session?.permissions.includes(permission) ?? false;
   // Display only: the Server Actions re-check the permissions and Row Level Security decides.
+  const finished = event.finished_at !== null;
   const canEdit = has("event.create") && event.author_id === session?.userId;
+  const canFinish = has("event.finish");
   const canDelete = has("event.delete") || canEdit;
 
   return (
@@ -33,7 +36,16 @@ export async function EventDetail({ id }: { id: string }) {
       </Link>
 
       <header className="flex flex-col gap-1">
-        <h2 className="text-xl font-semibold">{event.title}</h2>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className={`text-xl font-semibold ${finished ? "text-foreground/60" : ""}`}>
+            {event.title}
+          </h2>
+          {finished && (
+            <span className="shrink-0 rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold">
+              Terminé
+            </span>
+          )}
+        </div>
         <p className="text-sm capitalize text-foreground/60">{formatDayLong(event.starts_at)}</p>
         <p className="font-medium text-red-500">
           {formatTimeRange(event.starts_at, event.ends_at)}
@@ -47,7 +59,20 @@ export async function EventDetail({ id }: { id: string }) {
         <p className="text-sm text-foreground/60">Pas de description.</p>
       )}
 
-      {canEdit && (
+      {canFinish && <FinishToggle id={event.id} finished={finished} />}
+
+      {canEdit && finished && (
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          className="rounded-lg border border-foreground/10 px-4 py-3 text-center font-medium opacity-50"
+        >
+          Modifier (événement terminé)
+        </button>
+      )}
+
+      {canEdit && !finished && (
         <details className="rounded-lg border border-foreground/10">
           <summary className="cursor-pointer px-4 py-3 text-center font-medium">Modifier</summary>
           <EventForm

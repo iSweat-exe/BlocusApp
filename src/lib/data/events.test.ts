@@ -9,6 +9,7 @@ const lt = vi.fn();
 const gte = vi.fn();
 const gt = vi.fn();
 const lte = vi.fn();
+const isFn = vi.fn();
 const select = vi.fn();
 const from = vi.fn();
 
@@ -20,7 +21,8 @@ beforeEach(() => {
   from.mockReturnValue({ select });
   select.mockReturnValue({ gte, gt, eq });
   gt.mockReturnValue({ lte });
-  lte.mockReturnValue({ order });
+  lte.mockReturnValue({ is: isFn });
+  isFn.mockReturnValue({ order });
   gte.mockReturnValue({ lt });
   lt.mockReturnValue({ order });
   order.mockReturnValue({ order, limit });
@@ -73,6 +75,7 @@ describe("listImminentEvents", () => {
     expect(await listImminentEvents(NOW, 30)).toEqual({ ok: true, value: [{ id: "e1" }] });
     expect(gt).toHaveBeenCalledWith("starts_at", "2026-10-07T12:00:00.000Z");
     expect(lte).toHaveBeenCalledWith("starts_at", "2026-10-07T12:30:00.000Z");
+    expect(isFn).toHaveBeenCalledWith("finished_at", null);
     expect(limit).toHaveBeenCalledWith(3);
   });
 

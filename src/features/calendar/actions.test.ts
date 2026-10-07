@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createEvent, deleteEvent, updateEvent } from "./actions";
+import { createEvent, deleteEvent, setEventFinished, updateEvent } from "./actions";
 
 const requirePermission = vi.fn();
 const insert = vi.fn();
@@ -9,6 +9,7 @@ const eqAuthor = vi.fn();
 const update = vi.fn();
 const deleteFn = vi.fn();
 const redirect = vi.fn();
+const rpc = vi.fn();
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -19,7 +20,7 @@ vi.mock("@/server/require-permission", () => ({
   requirePermission: (...args: unknown[]) => requirePermission(...args),
 }));
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: () => ({ from: () => ({ insert, update, delete: deleteFn }) }),
+  createClient: () => ({ from: () => ({ insert, update, delete: deleteFn }), rpc }),
 }));
 
 const ID = "00000000-0000-0000-0000-00000000e001";
@@ -44,6 +45,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   requirePermission.mockResolvedValue({ ok: true, value: { userId: "u1" } });
   insert.mockResolvedValue({ error: null });
+  rpc.mockResolvedValue({ error: null });
   select.mockResolvedValue({ data: [{ id: ID }], error: null });
   eqId.mockReturnValue({ select });
   update.mockReturnValue({ eq: eqId });
@@ -122,7 +124,7 @@ describe("updateEvent", () => {
     select.mockResolvedValue({ data: [], error: null });
     expect(await updateEvent(IDLE, form({ ...VALID, id: ID }))).toMatchObject({
       status: "error",
-      message: expect.stringContaining("tes propres"),
+      message: expect.stringContaining("terminé"),
     });
     select.mockResolvedValue({ data: null, error: { message: "event_in_the_past" } });
     expect(await updateEvent(IDLE, form({ ...VALID, id: ID }))).toMatchObject({
@@ -154,5 +156,59 @@ describe("deleteEvent", () => {
     await deleteEvent(form({ id: ID }));
     expect(eqAuthor).toHaveBeenCalledWith("author_id", "u1");
     expect(redirect).toHaveBeenCalledWith("/calendar");
+  });
+});
+
+describe("setEventFinished", () => {
+  it("rejects malformed input before any permission check", async () => {
+    for (const values of [
+      { id: "nope", finished: "true" },
+      { id: ID, finished: "maybe" },
+      { finished: "true" },
+    ]) {
+      expect(await setEventFinished(IDLE, form(values))).toEqual({
+        status: "error",
+        message: "Demande invalide.",
+      });
+    }
+    expect(requirePermission).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("checks event.finish against the database and refuses Guests and other roles", async () => {
+    requirePermission.mockResolvedValue({ ok: false, error: "unauthenticated" });
+    expect(await setEventFinished(IDLE, form({ id: ID, finished: "true" }))).toMatchObject({
+      status: "error",
+    });
+    requirePermission.mockResolvedValue({ ok: false, error: "forbidden" });
+    expect(await setEventFinished(IDLE, form({ id: ID, finished: "true" }))).toMatchObject({
+      status: "error",
+    });
+    expect(requirePermission).toHaveBeenCalledWith("event.finish", { fresh: true });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("finishes or reopens through the RPC", async () => {
+    expect(await setEventFinished(IDLE, form({ id: ID, finished: "true" }))).toMatchObject({
+      status: "success",
+      message: "Événement terminé.",
+    });
+    expect(rpc).toHaveBeenLastCalledWith("set_event_finished", { p_id: ID, p_finished: true });
+    expect(await setEventFinished(IDLE, form({ id: ID, finished: "false" }))).toMatchObject({
+      message: "Événement rouvert.",
+    });
+    expect(rpc).toHaveBeenLastCalledWith("set_event_finished", { p_id: ID, p_finished: false });
+  });
+
+  it("translates database errors, with a generic fallback", async () => {
+    rpc.mockResolvedValue({ error: { message: "unknown_event" } });
+    expect(await setEventFinished(IDLE, form({ id: ID, finished: "true" }))).toMatchObject({
+      status: "error",
+      message: expect.stringContaining("n'existe plus"),
+    });
+    rpc.mockResolvedValue({ error: { message: "weird" } });
+    expect(await setEventFinished(IDLE, form({ id: ID, finished: "true" }))).toMatchObject({
+      message: expect.stringContaining("Réessaie"),
+    });
   });
 });
