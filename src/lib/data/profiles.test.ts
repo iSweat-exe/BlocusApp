@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { escapeLike, getProfile, listProfiles, listRoles } from "./profiles";
+import { escapeLike, getProfile, getPseudos, listProfiles, listRoles } from "./profiles";
 
 const ilike = vi.fn();
 const limit = vi.fn();
@@ -84,5 +84,32 @@ describe("getProfile", () => {
     expect(await getProfile("1")).toMatchObject({ ok: false, error: "load_failed" });
     maybeSingle.mockRejectedValue(new Error("network"));
     expect(await getProfile("1")).toMatchObject({ ok: false, error: "load_failed" });
+  });
+});
+
+describe("getPseudos", () => {
+  const inFn = vi.fn();
+  beforeEach(() => {
+    select.mockReturnValue({ in: inFn });
+  });
+
+  it("returns an empty map without querying when there is nothing to resolve", async () => {
+    expect(await getPseudos([])).toEqual({ ok: true, value: new Map() });
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("deduplicates ids and maps id to pseudo", async () => {
+    inFn.mockResolvedValue({ data: [{ id: "a", pseudo: "alice" }], error: null });
+    const result = await getPseudos(["a", "a", "b"]);
+    expect(inFn).toHaveBeenCalledWith("id", ["a", "b"]);
+    expect(result.ok && result.value.get("a")).toBe("alice");
+    expect(result.ok && result.value.has("b")).toBe(false);
+  });
+
+  it("returns load_failed on error or exception", async () => {
+    inFn.mockResolvedValue({ data: null, error: { message: "boom" } });
+    expect(await getPseudos(["a"])).toMatchObject({ ok: false, error: "load_failed" });
+    inFn.mockRejectedValue(new Error("network"));
+    expect(await getPseudos(["a"])).toMatchObject({ ok: false, error: "load_failed" });
   });
 });

@@ -6,5 +6,8 @@ export function adminLinksFor(permissions: readonly string[]): AdminLink[] {
   if (permissions.includes("permission.manage")) {
     links.push({ href: "/admin/roles", label: "Rôles et permissions" });
   }
+  if (permissions.includes("audit.read")) {
+    links.push({ href: "/admin/journal", label: "Journal" });
+  }
   return links;
 }

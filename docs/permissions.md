@@ -85,4 +85,9 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   utilisateur ») avec **Accorder / Refuser / Réinitialiser** (Accorder seulement pour une permission détenue).
   Actions : `toggleRolePermission` et `setUserPermission` (`requirePermission("permission.manage", { fresh:
   true })` puis RPC ; erreurs traduites). `permission-rules.ts` reflète les règles de la base pour l'affichage.
+- **Journal d'audit dans le panneau** : `/admin/journal` (permission `audit.read`), lecture seule. Chaque
+  entrée est décrite en une phrase (« boss a banni victim définitivement — motif : … »), les pseudos sont
+  résolus (compte supprimé = identifiant tronqué), filtre par type d'action, pagination par curseur sur
+  `id` (25 par page, « Plus anciennes → » / « ← Plus récentes »). Paramètres d'URL validés
+  (`parseJournalParams`). Rien n'est écrit depuis l'interface : le journal est alimenté par les RPC.
 - Reste à faire : hiérarchie pour ban/mute (A-051/A-052), audit (A-039), usage de `requirePermission` dans les futures actions.

@@ -72,3 +72,22 @@ export async function getProfile(id: string): Promise<Result<OwnProfile | null, 
     return err("load_failed", cause instanceof Error ? cause.message : "unknown error");
   }
 }
+
+/**
+ * Resolves user ids to pseudos (ids of deleted accounts are simply absent from the result).
+ * @param ids - User ids to look up; duplicates and empty input are fine.
+ */
+export async function getPseudos(
+  ids: string[],
+): Promise<Result<Map<string, string>, "load_failed">> {
+  const unique = [...new Set(ids)];
+  if (unique.length === 0) return ok(new Map());
+  try {
+    const supabase = createClient(await cookies());
+    const { data, error } = await supabase.from("profiles").select("id, pseudo").in("id", unique);
+    if (error) return err("load_failed", error.message);
+    return ok(new Map(data.map((profile) => [profile.id, profile.pseudo])));
+  } catch (cause) {
+    return err("load_failed", cause instanceof Error ? cause.message : "unknown error");
+  }
+}
