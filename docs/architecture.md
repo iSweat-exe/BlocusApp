@@ -43,6 +43,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/calendar`   | Calendrier (jours et détails)            | Lecture : Guest ; écriture : autorisés     |
 | `(app)`  | `/map`        | Carte (tracé, position de la manifestation) | Lecture : Guest ; édition : gérants     |
 | `(app)`  | `/admin`      | Administration (utilisateurs, rôles)      | Permission `role.assign` (sinon 404 ; Guest → `/login`) |
+| `(app)`  | `/profil`     | Profil de l'utilisateur connecté (lecture) | Connecté (Guest → `/login`)                |
 
 `/messages` n'existe pas (route supprimée, A-128) : la communication passe par Instagram. Messagerie = Backlog.
 

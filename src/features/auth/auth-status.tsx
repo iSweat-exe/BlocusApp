@@ -3,7 +3,8 @@ import { getSessionPermissions } from "@/server/session";
 import { signOut } from "./actions";
 
 /**
- * Header controls: sign-in link for Guests; admin link (with `role.assign`) and sign-out for users.
+ * Header controls: sign-in link for Guests; profile link, admin link (with `role.assign`) and sign-out
+ * for users.
  * Reads cookies: wrap in Suspense.
  */
 export async function AuthStatus() {
@@ -19,6 +20,9 @@ export async function AuthStatus() {
 
   return (
     <div className="flex items-center gap-4">
+      <Link href="/profil" className="text-sm underline">
+        Mon profil
+      </Link>
       {session.permissions.includes("role.assign") && (
         <Link href="/admin" className="text-sm underline">
           Administration

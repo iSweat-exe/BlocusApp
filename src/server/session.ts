@@ -7,6 +7,10 @@ export type SessionPermissions = {
   /** Application role from the `app_role` claim, `null` when the hook did not set it. */
   role: string | null;
   permissions: string[];
+  /** E-mail of the account, when the sign-in provider shared it. */
+  email: string | null;
+  /** Sign-in provider (e.g. `discord`), from the JWT `app_metadata`. */
+  provider: string | null;
 };
 
 /**
@@ -24,5 +28,8 @@ export async function getSessionPermissions(): Promise<SessionPermissions | null
     ? granted.filter((item): item is string => typeof item === "string")
     : [];
   const role = typeof claims.app_role === "string" ? claims.app_role : null;
-  return { userId: claims.sub, role, permissions };
+  const email = typeof claims.email === "string" && claims.email ? claims.email : null;
+  const provider =
+    typeof claims.app_metadata?.provider === "string" ? claims.app_metadata.provider : null;
+  return { userId: claims.sub, role, permissions, email, provider };
 }

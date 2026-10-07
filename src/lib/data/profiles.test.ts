@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { escapeLike, listProfiles, listRoles } from "./profiles";
+import { escapeLike, getProfile, listProfiles, listRoles } from "./profiles";
 
 const ilike = vi.fn();
 const limit = vi.fn();
@@ -63,5 +63,26 @@ describe("listRoles", () => {
     select.mockReturnValue({ order: orderRoles });
     orderRoles.mockResolvedValue({ data: null, error: { message: "boom" } });
     expect(await listRoles()).toMatchObject({ ok: false, error: "load_failed" });
+  });
+});
+
+describe("getProfile", () => {
+  const maybeSingle = vi.fn();
+  beforeEach(() => {
+    select.mockReturnValue({ eq: vi.fn(() => ({ maybeSingle })) });
+  });
+
+  it("returns the profile or null", async () => {
+    maybeSingle.mockResolvedValue({ data: { id: "1" }, error: null });
+    expect(await getProfile("1")).toEqual({ ok: true, value: { id: "1" } });
+    maybeSingle.mockResolvedValue({ data: null, error: null });
+    expect(await getProfile("2")).toEqual({ ok: true, value: null });
+  });
+
+  it("returns load_failed on error or exception", async () => {
+    maybeSingle.mockResolvedValue({ data: null, error: { message: "boom" } });
+    expect(await getProfile("1")).toMatchObject({ ok: false, error: "load_failed" });
+    maybeSingle.mockRejectedValue(new Error("network"));
+    expect(await getProfile("1")).toMatchObject({ ok: false, error: "load_failed" });
   });
 });
