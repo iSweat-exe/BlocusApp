@@ -117,3 +117,15 @@ Vérifié dans un navigateur (Supabase local) :
   `?n=999` donne 50, `?n=abc` et `?n=-1` donnent 10, `?n=15` donne 20 ; le défilement est conservé.
 - `/api/keep-alive` : 200 `{"ok":true}` avec la base locale, 503 si elle est injoignable, 401 sans le secret quand
   `CRON_SECRET` est défini.
+
+### Après PR 5 (test de charge)
+
+Test de 200 utilisateurs simultanés sur le build local (voir `docs/load-testing.md`) : 0 % d'échec, p95 61 ms, p99
+85 ms, 22 lectures en base pour 4 520 pages, ≈ 14 ms de CPU et ≈ 66 Ko par page. Ces chiffres remplacent l'estimation
+de 25 ms de CPU par rendu faite lors de l'audit.
+
+| Scénario (Supabase local, Pixel 7 émulé) | Avant | Après |
+|---|---|---|
+| 5 écrans enchaînés | 30 requêtes, 8 SQL | 23 requêtes, 2 SQL, 1 navigation serveur |
+| 10 rechargements de l'accueil | 113 requêtes, 20 SQL | 86–90 requêtes, 0 SQL (à chaud) |
+| Liste admin | 35 requêtes | 24 requêtes |

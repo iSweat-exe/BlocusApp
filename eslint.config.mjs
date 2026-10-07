@@ -37,6 +37,8 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "playwright-report/**",
     "test-results/**",
+    // k6 scripts run in the k6 runtime, not in Node or the browser.
+    "load/**",
   ]),
 ]);
 
