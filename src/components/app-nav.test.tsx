@@ -6,10 +6,10 @@ const usePathname = vi.fn();
 vi.mock("next/navigation", () => ({ usePathname: () => usePathname() }));
 
 describe("AppNav", () => {
-  it("renders the three main sections", () => {
+  it("renders the four main sections", () => {
     usePathname.mockReturnValue("/");
     render(<AppNav />);
-    expect(screen.getAllByRole("link")).toHaveLength(3);
+    expect(screen.getAllByRole("link")).toHaveLength(4);
   });
 
   it("marks only the current section as active", () => {
