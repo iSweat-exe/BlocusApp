@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { canAccessAdmin } from "@/features/admin/access";
 import { signOut } from "@/features/auth/actions";
 import { getProfile, listRoles } from "@/lib/data/profiles";
 import type { SessionPermissions } from "@/server/session";
@@ -107,7 +108,7 @@ export async function ProfileView({ session }: { session: SessionPermissions }) 
       </section>
 
       <div className="flex items-center justify-between">
-        {session.permissions.includes("role.assign") ? (
+        {canAccessAdmin(session.permissions) ? (
           <Link href="/admin" className="text-sm underline">
             Administration
           </Link>

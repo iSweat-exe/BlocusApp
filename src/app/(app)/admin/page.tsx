@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
+import { canAccessAdmin } from "@/features/admin/access";
 import { UserList } from "@/features/admin/user-list";
 import { getSessionPermissions } from "@/server/session";
 
@@ -7,7 +8,7 @@ async function AdminContent({ searchParams }: { searchParams: Promise<{ q?: stri
   const session = await getSessionPermissions();
   if (!session) redirect("/login");
   // Admin pages are hidden (404) from users without the permission; actions re-check in the database.
-  if (!session.permissions.includes("role.assign")) notFound();
+  if (!canAccessAdmin(session.permissions)) notFound();
 
   const { q } = await searchParams;
   const search = typeof q === "string" ? q : "";

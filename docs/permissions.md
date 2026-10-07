@@ -67,29 +67,14 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   propre rôle ; personne ne peut créer de `super_admin` via l'app (SQL manuel, voir runbook). Erreurs :
   `forbidden`, `hierarchy_violation` (42501), `unknown_role`/`unknown_user` (22023). Le trigger
   `profiles_keep_last_super_admin` empêche de retirer ou supprimer le dernier `super_admin` (`last_super_admin`).
-- **Panneau admin** (`/admin`, `src/features/admin/`) : visible avec `role.assign` (admin, super_admin).
-  Liste et recherche de pseudo (50 max), sélecteur de rôle uniquement pour les utilisateurs de rang
-  strictement inférieur et jamais pour soi-même (`hierarchy.ts` reflète `assign_role`, qui reste
-  l'autorité). L'action `changeRole` appelle `requirePermission("role.assign", { fresh: true })` puis la RPC
-  `assign_role`. Les claims du JWT ne servent qu'à masquer/afficher.
-- **Journal d'audit (A-039)** : `audit_logs` (append-only, écrit uniquement par `write_audit()` appelé depuis les RPC `SECURITY DEFINER`), lisible avec `audit.read`. Actions journalisées : `role.assigned` ; à venir : sanctions, permissions.
-- **Gestion des permissions (A-035, A-036)** (migration `20261007180000_...`) : `effective_permissions(user)` =
-  permissions du rôle + grants − denies (**le deny l'emporte**) ; `super_admin` a tout le catalogue et ignore
-  les overrides. C'est l'unique source de `has_permission()` (RLS) et des claims du JWT. Table
-  `permission_overrides`. RPC `set_role_permission(rôle, permission, accordée)` et
-  `set_user_permission(user, permission, 'grant'|'deny'|null)` : exigent `permission.manage` ;
-  cible de rang **strictement inférieur** (jamais soi-même, jamais `super_admin`) ; on ne peut **accorder**
-  qu'une permission que l'on possède (`privilege_escalation` sinon). Erreurs : `forbidden`,
-  `hierarchy_violation`, `privilege_escalation` (42501) ; `unknown_role`/`unknown_permission`/`unknown_user`/
-  `invalid_effect` (22023). Chaque changement est journalisé (`role_permission.granted|revoked`,
-  `user_permission.granted|denied|cleared`). Les claims suivent au prochain refresh du token (≤ 1 h).
-- **Bans (A-051, A-053, A-054)** (migration `20261007190000_...`) : `ban_user(cible, motif, expiration|null)`
-  (permission `user.ban`, rang strictement inférieur, jamais soi-même, motif 1-500 caractères, expiration
-  future, pas de double ban) et `revoke_sanction(id)` (lever avant terme ; `user.ban` pour un ban, `user.mute`
-  pour un mute). **Actif = non révoqué et non expiré, évalué à la lecture** (pas de cron). Un banni n'a
-  **aucune permission** (`effective_permissions` vide), ses sessions et refresh tokens sont supprimés, et le
-  hook JWT refuse de lui émettre un token (403 `account_banned`) tant que le ban est actif. Erreurs :
-  `forbidden`, `hierarchy_violation` (42501) ; `invalid_reason`, `invalid_expiry`, `unknown_user`,
-  `unknown_sanction`, `not_active` (22023) ; `already_banned` (23505). Journalisé : `user.banned`,
-  `sanction.revoked`. Le **mute** n'a pas encore de fonction : la table accepte déjà `kind = 'mute'`.
+- **Panneau admin** (`/admin`, `src/features/admin/`) : accessible avec **au moins une** permission
+  d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`) ; chaque
+  section vérifie la sienne. Liste et recherche de pseudo (50 max) ; le sélecteur de rôle exige
+  `role.assign` et un rang strictement inférieur (`hierarchy.ts` reflète `assign_role`, qui reste
+  l'autorité). Les actions appellent `requirePermission(..., { fresh: true })` puis la RPC.
+- **Fiche utilisateur** (`/admin/users/[id]`) : identité, **ban en cours** (motif, expiration, bouton
+  « Lever le ban »), formulaire de **ban** (motif, durée 1 h / 24 h / 7 j / 30 j / permanent ou date
+  personnalisée, max 5 ans ; l'expiration est recalculée côté serveur), historique des sanctions, et bouton
+  **Mute désactivé** (« bientôt disponible », aucun backend). Le formulaire n'apparaît que si l'appelant a
+  `user.ban` **et** un rang supérieur à la cible ; sinon un message l'explique.
 - Reste à faire : hiérarchie pour ban/mute (A-051/A-052), audit (A-039), usage de `requirePermission` dans les futures actions.
