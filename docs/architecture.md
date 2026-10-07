@@ -88,6 +88,14 @@ saisis/affichés en **Europe/Paris** (`EVENT_TIME_ZONE` dans `time.ts`, conversi
 d'été). La page dépend de l'heure courante : elle appelle `await connection()` avant `new Date()` (sinon
 Next.js refuse le rendu en prérendu). Lecture via `src/lib/data/events.ts` (RLS : le Guest lit).
 
+Écriture (`src/features/calendar/actions.ts`) : `createEvent`, `updateEvent`, `deleteEvent`. Création : bouton
+« Ajouter un événement » sous la liste du jour (permission `event.create`, jamais sur un jour passé) ; le
+formulaire demande l'heure, le titre, le texte, et en option le lieu et l'heure de fin (même jour). L'auteur
+modifie son événement depuis le détail (la date devient modifiable) ; la suppression exige `event.delete`, ou
+`event.create` sur ses propres événements. Chaque action revérifie la permission en base (`fresh`), valide la
+saisie (`schema.ts`, heures lues en Europe/Paris) et la RLS décide ; le trigger `check_event_start` refuse un
+début dans le passé, mais le texte d'un événement déjà commencé reste modifiable.
+
 ## PWA
 
 `src/app/manifest.ts`, `public/sw.js` (enregistré en production par

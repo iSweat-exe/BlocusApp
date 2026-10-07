@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { listEventsBetween } from "@/lib/data/events";
+import { getSessionPermissions } from "@/server/session";
+import { EventForm } from "./event-form";
 import { monthGrid, shiftMonth } from "./month-grid";
 import {
   dayKeyOf,
@@ -24,7 +26,10 @@ export async function CalendarView({ month, day }: { month: string; day: string 
 
   // Fetch the whole visible grid (neighbouring days included), end bound is exclusive.
   const rangeEnd = new Date(zonedToUtc(lastCell).getTime() + 24 * 60 * 60 * 1000);
-  const result = await listEventsBetween(zonedToUtc(firstCell), rangeEnd);
+  const [result, session] = await Promise.all([
+    listEventsBetween(zonedToUtc(firstCell), rangeEnd),
+    getSessionPermissions(),
+  ]);
 
   const today = dayKeyOf(new Date());
   const events = result.ok ? result.value : [];
@@ -34,6 +39,8 @@ export async function CalendarView({ month, day }: { month: string; day: string 
     byDay.set(key, [...(byDay.get(key) ?? []), event]);
   }
   const selected = byDay.get(day) ?? [];
+  // Display only: the Server Action re-checks the permission, and the database refuses past starts.
+  const canCreate = (session?.permissions.includes("event.create") ?? false) && day >= today;
 
   return (
     <div className="flex flex-col gap-4">
@@ -143,6 +150,15 @@ export async function CalendarView({ month, day }: { month: string; day: string 
           </ul>
         )}
       </section>
+
+      {canCreate && (
+        <details className="rounded-lg border border-foreground/10">
+          <summary className="cursor-pointer rounded-lg bg-red-500 px-4 py-3 text-center font-medium text-white">
+            Ajouter un événement
+          </summary>
+          <EventForm mode="create" day={day} />
+        </details>
+      )}
     </div>
   );
 }
