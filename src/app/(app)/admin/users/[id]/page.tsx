@@ -19,7 +19,6 @@ async function UserContent({ params }: { params: Promise<{ id: string }> }) {
 export default function AdminUserPage({ params }: PageProps<"/admin/users/[id]">) {
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Administration</h1>
       <Suspense fallback={<p className="text-sm text-foreground/60">Chargement…</p>}>
         <UserContent params={params} />
       </Suspense>

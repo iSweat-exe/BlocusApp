@@ -38,6 +38,11 @@ test.describe("app shell", () => {
     await page.waitForURL("**/login");
   });
 
+  test("sends Guests away from the roles page", async ({ page }) => {
+    await page.goto("/admin/roles");
+    await page.waitForURL("**/login");
+  });
+
   test("sends Guests away from the profile page", async ({ page }) => {
     await page.goto("/profil");
     await page.waitForURL("**/login");

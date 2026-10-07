@@ -77,4 +77,12 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   personnalisée, max 5 ans ; l'expiration est recalculée côté serveur), historique des sanctions, et bouton
   **Mute désactivé** (« bientôt disponible », aucun backend). Le formulaire n'apparaît que si l'appelant a
   `user.ban` **et** un rang supérieur à la cible ; sinon un message l'explique.
+- **Gestion des permissions dans le panneau** : sous-navigation de `/admin` (Utilisateurs · Rôles et
+  permissions). `/admin/roles` (permission `permission.manage`) : une carte par rôle (le plus élevé en
+  premier) listant les permissions ; bouton **Accorder / Retirer** seulement pour un rôle de rang strictement
+  inférieur et, pour accorder, une permission que l'appelant possède ; `super_admin` verrouillé. La fiche
+  utilisateur affiche l'**état effectif** de chaque permission (« Via le rôle », « Accordée / Refusée à cet
+  utilisateur ») avec **Accorder / Refuser / Réinitialiser** (Accorder seulement pour une permission détenue).
+  Actions : `toggleRolePermission` et `setUserPermission` (`requirePermission("permission.manage", { fresh:
+  true })` puis RPC ; erreurs traduites). `permission-rules.ts` reflète les règles de la base pour l'affichage.
 - Reste à faire : hiérarchie pour ban/mute (A-051/A-052), audit (A-039), usage de `requirePermission` dans les futures actions.

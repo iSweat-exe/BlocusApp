@@ -4,6 +4,7 @@ import { getProfile, listRoles } from "@/lib/data/profiles";
 import { listSanctions } from "@/lib/data/sanctions";
 import type { SessionPermissions } from "@/server/session";
 import { BanForm } from "./ban-form";
+import { UserPermissions } from "./user-permissions";
 import { canManageUser, rankOf } from "./hierarchy";
 import { liftSanction } from "./sanction-actions";
 import { isSanctionActive } from "./sanctions";
@@ -117,6 +118,14 @@ export async function UserDetail({ id, session }: { id: string; session: Session
             Mute (bientôt disponible)
           </button>
         </section>
+      )}
+
+      {canManage && session.permissions.includes("permission.manage") && (
+        <UserPermissions
+          targetId={user.id}
+          targetRole={user.role}
+          callerPermissions={session.permissions}
+        />
       )}
 
       <section aria-labelledby="history-title" className="flex flex-col gap-2">
