@@ -19,12 +19,12 @@ async function JournalContent({
 
 export default function AdminJournalPage({ searchParams }: PageProps<"/admin/journal">) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-section">
       <h2 className="text-xl font-semibold tracking-tight">Journal d&apos;audit</h2>
-      <p className="text-sm text-foreground/60">
+      <p className="text-sm text-muted">
         Historique des actions d&apos;administration : changements de rôle, permissions, bans.
       </p>
-      <Suspense fallback={<p className="text-sm text-foreground/60">Chargement…</p>}>
+      <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
         <JournalContent
           searchParams={searchParams as Promise<{ action?: string; before?: string }>}
         />

@@ -28,9 +28,9 @@ async function CalendarContent({
 
 export default function CalendarPage({ searchParams }: PageProps<"/calendar">) {
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Calendrier</h1>
-      <Suspense fallback={<p className="text-sm text-foreground/60">Chargement…</p>}>
+    <div className="flex flex-col gap-section">
+      <h1 className="page-title">Calendrier</h1>
+      <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
         <CalendarContent searchParams={searchParams as Promise<{ month?: string; day?: string }>} />
       </Suspense>
     </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { canAccessAdmin } from "@/features/admin/access";
 import { safeAvatarUrl } from "@/features/profile/avatar";
 import { getSessionPermissions } from "@/server/session";
+import { Avatar } from "./avatar";
 import { HeaderIconLink } from "./header-icon-link";
 import { ShieldIcon, UserIcon } from "./icons";
 
@@ -21,12 +22,12 @@ export async function AppHeader() {
   const avatar = safeAvatarUrl(session?.avatarUrl);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-foreground/10 bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur">
       <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-4">
         <Link
           href="/"
           prefetch={false}
-          className="flex min-h-11 items-center gap-2 text-base font-bold tracking-tight"
+          className="flex min-h-tap items-center gap-2 text-base font-bold tracking-tight"
         >
           <Image
             src="/icons/icon-192.png"
@@ -34,7 +35,7 @@ export async function AppHeader() {
             width={28}
             height={28}
             unoptimized
-            className="rounded-lg"
+            className="rounded-control"
           />
           BlocusApp
         </Link>
@@ -44,7 +45,7 @@ export async function AppHeader() {
             <Link
               href="/login"
               prefetch={false}
-              className="flex h-11 items-center rounded-full bg-red-500 px-5 text-sm font-semibold text-white active:bg-red-600"
+              className="flex h-tap items-center rounded-full bg-accent px-5 text-sm font-semibold text-accent-ink active:bg-accent-strong"
             >
               Se connecter
             </Link>
@@ -56,19 +57,7 @@ export async function AppHeader() {
                 </HeaderIconLink>
               )}
               <HeaderIconLink href="/profil" label="Mon profil">
-                {avatar ? (
-                  <Image
-                    src={avatar}
-                    alt=""
-                    width={36}
-                    height={36}
-                    unoptimized
-                    referrerPolicy="no-referrer"
-                    className="h-9 w-9 rounded-full object-cover"
-                  />
-                ) : (
-                  <UserIcon />
-                )}
+                {avatar ? <Avatar pseudo="" url={avatar} size="sm" decorative /> : <UserIcon />}
               </HeaderIconLink>
             </>
           )}

@@ -13,7 +13,7 @@ export async function EventDetail({ id }: { id: string }) {
 
   if (!result.ok) {
     return (
-      <p role="alert" className="text-sm text-red-500">
+      <p role="alert" className="alert alert-error">
         Impossible de charger cet événement pour le moment.
       </p>
     );
@@ -37,46 +37,39 @@ export async function EventDetail({ id }: { id: string }) {
 
       <header className="flex flex-col gap-1">
         <div className="flex items-start justify-between gap-2">
-          <h2 className={`text-xl font-semibold ${finished ? "text-foreground/60" : ""}`}>
-            {event.title}
-          </h2>
+          <h2 className={`text-xl font-semibold ${finished ? "text-muted" : ""}`}>{event.title}</h2>
           {finished && (
             <span className="shrink-0 rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold">
               Terminé
             </span>
           )}
         </div>
-        <p className="text-sm first-letter:uppercase text-foreground/60">
+        <p className="text-sm first-letter:uppercase text-muted">
           {formatDayLong(event.starts_at)}
         </p>
-        <p className="font-medium text-red-500">
-          {formatTimeRange(event.starts_at, event.ends_at)}
-        </p>
+        <p className="font-medium text-accent">{formatTimeRange(event.starts_at, event.ends_at)}</p>
         {event.location && <p className="text-sm">{event.location}</p>}
       </header>
 
       {event.description ? (
         <p className="whitespace-pre-wrap text-sm">{event.description}</p>
       ) : (
-        <p className="text-sm text-foreground/60">Pas de description.</p>
+        <p className="text-sm text-muted">Pas de description.</p>
       )}
 
       {canFinish && <FinishToggle id={event.id} finished={finished} />}
 
       {canEdit && finished && (
-        <button
-          type="button"
-          disabled
-          aria-disabled="true"
-          className="rounded-lg border border-foreground/10 px-4 py-3 text-center font-medium opacity-50"
-        >
+        <button type="button" disabled aria-disabled="true" className="btn btn-outline opacity-50">
           Modifier (événement terminé)
         </button>
       )}
 
       {canEdit && !finished && (
-        <details className="rounded-lg border border-foreground/10">
-          <summary className="cursor-pointer px-4 py-3 text-center font-medium">Modifier</summary>
+        <details className="card">
+          <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium">
+            Modifier
+          </summary>
           <EventForm
             mode="edit"
             defaults={{
@@ -93,15 +86,14 @@ export async function EventDetail({ id }: { id: string }) {
       )}
 
       {canDelete && (
-        <details className="rounded-lg border border-red-500/30">
-          <summary className="cursor-pointer px-4 py-3 text-center text-red-500">Supprimer</summary>
+        <details className="rounded-card border border-danger/30">
+          <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium text-danger">
+            Supprimer
+          </summary>
           <form action={deleteEvent} className="flex flex-col gap-2 p-3">
             <input type="hidden" name="id" value={event.id} />
             <p className="text-sm">Cet événement sera supprimé définitivement.</p>
-            <button
-              type="submit"
-              className="rounded-lg bg-red-500 px-4 py-2 font-medium text-white"
-            >
+            <button type="submit" className="btn btn-primary">
               Confirmer la suppression
             </button>
           </form>

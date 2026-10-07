@@ -22,21 +22,19 @@ export function AnnouncementForm() {
 
   return (
     <form ref={formRef} action={action} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="field-label">
         Titre
         <input
           name="title"
           required
           maxLength={TITLE_MAX}
           aria-invalid={state.fieldErrors?.title ? true : undefined}
-          className="rounded-lg border border-foreground/20 bg-background px-3 py-3 text-base"
+          className="field"
         />
-        {state.fieldErrors?.title && (
-          <span className="text-red-500">{state.fieldErrors.title}</span>
-        )}
+        {state.fieldErrors?.title && <span className="field-error">{state.fieldErrors.title}</span>}
       </label>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="field-label">
         Message
         <textarea
           name="body"
@@ -44,25 +42,21 @@ export function AnnouncementForm() {
           rows={8}
           maxLength={BODY_MAX}
           aria-invalid={state.fieldErrors?.body ? true : undefined}
-          className="rounded-lg border border-foreground/20 bg-background px-3 py-3 text-base"
+          className="field"
         />
-        {state.fieldErrors?.body && <span className="text-red-500">{state.fieldErrors.body}</span>}
+        {state.fieldErrors?.body && <span className="field-error">{state.fieldErrors.body}</span>}
       </label>
 
       {state.message && (
         <p
           role={state.status === "error" ? "alert" : "status"}
-          className={state.status === "error" ? "text-sm text-red-500" : "text-sm text-green-600"}
+          className={state.status === "error" ? "text-feedback-error" : "text-feedback-success"}
         >
           {state.message}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-xl bg-red-500 px-4 py-3 text-base font-semibold text-white disabled:opacity-60"
-      >
+      <button type="submit" disabled={pending} className="btn btn-primary">
         {pending ? "Publication…" : "Publier"}
       </button>
     </form>

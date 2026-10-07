@@ -7,7 +7,7 @@ import { DESCRIPTION_MAX, LOCATION_MAX, TITLE_MAX } from "./schema";
 import { formatDayKeyLong } from "./time";
 
 const INITIAL_STATE: EventFormState = { status: "idle" };
-const inputClass = "rounded border border-foreground/20 bg-background px-3 py-2 text-base";
+const inputClass = "field";
 
 /** Values of an existing event, as shown in the edit form (wall-clock time in the event zone). */
 export type EventFormDefaults = {
@@ -42,18 +42,16 @@ export function EventForm(props: Props) {
   const errors = state.fieldErrors;
 
   return (
-    <form ref={formRef} action={action} className="flex flex-col gap-3 p-3">
+    <form ref={formRef} action={action} className="flex flex-col gap-4 p-4">
       {edit && <input type="hidden" name="id" value={edit.id} />}
 
       {props.mode === "create" ? (
         <>
           <input type="hidden" name="date" value={props.day} />
-          <p className="text-sm first-letter:uppercase text-foreground/60">
-            {formatDayKeyLong(props.day)}
-          </p>
+          <p className="text-sm first-letter:uppercase text-muted">{formatDayKeyLong(props.day)}</p>
         </>
       ) : (
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="field-label">
           Date
           <input
             type="date"
@@ -62,12 +60,12 @@ export function EventForm(props: Props) {
             defaultValue={edit?.date}
             className={inputClass}
           />
-          {errors?.date && <span className="text-red-500">{errors.date}</span>}
+          {errors?.date && <span className="field-error">{errors.date}</span>}
         </label>
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="field-label">
           Heure
           <input
             type="time"
@@ -76,16 +74,16 @@ export function EventForm(props: Props) {
             defaultValue={edit?.time}
             className={inputClass}
           />
-          {errors?.time && <span className="text-red-500">{errors.time}</span>}
+          {errors?.time && <span className="field-error">{errors.time}</span>}
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="field-label">
           Fin (facultatif)
           <input type="time" name="end_time" defaultValue={edit?.endTime} className={inputClass} />
-          {errors?.endTime && <span className="text-red-500">{errors.endTime}</span>}
+          {errors?.endTime && <span className="field-error">{errors.endTime}</span>}
         </label>
       </div>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="field-label">
         Titre
         <input
           name="title"
@@ -95,10 +93,10 @@ export function EventForm(props: Props) {
           aria-invalid={errors?.title ? true : undefined}
           className={inputClass}
         />
-        {errors?.title && <span className="text-red-500">{errors.title}</span>}
+        {errors?.title && <span className="field-error">{errors.title}</span>}
       </label>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="field-label">
         Texte
         <textarea
           name="description"
@@ -107,10 +105,10 @@ export function EventForm(props: Props) {
           defaultValue={edit?.description}
           className={inputClass}
         />
-        {errors?.description && <span className="text-red-500">{errors.description}</span>}
+        {errors?.description && <span className="field-error">{errors.description}</span>}
       </label>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="field-label">
         Lieu (facultatif)
         <input
           name="location"
@@ -118,23 +116,19 @@ export function EventForm(props: Props) {
           defaultValue={edit?.location}
           className={inputClass}
         />
-        {errors?.location && <span className="text-red-500">{errors.location}</span>}
+        {errors?.location && <span className="field-error">{errors.location}</span>}
       </label>
 
       {state.message && (
         <p
           role={state.status === "error" ? "alert" : "status"}
-          className={state.status === "error" ? "text-sm text-red-500" : "text-sm text-green-600"}
+          className={state.status === "error" ? "text-feedback-error" : "text-feedback-success"}
         >
           {state.message}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-red-500 px-4 py-3 font-medium text-white disabled:opacity-60"
-      >
+      <button type="submit" disabled={pending} className="btn btn-primary">
         {pending
           ? "Enregistrement…"
           : props.mode === "create"

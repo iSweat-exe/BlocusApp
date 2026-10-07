@@ -27,9 +27,9 @@ export function HeaderIconLink({
       aria-label={label}
       title={label}
       aria-current={active ? "page" : undefined}
-      className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors ${
+      className={`flex h-tap w-tap items-center justify-center rounded-full transition-colors ${
         active
-          ? "bg-red-500/15 text-red-500 ring-2 ring-red-500"
+          ? "bg-accent/15 text-accent ring-2 ring-accent"
           : "bg-foreground/5 text-foreground/80 active:bg-foreground/15 [@media(hover:hover)]:hover:bg-foreground/10"
       }`}
     >

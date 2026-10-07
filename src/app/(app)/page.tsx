@@ -10,13 +10,13 @@ async function Feed({ searchParams }: { searchParams: Promise<{ n?: string }> })
 
 export default function HomePage({ searchParams }: PageProps<"/">) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-section">
       {/* Very top of the page: events that start within 30 minutes. */}
       <Suspense fallback={null}>
         <ImminentEvents />
       </Suspense>
-      <h1 className="text-2xl font-semibold">Accueil</h1>
-      <Suspense fallback={<p className="text-sm text-foreground/60">Chargement des annonces…</p>}>
+      <h1 className="page-title">Accueil</h1>
+      <Suspense fallback={<p className="text-sm text-muted">Chargement des annonces…</p>}>
         <Feed searchParams={searchParams as Promise<{ n?: string }>} />
       </Suspense>
     </div>

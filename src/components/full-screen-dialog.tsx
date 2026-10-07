@@ -33,8 +33,7 @@ type Props = {
   children: ReactNode;
 };
 
-const DEFAULT_TRIGGER =
-  "w-full rounded-xl bg-red-500 px-4 py-3 text-base font-semibold text-white shadow-sm active:bg-red-600";
+const DEFAULT_TRIGGER = "btn btn-primary w-full shadow-sm";
 
 /**
  * A button that opens a dialog covering the whole viewport (native `<dialog>`: focus trap, Escape to close,
@@ -79,7 +78,7 @@ export function FullScreenDialog({ triggerLabel, title, triggerClassName, childr
       >
         <DialogContext.Provider value={contextValue}>
           <div className="mx-auto flex h-dvh w-full max-w-2xl flex-col">
-            <header className="flex items-center justify-between gap-2 border-b border-foreground/10 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+            <header className="flex items-center justify-between gap-2 border-b border-line px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
               <h2 id={titleId} className="text-lg font-semibold">
                 {title}
               </h2>
@@ -87,7 +86,7 @@ export function FullScreenDialog({ triggerLabel, title, triggerClassName, childr
                 type="button"
                 onClick={close}
                 aria-label="Fermer"
-                className="flex h-11 w-11 items-center justify-center rounded-full text-2xl leading-none active:bg-foreground/10"
+                className="flex h-tap w-tap items-center justify-center rounded-full text-2xl leading-none active:bg-foreground/10"
               >
                 ×
               </button>
