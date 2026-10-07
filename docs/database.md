@@ -95,6 +95,17 @@ permanent, doit être > `created_at`), `revoked_at`, `revoked_by`. Index `(targe
 `(created_at desc, id desc)`. RLS : lecture avec `user.ban` ou `user.mute` ; écriture via `ban_user()` et
 `revoke_sanction()` uniquement. `is_banned(uuid)` (interne) est utilisée par `effective_permissions` et le hook JWT.
 
+### `events`
+
+Événements du calendrier (migration `20261007200000_create_events.sql`) : `id`, `author_id` (FK `profiles`,
+`on delete set null`), `title` (1-120), `description` (≤ 5000, vide par défaut), `location` (≤ 200, vide par
+défaut), `starts_at` (UTC), `ends_at` (nullable, ≥ `starts_at`), `created_at`, `updated_at`. Ponctuels, sans
+récurrence. Index `(starts_at, id)` (vues par jour) et `author_id`. Trigger `check_event_start` : un événement
+ne peut être créé ni déplacé dans le passé (tolérance 5 min) ; le texte d'un événement déjà commencé reste
+modifiable. RLS : lecture pour `anon` et `authenticated` (Guest) ; insertion avec `event.create` et
+`author_id = auth.uid()` ; modification de ses propres événements (titre, texte, lieu, horaires) avec
+`event.create` ; suppression avec `event.delete`, ou de ses propres événements avec `event.create`.
+
 ## Développement local
 
 Docker requis. Les secrets Discord locaux viennent de l'environnement (`.env.example`).
