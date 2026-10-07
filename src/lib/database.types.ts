@@ -130,6 +130,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
     };
     Enums: {

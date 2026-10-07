@@ -49,4 +49,12 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   `authenticated` et `service_role` uniquement. Permission inconnue = refusée, même pour `super_admin`.
 - `roles`, `permissions`, `role_permissions` : RLS, lecture seule pour `authenticated`, aucune écriture
   client (l'édition depuis le panneau admin viendra avec A-035).
-- Reste à faire : claims JWT (A-034), hiérarchie appliquée (A-037), `requirePermission()` (A-038), audit (A-039).
+- **Claims JWT (A-034)** : le hook `custom_access_token_hook` (migration `20261007140000_...`) ajoute au
+  token `app_role` (le claim `role` est réservé par PostgREST) et `permissions` (tableau de clés). Seul
+  `supabase_auth_admin` peut l'exécuter. Les claims ne sont rafraîchis qu'avec le token (≤ 1 h) : ils servent
+  de chemin rapide côté serveur, la RLS (`has_permission`) reste l'autorité.
+- **`requirePermission(permission, { fresh? })` (A-038)** : `src/server/require-permission.ts`, à appeler en
+  premier dans chaque Server Action / Route Handler. Retourne `Result<{ userId }, "unauthenticated" |
+"forbidden">`. Par défaut lit les claims ; `fresh: true` interroge la base (actions sensibles : `user.ban`,
+  `role.assign`).
+- Reste à faire : hiérarchie appliquée (A-037), audit (A-039), usage de `requirePermission` dans les futures actions.
