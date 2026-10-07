@@ -1,9 +1,16 @@
+import { Suspense } from "react";
 import { AppNav } from "@/components/app-nav";
+import { AuthStatus } from "@/features/auth/auth-status";
 
-// TODO(auth): redirect unauthenticated users to /login (see checklist step 1.2).
+// Guests may read (A-022); the access guard for write actions is tracked in A-121.
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <header className="flex justify-end p-4 pb-0">
+        <Suspense>
+          <AuthStatus />
+        </Suspense>
+      </header>
       <div className="flex flex-1 flex-col p-4">{children}</div>
       <AppNav />
     </>

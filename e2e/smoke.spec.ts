@@ -18,6 +18,7 @@ test.describe("app shell", () => {
   test("serves the public auth pages", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continuer avec Discord" })).toBeVisible();
     await page.goto("/register");
     await expect(page.getByRole("heading", { name: "Inscription" })).toBeVisible();
   });
