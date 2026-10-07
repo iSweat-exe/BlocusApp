@@ -22,6 +22,7 @@ export function AdminNav({ links }: { links: AdminLink[] }) {
           <li key={href}>
             <Link
               href={href}
+              prefetch={false}
               aria-current={isActive(href) ? "page" : undefined}
               className={`block whitespace-nowrap rounded-full px-4 py-1.5 text-sm ${
                 isActive(href) ? "bg-red-500 text-white" : "bg-foreground/10"

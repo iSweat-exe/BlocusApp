@@ -23,6 +23,7 @@ export function HeaderIconLink({
   return (
     <Link
       href={href}
+      prefetch={false}
       aria-label={label}
       title={label}
       aria-current={active ? "page" : undefined}

@@ -45,6 +45,7 @@ export async function UserList({ search }: { search: string }) {
               >
                 <Link
                   href={`/admin/users/${profile.id}`}
+                  prefetch={false}
                   className="min-w-0 truncate font-medium underline"
                 >
                   {profile.pseudo}

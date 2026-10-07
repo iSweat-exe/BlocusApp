@@ -90,6 +90,12 @@ test.describe("app shell", () => {
     await expect(page.getByRole("heading", { name: "Page introuvable" })).toBeVisible();
   });
 
+  test("icons are cacheable for a day, not revalidated on every load", async ({ request }) => {
+    const response = await request.get("/icons/icon-192.png");
+    expect(response.ok()).toBe(true);
+    expect(response.headers()["cache-control"]).toContain("max-age=86400");
+  });
+
   test("sends Guests away from the profile page", async ({ page }) => {
     await page.goto("/profil");
     await page.waitForURL("**/login");

@@ -25,6 +25,7 @@ export async function AppHeader() {
       <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-4">
         <Link
           href="/"
+          prefetch={false}
           className="flex min-h-11 items-center gap-2 text-base font-bold tracking-tight"
         >
           <Image
@@ -42,6 +43,7 @@ export async function AppHeader() {
           {!session ? (
             <Link
               href="/login"
+              prefetch={false}
               className="flex h-11 items-center rounded-full bg-red-500 px-5 text-sm font-semibold text-white active:bg-red-600"
             >
               Se connecter
