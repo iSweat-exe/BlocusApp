@@ -14,7 +14,7 @@ function Feedback({ state }: { state: PermissionState }) {
   return (
     <p
       role={state.status === "error" ? "alert" : "status"}
-      className={state.status === "error" ? "text-xs text-red-500" : "text-xs text-green-600"}
+      className={state.status === "error" ? "text-xs text-danger" : "text-xs text-success"}
     >
       {state.message}
     </p>
@@ -37,11 +37,7 @@ export function RolePermissionToggle({
       <input type="hidden" name="role" value={role} />
       <input type="hidden" name="permission" value={permission} />
       <input type="hidden" name="granted" value={currentlyGranted ? "false" : "true"} />
-      <button
-        type="submit"
-        disabled={pending}
-        className="min-h-10 rounded-xl border border-foreground/15 px-4 text-sm font-medium active:bg-foreground/5 disabled:opacity-60"
-      >
+      <button type="submit" disabled={pending} className="btn btn-outline btn-sm">
         {pending ? "…" : currentlyGranted ? "Retirer" : "Accorder"}
       </button>
       <Feedback state={state} />
@@ -62,8 +58,7 @@ export function UserOverrideControls({
   canGrant: boolean;
 }) {
   const [state, action, pending] = useActionState(setUserPermission, INITIAL_STATE);
-  const buttonClass =
-    "min-h-10 rounded-xl border border-foreground/15 px-3 text-xs font-medium active:bg-foreground/5 disabled:opacity-60";
+  const buttonClass = "btn btn-outline btn-sm !px-3 !text-xs";
   return (
     <form action={action} className="flex flex-col items-end gap-1">
       <input type="hidden" name="target" value={target} />

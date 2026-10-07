@@ -1,3 +1,3 @@
 export default function RegisterPage() {
-  return <h1 className="text-2xl font-semibold">Inscription</h1>;
+  return <h1 className="page-title">Inscription</h1>;
 }

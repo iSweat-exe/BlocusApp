@@ -11,9 +11,9 @@ async function ProfileContent() {
 
 export default function ProfilePage() {
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Mon profil</h1>
-      <Suspense fallback={<p className="text-sm text-foreground/60">Chargement…</p>}>
+    <div className="flex flex-col gap-section">
+      <h1 className="page-title">Mon profil</h1>
+      <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
         <ProfileContent />
       </Suspense>
     </div>

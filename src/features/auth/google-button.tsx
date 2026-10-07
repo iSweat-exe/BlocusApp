@@ -7,7 +7,7 @@ export function GoogleButton() {
     <button
       type="button"
       disabled
-      className="flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-foreground/15 bg-background px-4 py-3 font-medium opacity-50"
+      className="btn btn-outline w-full cursor-not-allowed gap-3 opacity-50"
     >
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
         <path

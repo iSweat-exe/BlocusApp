@@ -44,6 +44,23 @@ docs/ · .dev/                      Documentation et pilotage
 - Erreurs prévisibles : type `Result` (`src/lib/result.ts`), pas d'exception pour le flux normal.
 - Logs sans donnée personnelle (pas d'e-mail, de token, de contenu de message).
 
+## Design system (UI)
+
+Source unique : `src/app/globals.css` (voir ADR 0004). Ne jamais coder en dur une couleur, un arrondi ou une
+hauteur de bouton : utiliser les tokens et classes partagées.
+
+| Besoin                | À utiliser                                                                    |
+| --------------------- | ----------------------------------------------------------------------------- |
+| Couleurs              | `bg-accent`, `text-accent`, `text-danger`, `text-success`, `text-muted`, `text-faint`, `border-line`, `bg-surface` |
+| Arrondis              | `rounded-control` (boutons, champs), `rounded-card` (cartes), `rounded-sheet` (feuilles), `rounded-full` (pastilles, avatars) |
+| Zones tactiles        | `min-h-tap` (44 px), `min-h-control` (48 px), `min-h-control-sm` (40 px)      |
+| Rythme                | `p-gutter` (marge de page), `gap-section` (entre sections)                    |
+| Cartes / alertes      | `.card`, `.card-link`, `.alert .alert-error`, `.chip .chip-accent`            |
+| Boutons               | `.btn` + `.btn-primary` / `-secondary` / `-outline` / `-danger`, `.btn-sm`    |
+| Champs de formulaire  | `.field`, `.field-label`, `.field-error`                                      |
+| Titres                | `.page-title`, `.section-title`                                               |
+| Composants            | `Select` (liste déroulante, feuille swipeable sur mobile), `Avatar`, `FullScreenDialog` |
+
 ## TypeScript / qualité
 
 - `strict`, `noUncheckedIndexedAccess`, pas de `any` (erreur ESLint), pas de `@ts-ignore` sans

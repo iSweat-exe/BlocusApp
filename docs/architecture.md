@@ -117,7 +117,9 @@ fenêtre ouverte (formulaire vierge à chaque ouverture). Un formulaire passé e
 Component la ferme après un succès avec le hook `useDialogClose()` (pas de fonction en prop). Utilisée pour
 « Créer un post » (`announcement-feed.tsx`) et « Ajouter un événement » (`calendar-view.tsx`).
 
-**Liste déroulante réutilisable.** `src/components/select.tsx` (`<Select label options name? defaultValue? value? onChange? size?>`) : feuille en bas d'écran sur mobile, popover dès `sm`, motif ARIA listbox (flèches, Début/Fin, Entrée/Espace, Échap). Dans un formulaire, la valeur part par un `<input type="hidden" name>` : utilisable avec les Server Actions et les formulaires GET. Remplace les `<select>` natifs de l'administration (rôle, durée de ban, filtre du journal).
+**Design system.** Tokens et classes partagées dans `src/app/globals.css` (couleurs, arrondis, espacements, polices), cf. `docs/conventions.md` et ADR 0004. `src/components/avatar.tsx` affiche la photo de profil (URL contrôlée par `safeAvatarUrl`) ou les initiales.
+
+**Liste déroulante réutilisable.** `src/components/select.tsx` (`<Select label options name? defaultValue? value? onChange? size?>`) : feuille en bas d'écran sur mobile (fermable en la glissant vers le bas, `use-sheet-swipe.ts`), popover dès `sm`, motif ARIA listbox (flèches, Début/Fin, Entrée/Espace, Échap). Dans un formulaire, la valeur part par un `<input type="hidden" name>` : utilisable avec les Server Actions et les formulaires GET. Remplace les `<select>` natifs de l'administration (rôle, durée de ban, filtre du journal).
 
 ## Calendrier
 

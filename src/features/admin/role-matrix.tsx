@@ -15,10 +15,7 @@ export async function RoleMatrix({ session }: { session: SessionPermissions }) {
 
   if (!roles.ok || !permissions.ok || !links.ok) {
     return (
-      <p
-        role="alert"
-        className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
-      >
+      <p role="alert" className="alert alert-error">
         Impossible de charger les permissions pour le moment.
       </p>
     );
@@ -35,13 +32,13 @@ export async function RoleMatrix({ session }: { session: SessionPermissions }) {
         <section
           key={role.key}
           aria-labelledby={`role-${role.key}`}
-          className="flex flex-col gap-2 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4"
+          className="flex flex-col gap-2 card p-4"
         >
           <h2 id={`role-${role.key}`} className="font-semibold">
             {role.label}
           </h2>
           {role.key === "super_admin" && (
-            <p className="text-xs text-foreground/60">
+            <p className="text-xs text-muted">
               Toutes les permissions, non modifiable (verrou en base de données).
             </p>
           )}
@@ -63,7 +60,7 @@ export async function RoleMatrix({ session }: { session: SessionPermissions }) {
                     <p className="text-sm">
                       {permissionLabel(permission.key, permission.description)}
                     </p>
-                    <p className="font-mono text-xs text-foreground/60">{permission.key}</p>
+                    <p className="font-mono text-xs text-muted">{permission.key}</p>
                   </div>
                   {editable ? (
                     <RolePermissionToggle
@@ -72,9 +69,7 @@ export async function RoleMatrix({ session }: { session: SessionPermissions }) {
                       currentlyGranted={has}
                     />
                   ) : (
-                    <span
-                      className={`shrink-0 text-sm ${has ? "text-green-600" : "text-foreground/40"}`}
-                    >
+                    <span className={`shrink-0 text-sm ${has ? "text-success" : "text-faint"}`}>
                       {has ? "Accordée" : "Non accordée"}
                     </span>
                   )}

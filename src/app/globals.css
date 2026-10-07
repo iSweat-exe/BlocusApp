@@ -1,24 +1,160 @@
 @import "tailwindcss";
 
+/*
+ * BlocusApp design system: the single place for colors, radii, spacing, fonts and the shared component
+ * classes. Pages and components use these tokens/classes instead of ad-hoc values, so the look of the whole
+ * app changes from here. Mobile-app style: large touch targets, generous radii, soft surfaces.
+ */
+
+/* 1. Color tokens (light, then dark). */
 :root {
   --background: #ffffff;
   --foreground: #171717;
   --accent: #ef4444;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-accent: var(--accent);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --accent-strong: #dc2626; /* pressed state */
+  --accent-ink: #ffffff; /* text on the accent color */
+  --danger: #dc2626; /* error text and destructive actions */
+  --success: #16a34a;
+  --google: #4285f4;
+  --discord: #5865f2;
+  --discord-strong: #4752c4;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
-    --accent: #f87171;
+    --accent: #ff3b46;
+    --accent-strong: #e02530;
+    --danger: #f87171;
+    --success: #4ade80;
+  }
+}
+
+/* 2. Theme: tokens exposed as Tailwind utilities (bg-accent, text-muted, rounded-card, min-h-control…). */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-discord: var(--discord);
+  --color-discord-strong: var(--discord-strong);
+  /* Neutral surfaces and text, derived from the foreground so they follow light and dark. */
+  --color-surface: color-mix(in srgb, var(--foreground) 3%, transparent);
+  --color-line: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --color-line-strong: color-mix(in srgb, var(--foreground) 15%, transparent);
+  --color-muted: color-mix(in srgb, var(--foreground) 60%, transparent);
+  --color-faint: color-mix(in srgb, var(--foreground) 45%, transparent);
+
+  /* Fonts. */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Radii: controls (buttons, inputs), cards, sheets. Pills and avatars use rounded-full. */
+  --radius-control: 0.75rem;
+  --radius-card: 1rem;
+  --radius-sheet: 1.5rem;
+
+  /* Spacing: touch targets and page rhythm. */
+  --spacing-tap: 2.75rem; /* 44 px: minimum touch target (iOS) */
+  --spacing-control: 3rem; /* 48 px: buttons and inputs */
+  --spacing-control-sm: 2.5rem; /* 40 px: compact controls inside rows */
+  --spacing-gutter: 1rem; /* page side padding */
+  --spacing-section: 1.5rem; /* gap between page sections */
+
+  /* Motion. */
+  --animate-sheet-up: sheet-up 240ms cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-fade-in: fade-in 200ms ease-out;
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* 3. Shared component classes. */
+@layer components {
+  .page-title {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  .section-title {
+    @apply px-1 text-xs font-semibold tracking-wide text-faint uppercase;
+  }
+  .card {
+    @apply rounded-card border border-line bg-surface;
+  }
+  .card-link {
+    @apply rounded-card border border-line bg-surface active:bg-foreground/10;
+  }
+
+  /* Form fields. */
+  .field {
+    @apply min-h-control w-full rounded-control border border-line-strong bg-background px-4 text-base;
+  }
+  textarea.field {
+    @apply py-3;
+  }
+  .field-label {
+    @apply flex flex-col gap-1 text-sm;
+  }
+  .field-error {
+    @apply text-sm text-danger;
+  }
+
+  /* Buttons: combine `.btn` with one variant. */
+  .btn {
+    @apply inline-flex min-h-control items-center justify-center rounded-control px-5 text-base font-semibold disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply bg-accent text-accent-ink active:bg-accent-strong;
+  }
+  .btn-secondary {
+    @apply bg-foreground/10 font-medium text-foreground active:bg-foreground/15;
+  }
+  .btn-outline {
+    @apply border border-line-strong font-medium text-foreground active:bg-foreground/5;
+  }
+  .btn-danger {
+    @apply border border-danger/40 text-danger active:bg-danger/10;
+  }
+  .btn-sm {
+    @apply min-h-control-sm px-4 text-sm;
+  }
+
+  /* Feedback. */
+  .alert {
+    @apply rounded-control border px-4 py-3 text-sm;
+  }
+  .alert-error {
+    @apply border-danger/30 bg-danger/10 text-danger;
+  }
+  .text-feedback-error {
+    @apply text-sm text-danger;
+  }
+  .text-feedback-success {
+    @apply text-sm text-success;
+  }
+
+  /* Small labels. */
+  .chip {
+    @apply inline-flex items-center rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold;
+  }
+  .chip-accent {
+    @apply bg-accent/15 text-accent;
   }
 }
 

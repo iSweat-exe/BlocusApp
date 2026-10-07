@@ -17,7 +17,7 @@ export function DeleteAnnouncementButton({ id, title }: { id: string; title: str
         type="button"
         onClick={() => setConfirming(true)}
         aria-label={`Supprimer l'annonce « ${title} »`}
-        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm text-foreground/60 active:bg-foreground/10 [@media(hover:hover)]:hover:text-red-500"
+        className="inline-flex min-h-tap items-center gap-1.5 rounded-control px-3 text-sm text-muted active:bg-foreground/10 [@media(hover:hover)]:hover:text-danger"
       >
         <TrashIcon className="h-4 w-4" />
         Supprimer
@@ -31,14 +31,11 @@ export function DeleteAnnouncementButton({ id, title }: { id: string; title: str
       <button
         type="button"
         onClick={() => setConfirming(false)}
-        className="min-h-11 rounded-lg px-3 text-sm active:bg-foreground/10"
+        className="btn btn-sm font-medium active:bg-foreground/10"
       >
         Annuler
       </button>
-      <button
-        type="submit"
-        className="min-h-11 rounded-lg bg-red-500 px-4 text-sm font-semibold text-white active:bg-red-600"
-      >
+      <button type="submit" className="btn btn-primary btn-sm">
         Confirmer la suppression
       </button>
     </form>

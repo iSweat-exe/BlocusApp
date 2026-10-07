@@ -14,10 +14,7 @@ async function LoginError({ searchParams }: { searchParams: Promise<{ error?: st
   const message = error ? ERRORS[error] : undefined;
   if (!message) return null;
   return (
-    <p
-      role="alert"
-      className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
-    >
+    <p role="alert" className="alert alert-error">
       {message}
     </p>
   );
@@ -34,10 +31,10 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
           height={72}
           unoptimized
           priority
-          className="rounded-2xl shadow-sm"
+          className="rounded-card shadow-sm"
         />
-        <h1 className="text-2xl font-semibold tracking-tight">Connexion</h1>
-        <p className="text-sm text-foreground/60">Connecte-toi pour accéder à BlocusApp.</p>
+        <h1 className="page-title">Connexion</h1>
+        <p className="text-sm text-muted">Connecte-toi pour accéder à BlocusApp.</p>
       </header>
 
       <Suspense>
@@ -49,7 +46,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
         <GoogleButton />
       </div>
 
-      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-foreground/50">
+      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-faint">
         <span className="h-px flex-1 bg-foreground/15" />
         ou
         <span className="h-px flex-1 bg-foreground/15" />

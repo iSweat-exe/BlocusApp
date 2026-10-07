@@ -22,15 +22,11 @@ export function BanForm({ targetId }: { targetId: string }) {
   const customIso = localDate ? new Date(localDate).toISOString() : "";
 
   return (
-    <form
-      ref={formRef}
-      action={action}
-      className="flex flex-col gap-4 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4"
-    >
+    <form ref={formRef} action={action} className="flex flex-col gap-4 card p-4">
       <h3 className="font-semibold">Bannir</h3>
       <input type="hidden" name="target" value={targetId} />
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="field-label">
         Motif
         <textarea
           name="reason"
@@ -38,14 +34,14 @@ export function BanForm({ targetId }: { targetId: string }) {
           rows={3}
           maxLength={REASON_MAX}
           aria-invalid={state.fieldErrors?.reason ? true : undefined}
-          className="rounded-xl border border-foreground/15 bg-background px-4 py-3 text-base"
+          className="field"
         />
         {state.fieldErrors?.reason && (
-          <span className="text-red-500">{state.fieldErrors.reason}</span>
+          <span className="field-error">{state.fieldErrors.reason}</span>
         )}
       </label>
 
-      <label className="flex flex-col gap-1 text-sm">
+      <label className="field-label">
         Durée
         <Select
           name="duration"
@@ -60,36 +56,30 @@ export function BanForm({ targetId }: { targetId: string }) {
       </label>
 
       {duration === "custom" && (
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="field-label">
           Expire le
           <input
             type="datetime-local"
             value={localDate}
             onChange={(event) => setLocalDate(event.target.value)}
             required
-            className="min-h-12 rounded-xl border border-foreground/15 bg-background px-4 text-base"
+            className="field"
           />
           <input type="hidden" name="custom_expires_at" value={customIso} />
         </label>
       )}
-      {state.fieldErrors?.duration && (
-        <p className="text-sm text-red-500">{state.fieldErrors.duration}</p>
-      )}
+      {state.fieldErrors?.duration && <p className="field-error">{state.fieldErrors.duration}</p>}
 
       {state.message && (
         <p
           role={state.status === "error" ? "alert" : "status"}
-          className={state.status === "error" ? "text-sm text-red-500" : "text-sm text-green-600"}
+          className={state.status === "error" ? "text-feedback-error" : "text-feedback-success"}
         >
           {state.message}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="min-h-12 rounded-xl bg-red-500 px-4 py-3 font-semibold text-white active:bg-red-600 disabled:opacity-60"
-      >
+      <button type="submit" disabled={pending} className="btn btn-primary">
         {pending ? "Bannissement…" : "Bannir"}
       </button>
     </form>

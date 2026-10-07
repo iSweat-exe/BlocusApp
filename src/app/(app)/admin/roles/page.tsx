@@ -13,13 +13,13 @@ async function RolesContent() {
 
 export default function AdminRolesPage() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-section">
       <h2 className="text-xl font-semibold tracking-tight">Rôles et permissions</h2>
-      <p className="text-sm text-foreground/60">
+      <p className="text-sm text-muted">
         Choisis ce que peut faire chaque rôle. Tu modifies uniquement les rôles en dessous du tien,
         et tu n&apos;accordes que ce que tu possèdes.
       </p>
-      <Suspense fallback={<p className="text-sm text-foreground/60">Chargement…</p>}>
+      <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
         <RolesContent />
       </Suspense>
     </div>

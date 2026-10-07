@@ -34,11 +34,11 @@ export async function AnnouncementFeed({ limit }: { limit: number }) {
       )}
 
       {!result.ok ? (
-        <p role="alert" className="text-sm text-red-500">
+        <p role="alert" className="alert alert-error">
           Impossible de charger les annonces pour le moment.
         </p>
       ) : announcements.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-foreground/20 p-6 text-center text-sm text-foreground/60">
+        <p className="rounded-card border border-dashed border-line-strong p-6 text-center text-sm text-muted">
           Aucune annonce pour le moment.
         </p>
       ) : (
@@ -51,12 +51,12 @@ export async function AnnouncementFeed({ limit }: { limit: number }) {
               <li key={announcement.id}>
                 {/* A plain card: border only, no side bar, no shadow, no badge. */}
                 <article
-                  className={`rounded-2xl border border-foreground/10 px-4 pt-4 ${
+                  className={`rounded-card border border-line px-4 pt-4 ${
                     canDelete ? "pb-2" : "pb-4"
                   }`}
                 >
                   <header className="flex flex-col gap-1">
-                    <time dateTime={announcement.created_at} className="text-xs text-foreground/60">
+                    <time dateTime={announcement.created_at} className="text-xs text-muted">
                       {formatAnnouncementDate(announcement.created_at, now)}
                     </time>
                     <h2 className="break-words text-lg font-semibold leading-snug">
@@ -69,7 +69,7 @@ export async function AnnouncementFeed({ limit }: { limit: number }) {
                   </p>
 
                   {canDelete && (
-                    <footer className="mt-3 flex justify-end border-t border-foreground/10 pt-2">
+                    <footer className="mt-3 flex justify-end border-t border-line pt-2">
                       <DeleteAnnouncementButton id={announcement.id} title={announcement.title} />
                     </footer>
                   )}
@@ -86,12 +86,12 @@ export async function AnnouncementFeed({ limit }: { limit: number }) {
             href={`/?n=${limit + FEED_STEP}`}
             prefetch={false}
             scroll={false}
-            className="flex min-h-12 items-center justify-center rounded-xl border border-foreground/20 px-4 text-sm font-medium active:bg-foreground/10"
+            className="btn btn-outline text-sm"
           >
             Voir plus d&apos;annonces
           </Link>
         ) : (
-          <p className="text-center text-xs text-foreground/60">
+          <p className="text-center text-xs text-muted">
             Seules les {FEED_MAX} annonces les plus récentes sont affichées.
           </p>
         ))}

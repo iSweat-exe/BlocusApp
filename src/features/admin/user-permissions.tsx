@@ -30,10 +30,7 @@ export async function UserPermissions({
 
   if (!permissions.ok || !links.ok || !overrides.ok) {
     return (
-      <p
-        role="alert"
-        className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
-      >
+      <p role="alert" className="alert alert-error">
         Impossible de charger les permissions de cet utilisateur.
       </p>
     );
@@ -49,11 +46,11 @@ export async function UserPermissions({
       <h3 id="permissions-title" className="font-semibold">
         Permissions
       </h3>
-      <p className="text-xs text-foreground/60">
+      <p className="text-xs text-muted">
         Un refus l&apos;emporte sur le rôle. Tu ne peux accorder qu&apos;une permission que tu
         possèdes.
       </p>
-      <ul className="divide-y divide-foreground/10 rounded-2xl border border-foreground/10 bg-foreground/[0.03] px-4">
+      <ul className="divide-y divide-foreground/10 card px-4">
         {permissions.value.map((permission) => {
           const override = toOverride(overrideOf.get(permission.key));
           const state = effectiveState(roleHas.has(permission.key), override);
@@ -61,7 +58,7 @@ export async function UserPermissions({
             <li key={permission.key} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <p className="text-sm">{permissionLabel(permission.key, permission.description)}</p>
-                <p className={`text-xs ${state.allowed ? "text-green-600" : "text-foreground/60"}`}>
+                <p className={`text-xs ${state.allowed ? "text-success" : "text-muted"}`}>
                   {SOURCE_LABELS[state.source]}
                 </p>
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useSheetSwipe } from "./use-sheet-swipe";
 
 /** One choice of a {@link Select}. */
 export type SelectOption = { value: string; label: string };
@@ -24,7 +25,8 @@ type Props = {
 };
 
 /**
- * Reusable dropdown with a mobile-app look: a bottom sheet on phones, a popover from `sm` up.
+ * Reusable dropdown with a mobile-app look: a bottom sheet on phones (swipe down to dismiss, like iOS),
+ * a popover from `sm` up.
  * Works inside forms (hidden input + `name`), controlled or not, and is keyboard accessible
  * (arrows, Home/End, Enter/Space, Escape) following the listbox pattern.
  */
@@ -46,6 +48,8 @@ export function Select({
   const [active, setActive] = useState(0);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const listId = useId();
 
   useEffect(() => {
@@ -62,10 +66,11 @@ export function Select({
     );
     setOpen(true);
   };
-  const close = () => {
+  const close = useCallback(() => {
     setOpen(false);
     triggerRef.current?.focus();
-  };
+  }, []);
+  useSheetSwipe({ active: open, sheetRef, backdropRef, scrollRef: listRef, onDismiss: close });
   const choose = (index: number) => {
     const option = options[index];
     if (!option) return;
@@ -105,7 +110,7 @@ export function Select({
     event.preventDefault();
   };
 
-  const height = size === "sm" ? "min-h-10 text-sm" : "min-h-12 text-base";
+  const height = size === "sm" ? "min-h-control-sm text-sm" : "min-h-control text-base";
 
   return (
     <div className={`relative ${className}`}>
@@ -119,7 +124,7 @@ export function Select({
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
         onClick={() => (open ? close() : openList())}
-        className={`flex w-full items-center justify-between gap-2 rounded-xl border border-foreground/15 bg-background px-4 text-left font-medium active:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-50 ${height}`}
+        className={`flex w-full items-center justify-between gap-2 rounded-control border border-line-strong bg-background px-4 text-left font-medium active:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-50 ${height}`}
       >
         <span className="truncate">{selected?.label}</span>
         <svg
@@ -132,7 +137,7 @@ export function Select({
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
-          className={`shrink-0 text-foreground/50 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`shrink-0 text-faint transition-transform ${open ? "rotate-180" : ""}`}
         >
           <path d="m6 9 6 6 6-6" />
         </svg>
@@ -141,18 +146,19 @@ export function Select({
       {open && (
         <>
           <div
+            ref={backdropRef}
             aria-hidden="true"
             onClick={close}
-            className="fixed inset-0 z-40 bg-black/40 sm:bg-transparent"
+            className="fixed inset-0 z-40 animate-fade-in bg-black/40 sm:animate-none sm:bg-transparent"
           />
-          <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border border-foreground/10 bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-full sm:mt-2 sm:min-w-full sm:rounded-xl sm:p-1">
-            <div
-              aria-hidden="true"
-              className="mx-auto mb-2 h-1 w-10 rounded-full bg-foreground/20 sm:hidden"
-            />
-            <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-foreground/50 sm:hidden">
-              {label}
-            </p>
+          <div
+            ref={sheetRef}
+            className="fixed inset-x-0 bottom-0 z-50 animate-sheet-up rounded-t-sheet border border-line bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-full sm:mt-2 sm:min-w-full sm:animate-none sm:rounded-control sm:p-1"
+          >
+            <div aria-hidden="true" className="-mt-1 flex justify-center pb-3 pt-1 sm:hidden">
+              <span className="h-1.5 w-10 rounded-full bg-foreground/20" />
+            </div>
+            <p className="section-title pb-2 sm:hidden">{label}</p>
             <ul
               ref={listRef}
               id={listId}
@@ -173,7 +179,7 @@ export function Select({
                     aria-selected={isSelected}
                     onMouseEnter={() => setActive(index)}
                     onClick={() => choose(index)}
-                    className={`flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl px-4 py-2 text-base sm:min-h-10 sm:whitespace-nowrap sm:text-sm ${
+                    className={`flex min-h-control cursor-pointer items-center justify-between gap-3 rounded-control px-4 py-2 text-base sm:min-h-control-sm sm:whitespace-nowrap sm:text-sm ${
                       index === active ? "bg-foreground/10" : ""
                     } ${isSelected ? "font-semibold" : ""}`}
                   >
@@ -189,7 +195,7 @@ export function Select({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         aria-hidden="true"
-                        className="shrink-0 text-red-500"
+                        className="shrink-0 text-accent"
                       >
                         <path d="m5 12 5 5 9-10" />
                       </svg>
