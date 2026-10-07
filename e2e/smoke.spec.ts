@@ -68,6 +68,20 @@ test.describe("app shell", () => {
     expect(url).toMatch(/^https:\/\/(discord\.com\/oauth2\/authorize|[^/]+\/auth\/v1\/authorize)/);
   });
 
+  test("the calendar shows a month grid and survives invalid parameters", async ({ page }) => {
+    await page.goto("/calendar?month=2026-10&day=2026-10-07");
+    await expect(page.getByRole("grid")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "octobre 2026", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "mercredi 7 octobre 2026" })).toBeVisible();
+    await page.goto("/calendar?month=banana&day=2026-02-30");
+    await expect(page.getByRole("grid")).toBeVisible();
+  });
+
+  test("an invalid event id shows the not-found page", async ({ page }) => {
+    await page.goto("/calendar/not-a-uuid");
+    await expect(page.getByRole("heading", { name: "Page introuvable" })).toBeVisible();
+  });
+
   test("sends Guests away from the profile page", async ({ page }) => {
     await page.goto("/profil");
     await page.waitForURL("**/login");
