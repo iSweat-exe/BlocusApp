@@ -87,6 +87,43 @@ export type Database = {
         };
         Relationships: [];
       };
+      moderation_actions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          expires_at: string | null;
+          id: string;
+          kind: string;
+          reason: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          target_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          kind: string;
+          reason: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          target_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          kind?: string;
+          reason?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          target_id?: string;
+        };
+        Relationships: [];
+      };
       permission_overrides: {
         Row: {
           created_at: string;
@@ -235,9 +272,15 @@ export type Database = {
     };
     Functions: {
       assign_role: { Args: { p_role: string; p_target: string }; Returns: undefined };
+      ban_user: {
+        Args: { p_expires_at?: string; p_reason: string; p_target: string };
+        Returns: string;
+      };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
+      is_banned: { Args: { p_user_id: string }; Returns: boolean };
+      revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };
       set_role_permission: {
         Args: { p_granted: boolean; p_permission: string; p_role: string };

@@ -13,6 +13,14 @@
 7. Le cache ne contient jamais de réponse authentifiée partagée entre utilisateurs ; le service worker ne
    met pas en cache les réponses authentifiées.
 
+## Bans
+
+Un ban est effectif **immédiatement côté données** : le banni n'a plus aucune permission (la RLS refuse ses
+écritures même avec un token encore valide), ses sessions et refresh tokens sont supprimés, et le hook JWT
+refuse d'émettre un nouveau token (connexion et renouvellement échouent en 403 `account_banned`). Seul reste
+possible, au plus une heure (durée de vie de l'access token), la **lecture** de contenus publics déjà
+accessibles aux invités. Un ban temporaire se lève tout seul à l'expiration (évalué à chaque lecture).
+
 ## En-têtes HTTP
 
 Définis dans `next.config.ts` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`,
