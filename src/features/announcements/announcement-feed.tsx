@@ -1,3 +1,4 @@
+import { FullScreenDialog } from "@/components/full-screen-dialog";
 import { listAnnouncements } from "@/lib/data/announcements";
 import { getSessionPermissions } from "@/server/session";
 import { deleteAnnouncement } from "./actions";
@@ -16,7 +17,11 @@ export async function AnnouncementFeed() {
 
   return (
     <section aria-label="Actualités" className="flex flex-col gap-4">
-      {can("announcement.publish") && <AnnouncementForm />}
+      {can("announcement.publish") && (
+        <FullScreenDialog triggerLabel="Créer un post" title="Nouveau post">
+          <AnnouncementForm />
+        </FullScreenDialog>
+      )}
 
       {!result.ok ? (
         <p role="alert" className="text-sm text-red-500">
