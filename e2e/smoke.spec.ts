@@ -27,6 +27,12 @@ test.describe("app shell", () => {
     expect(response?.status()).toBe(404);
   });
 
+  test("sends Guests away from the admin panel", async ({ page }) => {
+    await page.goto("/admin");
+    await page.waitForURL("**/login");
+    await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
+  });
+
   test("serves the public auth pages", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
