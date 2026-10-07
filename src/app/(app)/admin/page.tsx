@@ -37,7 +37,6 @@ async function AdminContent({ searchParams }: { searchParams: Promise<{ q?: stri
 export default function AdminPage({ searchParams }: PageProps<"/admin">) {
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Administration</h1>
       <Suspense fallback={<p className="text-sm text-foreground/60">Chargement…</p>}>
         <AdminContent searchParams={searchParams as Promise<{ q?: string }>} />
       </Suspense>
