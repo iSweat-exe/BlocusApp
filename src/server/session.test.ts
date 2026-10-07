@@ -22,6 +22,7 @@ describe("getSessionPermissions", () => {
           app_role: "manager",
           email: "a@b.c",
           app_metadata: { provider: "discord" },
+          user_metadata: { avatar_url: "https://cdn.discordapp.com/avatars/1/a.png" },
           permissions: ["announcement.publish", 42],
         },
       },
@@ -32,6 +33,7 @@ describe("getSessionPermissions", () => {
       permissions: ["announcement.publish"],
       email: "a@b.c",
       provider: "discord",
+      avatarUrl: "https://cdn.discordapp.com/avatars/1/a.png",
     });
   });
 
@@ -43,6 +45,7 @@ describe("getSessionPermissions", () => {
       permissions: [],
       email: null,
       provider: null,
+      avatarUrl: null,
     });
   });
 });

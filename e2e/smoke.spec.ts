@@ -10,7 +10,9 @@ test.describe("app shell", () => {
     ] as const) {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
-      await expect(page.getByRole("navigation").getByRole("link")).toHaveCount(3);
+      await expect(
+        page.getByRole("navigation", { name: "Navigation principale" }).getByRole("link"),
+      ).toHaveCount(3);
     }
   });
 
@@ -100,6 +102,19 @@ test.describe("app shell", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1, name: "Accueil" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Événements imminents" })).toHaveCount(0);
+  });
+
+  test("the header offers sign-in to Guests and never a sign-out button", async ({ page }) => {
+    await page.goto("/");
+    const header = page.getByRole("banner");
+    await expect(header.getByRole("link", { name: "BlocusApp" })).toBeVisible();
+    await expect(header.getByRole("link", { name: "Se connecter" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    await expect(header.getByRole("link", { name: "Administration" })).toHaveCount(0);
+    await expect(header.getByRole("link", { name: "Mon profil" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Déconnexion" })).toHaveCount(0);
   });
 
   test("serves the public auth pages", async ({ page }) => {
