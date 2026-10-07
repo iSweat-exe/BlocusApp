@@ -57,4 +57,5 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   premier dans chaque Server Action / Route Handler. Retourne `Result<{ userId }, "unauthenticated" |
 "forbidden">`. Par défaut lit les claims ; `fresh: true` interroge la base (actions sensibles : `user.ban`,
   `role.assign`).
+- **Premier usage en base** : table `announcements` (RLS via `has_permission`) ; voir `database.md`.
 - Reste à faire : hiérarchie appliquée (A-037), audit (A-039), usage de `requirePermission` dans les futures actions.
