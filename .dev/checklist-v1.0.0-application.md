@@ -119,7 +119,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-123a** Table `announcements` + RLS (lecture Guest, écriture `announcement.publish` / `announcement.delete`) + tests pgTAP — _fait, reste la PR de l'UI_
 - [~] **A-123b** **Accueil** : fil des **dernières actualités** (annonces…), plus récentes en premier ; publication réservée aux personnes autorisées (`announcement.publish`) ; lecture ouverte au Guest — _données issues du cache (1.6)_
 - [~] **A-128** Retirer `/messages` : route supprimée (404) et onglet retiré de `src/components/app-nav.tsx` (+ test `app-nav.test.tsx`) — _`npm run build` sans `/messages`, 3 onglets_
-- [~] **A-129** Page `/profil` (lecture) : pseudo, photo, identifiant, rôle, e-mail, fournisseur, date d'inscription, permissions — _édition du pseudo/avatar : étape 1.7 (batching)_
+- [~] **A-129** Page `/profil` (lecture) : pseudo, photo, identifiant, rôle, e-mail, fournisseur, date d'inscription, permissions (refonte visuelle mobile faite) — _édition du pseudo/avatar : étape 1.7 (batching)_
 - [~] **A-129b** Composant « fenêtre plein écran » réutilisable ; « Créer un post » (annonces) et « Ajouter un événement » s'y ouvrent au lieu d'un formulaire affiché en permanence — _fait, à valider sur de vrais téléphones (iPhone et Android)_
 - [~] **A-129c** En-tête de l'application : icônes Administration et profil (avatar), « Se connecter » pour les invités, déconnexion déplacée dans `/profil` — _fait, à valider sur de vrais téléphones_
 - [~] **A-129d** Refonte mobile de l'administration (liste, fiche utilisateur, rôles, journal) + composant `Select` réutilisable (`src/components/select.tsx`) — _fait, à valider sur de vrais téléphones_
