@@ -33,6 +33,12 @@ test.describe("app shell", () => {
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
   });
 
+  test("sends Guests away from the profile page", async ({ page }) => {
+    await page.goto("/profil");
+    await page.waitForURL("**/login");
+    await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
+  });
+
   test("serves the public auth pages", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();

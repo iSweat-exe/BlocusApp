@@ -18,7 +18,8 @@ const contentSecurityPolicy = [
   // used in development comes from va.vercel-scripts.com.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabaseOrigin}`,
+  // cdn.discordapp.com serves the Discord avatars shown on /profil.
+  `img-src 'self' data: blob: ${supabaseOrigin} https://cdn.discordapp.com`,
   "font-src 'self' data:",
   `connect-src 'self' ${supabaseOrigin} ${supabaseWs}${isDev ? " ws://localhost:*" : ""}`,
   "worker-src 'self'",

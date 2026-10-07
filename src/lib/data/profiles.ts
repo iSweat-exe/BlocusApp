@@ -51,3 +51,24 @@ export async function listRoles(): Promise<Result<Role[], "load_failed">> {
     return err("load_failed", cause instanceof Error ? cause.message : "unknown error");
   }
 }
+
+/** The signed-in user's own profile, as shown on `/profil`. */
+export type OwnProfile = AdminProfile & { updated_at: string };
+
+/**
+ * Reads one profile by id (RLS lets signed-in users read profiles).
+ * @returns The profile, or `null` when it does not exist.
+ */
+export async function getProfile(id: string): Promise<Result<OwnProfile | null, "load_failed">> {
+  try {
+    const supabase = createClient(await cookies());
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, pseudo, avatar_url, role, created_at, updated_at")
+      .eq("id", id)
+      .maybeSingle();
+    return error ? err("load_failed", error.message) : ok(data);
+  } catch (cause) {
+    return err("load_failed", cause instanceof Error ? cause.message : "unknown error");
+  }
+}
