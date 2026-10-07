@@ -10,7 +10,7 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 | R3 | Compression ≠ requêtable | On ne peut pas filtrer/indexer/protéger par RLS un champ compressé → à limiter aux gros blobs. |
 | R4 | Pas de backups fiables en free tier | Export régulier à planifier (O-073). |
 | R5 | E-mails d'auth très limités par défaut | SMTP custom indispensable avant l'ouverture publique (A-012). |
-| R6 | Projet Supabase mis en pause si inactif | Ping périodique ou usage régulier. |
+| R6 | Projet Supabase mis en pause si inactif | **Traité** : cron quotidien `/api/keep-alive` (`vercel.json`), voir `docs/runbook.md`. |
 
 ## Idées ajoutées (🆕)
 | ID | Idée | Décision |

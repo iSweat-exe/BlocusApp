@@ -14,6 +14,6 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Skip static assets, the service worker and PWA files: they never need a session.
-    "/((?!_next/static|_next/image|sw\\.js|manifest\\.webmanifest|icons/|favicon\\.ico|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|sw\\.js|manifest\\.webmanifest|icons/|api/keep-alive|favicon\\.ico|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)",
   ],
 };

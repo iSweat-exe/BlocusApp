@@ -109,6 +109,27 @@ Migration `20261007210000_event_finish.sql` : colonnes `finished_at` / `finished
 modifiées seulement par `set_event_finished(id, finished)` qui exige `event.finish`), et la policy de modification
 exclut les événements terminés.
 
+## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
+
+Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées
+d'audit, 20 000 sanctions (Supabase local, base « chaude »). Toutes les requêtes chaudes passent par un index :
+
+| Requête | Plan | Temps |
+|---|---|---|
+| Fil d'annonces (11 plus récentes) | `Index Scan announcements_feed_idx` | 0,02 ms |
+| Événements d'un mois (grille du calendrier) | `Index Scan events_starts_at_idx` | 0,09 ms |
+| Événements imminents (3 h) | `Index Scan events_starts_at_idx` | 0,04 ms |
+| Un événement par id | `Index Scan events_pkey` | 0,01 ms |
+| `is_banned` d'un utilisateur | `Index Scan moderation_actions_target_idx` | 0,01 ms |
+| Sanctions d'un utilisateur | `Index Scan moderation_actions_target_idx` | 0,04 ms |
+| Journal d'audit (26 plus récentes) | `Index Scan Backward audit_logs_pkey` | 0,01 ms |
+| Journal filtré par action **rare** | **avant** `Seq Scan` (100 000 lignes) 4,6 ms → **après** `audit_logs_action_idx (action, id desc)` 0,24 ms | |
+| Recherche de pseudo `ilike '%…%'` (admin) | `Seq Scan profiles` + tri | 3,2 ms pour 5 000 profils |
+
+Seul point sans index : la recherche de pseudo (`ilike '%q%'`), acceptable sous quelques milliers de profils (3,2 ms à
+5 000) ; si la liste dépasse largement 10 000, ajouter `pg_trgm` + un index GIN. La migration
+`20261007220000_audit_action_index.sql` ajoute l'index manquant du journal.
+
 ## Développement local
 
 Docker requis. Les secrets Discord locaux viennent de l'environnement (`.env.example`).

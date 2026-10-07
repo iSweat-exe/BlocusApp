@@ -1,8 +1,14 @@
 import { Suspense } from "react";
 import { AnnouncementFeed } from "@/features/announcements/announcement-feed";
+import { parseFeedLimit } from "@/features/announcements/feed-limit";
 import { ImminentEvents } from "@/features/calendar/imminent-events";
 
-export default function HomePage() {
+async function Feed({ searchParams }: { searchParams: Promise<{ n?: string }> }) {
+  const { n } = await searchParams;
+  return <AnnouncementFeed limit={parseFeedLimit(n)} />;
+}
+
+export default function HomePage({ searchParams }: PageProps<"/">) {
   return (
     <div className="flex flex-col gap-4">
       {/* Very top of the page: events that start within 30 minutes. */}
@@ -11,7 +17,7 @@ export default function HomePage() {
       </Suspense>
       <h1 className="text-2xl font-semibold">Accueil</h1>
       <Suspense fallback={<p className="text-sm text-foreground/60">Chargement des annonces…</p>}>
-        <AnnouncementFeed />
+        <Feed searchParams={searchParams as Promise<{ n?: string }>} />
       </Suspense>
     </div>
   );

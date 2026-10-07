@@ -96,6 +96,21 @@ test.describe("app shell", () => {
     expect(response.headers()["cache-control"]).toContain("max-age=86400");
   });
 
+  test("the home page survives any feed size parameter", async ({ page }) => {
+    for (const n of ["20", "999", "abc", "-1"]) {
+      await page.goto(`/?n=${n}`);
+      await expect(page.getByRole("region", { name: "Actualités" })).toBeVisible();
+    }
+  });
+
+  test("the keep-alive route answers with JSON and is never cached", async ({ request }) => {
+    const response = await request.get("/api/keep-alive");
+    // 200 when the database answers, 503 when it cannot be reached (the e2e environment has no database).
+    expect([200, 503]).toContain(response.status());
+    expect(response.headers()["cache-control"]).toBe("no-store");
+    expect(await response.json()).toHaveProperty("ok");
+  });
+
   test("sends Guests away from the profile page", async ({ page }) => {
     await page.goto("/profil");
     await page.waitForURL("**/login");
