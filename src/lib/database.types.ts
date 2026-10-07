@@ -23,12 +23,29 @@ export type Database = {
   };
   public: {
     Tables: {
+      permissions: {
+        Row: {
+          description: string;
+          key: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          description: string;
+          key: string;
+        };
+        Update: {
+          description?: string;
+          key?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
           created_at: string;
           id: string;
           pseudo: string;
+          role: string;
           updated_at: string;
         };
         ComputedFields: never;
@@ -37,6 +54,7 @@ export type Database = {
           created_at?: string;
           id: string;
           pseudo: string;
+          role?: string;
           updated_at?: string;
         };
         Update: {
@@ -44,7 +62,66 @@ export type Database = {
           created_at?: string;
           id?: string;
           pseudo?: string;
+          role?: string;
           updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profiles_role_fkey";
+            columns: ["role"];
+            isOneToOne: false;
+            referencedRelation: "roles";
+            referencedColumns: ["key"];
+          },
+        ];
+      };
+      role_permissions: {
+        Row: {
+          permission: string;
+          role: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          permission: string;
+          role: string;
+        };
+        Update: {
+          permission?: string;
+          role?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_fkey";
+            columns: ["permission"];
+            isOneToOne: false;
+            referencedRelation: "permissions";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "role_permissions_role_fkey";
+            columns: ["role"];
+            isOneToOne: false;
+            referencedRelation: "roles";
+            referencedColumns: ["key"];
+          },
+        ];
+      };
+      roles: {
+        Row: {
+          key: string;
+          label: string;
+          rank: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          label: string;
+          rank: number;
+        };
+        Update: {
+          key?: string;
+          label?: string;
+          rank?: number;
         };
         Relationships: [];
       };
@@ -53,7 +130,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
     };
     Enums: {
       [_ in never]: never;

@@ -16,11 +16,11 @@ L'application sert à **gérer une manifestation dans une ville X** :
 
 ## Étape 1.1 — Schéma de base & fondations BDD
 - [~] **A-001** Migrations Supabase versionnées dans `supabase/migrations/` (jamais d'édition manuelle en prod) — _`supabase db reset` rejoue tout_
-- [~] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription (fait sauf « rôle courant », ajouté avec 1.3) — _inscription crée un profil_
+- [~] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription — _inscription crée un profil_
 - [ ] **A-003** Tables de rôles/permissions (voir 1.3) et table `moderation_actions` (ban, mute, historique) — _schéma documenté dans `docs/database.md`_
 - [ ] **A-004** Index sur toutes les colonnes filtrées/jointes (pseudo, user_id, created_at) ⚡ — _`EXPLAIN` sur requêtes clés_
 - [~] **A-005** Génération des types TS depuis le schéma (`supabase gen types`) — _types importés partout, zéro type écrit à la main_
-- [ ] **A-006** Seed de dev (`supabase/seed.sql`) avec un compte par rôle — _documenté_
+- [~] **A-006** Seed de dev (`supabase/seed.sql`) avec un compte par rôle — _documenté_
 
 ## Étape 1.2 — Authentification sécurisée 🔒
 - [ ] **A-010** Supabase Auth via `@supabase/ssr` (cookies httpOnly, pas de token en localStorage) — _session SSR fonctionnelle_
@@ -41,10 +41,10 @@ L'application sert à **gérer une manifestation dans une ville X** :
 ## Étape 1.3 — Permissions granulaires par rôle 🔒
 > Objectif : régler **absolument chaque rôle séparément**, côté backend (BDD), pas côté UI.
 
-- [ ] **A-030** Modèle RBAC en tables : `roles`, `permissions` (clé unique ex. `message.send`, `user.ban`), `role_permissions` — _aucune permission codée en dur dans le front_
-- [ ] **A-031** Liste initiale des rôles (à valider avec toi) : `user`, `manager` (gérant de la manifestation, nom à valider), `moderator`, `admin`, `super_admin` (développeurs) — _documentée dans `docs/permissions.md`_
-- [ ] **A-032** Catalogue exhaustif des permissions (nomenclature `ressource.action`, dont `announcement.publish`, `map.route.edit`, `map.position.declare`) — _fichier unique source de vérité_
-- [ ] **A-033** Fonction SQL `has_permission(user_id, 'perm.key')` (`SECURITY DEFINER`, `search_path` fixé) utilisée par les politiques RLS — _testée_
+- [~] **A-030** Modèle RBAC en tables : `roles`, `permissions` (clé unique ex. `message.send`, `user.ban`), `role_permissions` — _aucune permission codée en dur dans le front_
+- [~] **A-031** Liste initiale des rôles (à valider avec toi) : `user`, `manager` (gérant de la manifestation, nom à valider), `moderator`, `admin`, `super_admin` (développeurs) — _documentée dans `docs/permissions.md`_
+- [~] **A-032** Catalogue exhaustif des permissions (nomenclature `ressource.action`, dont `announcement.publish`, `map.route.edit`, `map.position.declare`) — _fichier unique source de vérité_
+- [~] **A-033** Fonction SQL `has_permission(user_id, 'perm.key')` (`SECURITY DEFINER`, `search_path` fixé) utilisée par les politiques RLS — _testée_
 - [ ] **A-034** Permissions injectées dans le JWT via **Custom Access Token Hook** (évite une requête BDD par action) ⚡ — _claims présents dans le token_
 - [ ] **A-035** Matrice rôle × permission éditable depuis le panneau admin (écrit en BDD) — _changer une permission d'un rôle prend effet sans redéploiement_
 - [ ] **A-036** Overrides par utilisateur (grant/deny ciblé) 🆕 — _un deny prime sur un grant_

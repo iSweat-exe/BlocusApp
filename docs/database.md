@@ -34,7 +34,14 @@ Profil public 1:1 avec `auth.users` (migration `20261007120000_create_profiles.s
   n'est **jamais** utilisée pour une décision d'autorisation.
 - RLS : `select` pour `authenticated` ; `update` limité à sa propre ligne et aux colonnes `pseudo` et
   `avatar_url` (grant par colonne) ; aucun `insert`/`delete` côté client ; `anon` sans aucun droit.
-- À venir : colonne de rôle (étape 1.3), `moderation_actions`, `audit_logs`.
+- `role` (`text`, FK `roles.key`, défaut `user`) ajoutée par la migration RBAC ; non modifiable par le client.
+- À venir : `moderation_actions`, `audit_logs`.
+
+### `roles`, `permissions`, `role_permissions`
+
+Données de référence RBAC (migration `20261007130000_create_rbac.sql`) : `roles(key, label, rank)`,
+`permissions(key, description)`, `role_permissions(role, permission)` (PK composite, index sur
+`permission`). Fonction `has_permission(uuid, text)`. Détail : [`permissions.md`](./permissions.md).
 
 ## Développement local
 
@@ -42,7 +49,7 @@ Docker requis. Les secrets Discord locaux viennent de l'environnement (`.env.exa
 
 ```bash
 npm run db:start   # Supabase local (supabase start)
-npm run db:reset   # rejoue migrations + seed
+npm run db:reset   # rejoue migrations + seed (un compte par rôle : seed_user … seed_super_admin)
 npm run db:test    # tests pgTAP (supabase/tests/database)
 npm run db:types   # régénère src/lib/database.types.ts
 ```
