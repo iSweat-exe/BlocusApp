@@ -3,6 +3,14 @@
 > Prérequis : [Phase 0 terminée](./checklist-v1.0.0-organisation.md).
 > Contraintes de charge : voir [`constraints.md`](./constraints.md).
 > **Ordre strict.** Chaque étape = 1 ou plusieurs PRs, avec tests + doc.
+> Dérogation : **A-135 (notifications push) passe en priorité juste après l'étape 1.2 (Authentification)**.
+
+## Vision produit
+L'application sert à **gérer une manifestation dans une ville X** :
+- **Carte** : affiche le **tracé des déplacements** ; le tracé doit être **facilement éditable sur mobile** ; les gérants disposent de nombreux outils sur la carte (ex. déclarer le lieu actuel de la manifestation : position GPS + heure de déclaration).
+- **Accueil** : montre les **dernières actualités** (annonces, etc.), publiables **uniquement par les personnes autorisées**.
+- **Pas de messagerie publique** pour l'instant : la communication passe aussi par Instagram.
+- **Accès** : connexion Discord / Google, ou mode **Guest** (lecture seule, sans interaction).
 
 ---
 
@@ -26,13 +34,16 @@
 - [ ] **A-018** Vérifier que `anon` n'a aucun droit inattendu (`REVOKE` explicite) — _audit des grants_
 - [ ] **A-019** Rate limit sur les endpoints d'auth (login, reset) — _429 après N essais_
 - [ ] **A-020** Utiliser le Supabase Security Advisor (lints) et corriger tous les warnings 🆕 — _0 warning_
+- [ ] **A-021** **Priorité** : connexion / inscription via **Discord** et **Google** (Supabase OAuth, redirect URLs, callback PKCE) pour accéder à l'application 🆕 🔒 — _login OAuth E2E OK sur les 2 providers_
+- [ ] **A-022** **Priorité** : mode **Guest** = consultation sans interaction (accueil, carte, actualités) ; toute action renvoie vers le login ; `anon` en SELECT limité aux données publiques 🆕 🔒 — _un guest ne peut rien écrire (test RLS)_
+> Note : A-011 (e-mail / mot de passe) est conservé tant que non tranché, cf. [`decisions-a-valider.md`](./decisions-a-valider.md).
 
 ## Étape 1.3 — Permissions granulaires par rôle 🔒
 > Objectif : régler **absolument chaque rôle séparément**, côté backend (BDD), pas côté UI.
 
 - [ ] **A-030** Modèle RBAC en tables : `roles`, `permissions` (clé unique ex. `message.send`, `user.ban`), `role_permissions` — _aucune permission codée en dur dans le front_
-- [ ] **A-031** Liste initiale des rôles (à valider avec toi) : `user`, `moderator`, `admin`, `super_admin` (développeurs) — _documentée dans `docs/permissions.md`_
-- [ ] **A-032** Catalogue exhaustif des permissions (nomenclature `ressource.action`) — _fichier unique source de vérité_
+- [ ] **A-031** Liste initiale des rôles (à valider avec toi) : `user`, `manager` (gérant de la manifestation, nom à valider), `moderator`, `admin`, `super_admin` (développeurs) — _documentée dans `docs/permissions.md`_
+- [ ] **A-032** Catalogue exhaustif des permissions (nomenclature `ressource.action`, dont `announcement.publish`, `map.route.edit`, `map.position.declare`) — _fichier unique source de vérité_
 - [ ] **A-033** Fonction SQL `has_permission(user_id, 'perm.key')` (`SECURITY DEFINER`, `search_path` fixé) utilisée par les politiques RLS — _testée_
 - [ ] **A-034** Permissions injectées dans le JWT via **Custom Access Token Hook** (évite une requête BDD par action) ⚡ — _claims présents dans le token_
 - [ ] **A-035** Matrice rôle × permission éditable depuis le panneau admin (écrit en BDD) — _changer une permission d'un rôle prend effet sans redéploiement_
@@ -85,6 +96,8 @@
 - [ ] **A-097** UI optimiste : l'utilisateur voit le changement immédiatement avant la synchro 🆕 — _indicateur « synchronisé »_
 
 ## Étape 1.8 — Ralentissement contrôlé / anti-surcharge (messages) ⚡
+> Pas de messagerie en v1.0.0 : ces règles s'appliquent aux écritures (annonces, positions déclarées) et aux envois de notifications push. Les items « messages » ci-dessous se lisent en ce sens.
+
 - [ ] **A-100** Rate limit **par utilisateur** (ex. N msgs / fenêtre glissante) appliqué côté serveur ET en BDD — _contournement client impossible_
 - [ ] **A-101** Rate limit **par IP** pour les non-authentifiés (Vercel Firewall rules / Upstash Ratelimit) — _429 + `Retry-After`_
 - [ ] **A-102** Ralentissement progressif (throttle/backpressure) plutôt que blocage brutal : file d'envoi côté client avec cadence adaptative — _l'UI informe « envoi ralenti »_
@@ -96,16 +109,19 @@
 - [ ] **A-108** Les utilisateurs mute/ban sont filtrés **avant** la file (économie de charge) — _vérifié_
 
 ## Étape 1.9 — Pages de l’application (squelette + contenu)
-> Squelette déjà en place : groupes de routes `(auth)` (`/login`, `/register`) et `(app)` (`/`, `/messages`, `/calendar`, `/map`) avec barre de navigation mobile.
+> Squelette déjà en place : groupes de routes `(auth)` (`/login`, `/register`) et `(app)` (`/`, `/messages`, `/calendar`, `/map`) avec barre de navigation mobile. `/messages` doit disparaître (A-128).
 
 - [x] **A-120** Squelette des routes et navigation basse (mobile-first, safe-area iOS) — _`npm run build` génère les 6 routes_
-- [ ] **A-121** Garde d’accès : `(app)` redirige vers `/login` si non connecté ; `(auth)` redirige vers `/` si déjà connecté 🔒 — _testé E2E_
+- [ ] **A-121** Garde d’accès : `(app)` en lecture seule pour un Guest (A-022), actions d'écriture redirigées vers `/login` ; `(auth)` redirige vers `/` si déjà connecté 🔒 — _testé E2E_
 - [ ] **A-122** Login / Register : formulaires, validation (Zod), erreurs par champ, états de chargement — _parcours E2E OK_
-- [ ] **A-123** **Accueil** (récap / dashboard) : résumé des prochains événements, messages non lus, infos clés — _données issues du cache (1.6)_
-- [ ] **A-124** **Messagerie** : messages privés + groupes (modèle de données, RLS par membre, permissions `message.*`) — _soumis au throttling (1.8)_
+- [ ] **A-123** **Accueil** : fil des **dernières actualités** (annonces…), plus récentes en premier ; publication réservée aux personnes autorisées (`announcement.publish`) ; lecture ouverte au Guest — _données issues du cache (1.6)_
+- [ ] **A-128** Retirer `/messages` : route supprimée (404) et onglet retiré de `src/components/app-nav.tsx` (+ test `app-nav.test.tsx`) — _`npm run build` sans `/messages`, 3 onglets_
 - [ ] **A-125** **Calendrier** : vue par jour + détail d’un événement — _lecture cachée, écriture protégée par permissions_
-- [ ] **A-126** **Carte** : infos et positions des manifestations (choix de la lib de carte à trancher via ADR : Leaflet/OSM gratuit vs Mapbox/Google, quotas) 🆕 — _marqueurs + fiche détail_
-- [ ] **A-127** Respect de la vie privée sur la carte : positions de manifestations uniquement (pas de géolocalisation des utilisateurs sans consentement) 🆕 🔒 — _décision documentée_
+- [ ] **A-126** **Carte** : choix de la lib de carte via ADR (Leaflet/OSM gratuit vs Mapbox/Google, quotas, édition tactile) 🆕 — _ADR validé_
+- [ ] **A-126a** Affichage du **tracé des déplacements** (polyline / GeoJSON) sur la carte 🆕 — _tracé visible, lecture cachée (1.6)_
+- [ ] **A-126b** **Édition du tracé sur mobile** : ajouter / déplacer / supprimer des points au doigt, annuler/rétablir, sauvegarde groupée (1.7) 🆕 — _testé au pouce sur iPhone et Android réels_
+- [ ] **A-126c** **Outils gérants** : déclarer le **lieu actuel de la manifestation** (position GPS + heure de déclaration, historique, dernière position mise en avant) ; autres actions gérants à lister avec toi (points d'intérêt, zones…) 🆕 🔒 — _permissions `map.*` vérifiées en RLS et côté serveur_
+- [ ] **A-127** Respect de la vie privée sur la carte : seule la position de la manifestation, déclarée par un gérant, est affichée (pas de géolocalisation des utilisateurs sans consentement) 🆕 🔒 — _décision documentée_
 
 ## Étape 1.10 — PWA iOS & Android
 > Base déjà en place : `manifest.ts`, `public/sw.js` minimal, icônes générées depuis `logo_app.png`, meta iOS (`appleWebApp`, `viewport-fit=cover`), en-têtes anti-cache du SW.
@@ -115,7 +131,9 @@
 - [ ] **A-132** Stratégie hors-ligne dans `sw.js` : coquille de l’app en cache, page `/offline`, **jamais** de cache des réponses authentifiées/sensibles 🔒 — _mode avion testé_
 - [ ] **A-133** Stratégie de mise à jour du SW (nouvelle version → message « mettre à jour ») 🆕 — _pas d’ancienne version bloquée_
 - [ ] **A-134** Invite d’installation : bouton « Installer » sur Android (`beforeinstallprompt`) + explication « Partager → Sur l’écran d’accueil » sur iOS 🆕 — _testée sur appareils réels_
-- [ ] **A-135** Notifications push (Web Push + VAPID) : **iOS 16.4+ uniquement si l’app est installée sur l’écran d’accueil** ; abonnements stockés en BDD, envoi côté serveur — _reçue sur iOS et Android_
+- [ ] **A-135a** **Priorité (après 1.2)** 📚 **Recherche approfondie avant toute implémentation** : Web Push sur iOS 16.4+ (installation écran d'accueil obligatoire, permission sur geste utilisateur, abonnement `PushManager.subscribe` + VAPID, endpoints Apple, limites de fiabilité) et sur Android (Chrome/FCM), choix de la lib d'envoi — _ADR dans `docs/adr/` validé avant le code_
+- [ ] **A-135b** **Priorité** Notifications push (Web Push + VAPID) : table `push_subscriptions` + RLS, abonnement/désabonnement, envoi côté serveur, purge des abonnements expirés (404/410) ; déclencheurs : nouvelle annonce, nouvelle position déclarée — _reçue sur iOS et Android_
+- [ ] **A-135c** **Priorité** Parcours d'abonnement iOS (installer l'app → activer les notifications) 🆕 — _testé sur iPhone réel_
 - [ ] **A-136** Session persistante en mode standalone (cookies Supabase OK dans la PWA iOS) 🔒 — _reste connecté après fermeture_
 - [ ] **A-137** Audit Lighthouse PWA + tests sur iPhone et Android réels (HTTPS requis, Vercel OK) — _installable, score validé_
 
@@ -130,10 +148,11 @@
 ---
 
 ## ✅ Critère de sortie v1.0.0
-- Un user peut s'inscrire, se connecter, modifier son profil (batché), envoyer des messages (throttlés).
+- Un user peut se connecter (Discord/Google) ou entrer en Guest, modifier son profil (batché), consulter actualités et carte ; les gérants publient annonces, tracé et position (throttlés) ; les notifications push sont reçues sur iOS et Android.
 - Chaque rôle est configurable individuellement ; un super_admin peut ban/mute n'importe qui.
 - RLS prouvée par tests ; aucun accès possible hors permissions.
 - Test de charge 200 users simultanés validé sur les quotas gratuits.
 
 ## Backlog (hors v1.0.0)
-_(vide — y noter toute idée qui déborde)_
+- **Messagerie** (messages privés + groupes, permissions `message.*`) : reportée, la communication passe par Instagram pour l'instant ; la page `/messages` ne doit pas exister publiquement.
+- _(y noter toute autre idée qui déborde)_

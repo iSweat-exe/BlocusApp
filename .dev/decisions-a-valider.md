@@ -31,6 +31,11 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 | A-057 | Kill switch / mode lecture seule global | ☐ GARDER ☐ RETIRER |
 | A-058 | Anti-lockout (dernier super_admin) | ☐ GARDER ☐ RETIRER |
 | A-060 | 2FA obligatoire pour admins | ☐ GARDER ☐ RETIRER |
+| A-021 | Login Discord + Google (priorité) | ☐ GARDER ☐ RETIRER |
+| A-022 | Mode Guest en lecture seule (priorité) | ☐ GARDER ☐ RETIRER |
+| A-126b | Édition du tracé sur mobile | ☐ GARDER ☐ RETIRER |
+| A-126c | Outils gérants sur la carte (position + heure) | ☐ GARDER ☐ RETIRER |
+| A-135a | Recherche approfondie push iOS avant implémentation | ☐ GARDER ☐ RETIRER |
 | A-086 | Redis (Upstash) si cache insuffisant | ☐ GARDER ☐ RETIRER |
 | A-097 | UI optimiste + indicateur de synchro | ☐ GARDER ☐ RETIRER |
 | A-106 | Rendu des messages par lots | ☐ GARDER ☐ RETIRER |
@@ -40,6 +45,10 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 
 ## Questions ouvertes
 1. Quels rôles exacts veux-tu (au-delà de `user`, `moderator`, `admin`, `super_admin`) ?
-2. Que sont les « messages » : chat temps réel, commentaires, messages privés ?
+2. ~~Que sont les « messages » ?~~ Réponse : pas de messagerie pour l'instant, on communique via Instagram (reportée au Backlog).
 3. L'app est-elle commerciale (impact sur Vercel Hobby) ?
 4. Langue de la documentation : français (actuel) ou anglais ? (les commentaires de code restent en anglais)
+5. Rôle « gérant » : nom exact et liste précise de ses permissions ?
+6. Garde-t-on e-mail / mot de passe (A-011) en plus de Discord et Google ?
+7. Ville X et emprise de la carte ; lib de carte (A-126) ?
+8. Un Guest voit-il la position de la manifestation en direct ?
