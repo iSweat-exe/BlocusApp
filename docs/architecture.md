@@ -60,6 +60,9 @@ l'hydratation et dans une PWA installée) → Discord → Supabase →
 `/auth/callback` (Route Handler : échange PKCE `code` → session en cookies httpOnly, `next` validé par
 `safeRedirectPath`) → retour à l'app. `signOut` termine la session. Google = même flux, autre `provider`.
 
+**Page `/login`.** Logo + titre, bouton Discord, bouton Google (`GoogleButton`, `disabled` : pas encore branché), séparateur « ou » puis
+`GuestLink` (« Continuer en tant qu'invité » → `/`, lecture seule : le Guest est simplement une visite sans session).
+
 **Connexion Discord sur mobile / PWA.** Une fois la page hydratée, le lien est remplacé par l'URL
 `https://discord.com/oauth2/authorize?...` elle-même (obtenue via `GET /auth/login/discord?format=json`, qui
 lit la redirection de Supabase sans la suivre, voir `src/features/auth/discord-url.ts`) : un lien touché par

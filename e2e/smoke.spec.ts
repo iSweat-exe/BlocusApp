@@ -148,6 +148,16 @@ test.describe("app shell", () => {
     await page.goto("/register");
     await expect(page.getByRole("heading", { name: "Inscription" })).toBeVisible();
   });
+
+  test("the login page shows a disabled Google button and a working Guest mode", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    await expect(page.getByRole("button", { name: /Continuer avec Google/ })).toBeDisabled();
+    await page.getByRole("link", { name: /invité/ }).click();
+    await page.waitForURL((url) => url.pathname === "/");
+    await expect(page.getByRole("heading", { level: 1, name: "Accueil" })).toBeVisible();
+  });
 });
 
 test.describe("PWA and SEO files", () => {

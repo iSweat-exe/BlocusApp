@@ -34,7 +34,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [ ] **A-018** Vérifier que `anon` n'a aucun droit inattendu (`REVOKE` explicite) — _audit des grants_
 - [ ] **A-019** Rate limit sur les endpoints d'auth (login, reset) — _429 après N essais_
 - [ ] **A-020** Utiliser le Supabase Security Advisor (lints) et corriger tous les warnings 🆕 — _0 warning_
-- [~] **A-021** **Priorité** : connexion / inscription via **Discord** (code fait, Google à venir ; reste : config Discord/Supabase + test réel, cf. `runbook.md`) et **Google** (Supabase OAuth, redirect URLs, callback PKCE) pour accéder à l'application 🆕 🔒 — _login OAuth E2E OK sur les 2 providers_
+- [~] **A-021** **Priorité** : connexion / inscription via **Discord** (code fait, bouton Google présent mais désactivé ; reste : config Discord/Supabase + test réel, cf. `runbook.md`) et **Google** (Supabase OAuth, redirect URLs, callback PKCE) pour accéder à l'application 🆕 🔒 — _login OAuth E2E OK sur les 2 providers_
 - [ ] **A-022** **Priorité** : mode **Guest** = consultation sans interaction (accueil, carte, actualités) ; toute action renvoie vers le login ; `anon` en SELECT limité aux données publiques 🆕 🔒 — _un guest ne peut rien écrire (test RLS)_
 > Note : A-011 (e-mail / mot de passe) est conservé tant que non tranché, cf. [`decisions-a-valider.md`](./decisions-a-valider.md).
 

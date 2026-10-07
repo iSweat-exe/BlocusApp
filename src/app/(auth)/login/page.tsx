@@ -1,5 +1,8 @@
+import Image from "next/image";
 import { Suspense } from "react";
 import { DiscordButton } from "@/features/auth/discord-button";
+import { GoogleButton } from "@/features/auth/google-button";
+import { GuestLink } from "@/features/auth/guest-link";
 
 const ERRORS: Record<string, string> = {
   oauth_start: "Impossible de démarrer la connexion Discord. Réessaie.",
@@ -11,7 +14,10 @@ async function LoginError({ searchParams }: { searchParams: Promise<{ error?: st
   const message = error ? ERRORS[error] : undefined;
   if (!message) return null;
   return (
-    <p role="alert" className="text-sm text-red-500">
+    <p
+      role="alert"
+      className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
+    >
       {message}
     </p>
   );
@@ -19,12 +25,37 @@ async function LoginError({ searchParams }: { searchParams: Promise<{ error?: st
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
-    <div className="flex w-full max-w-sm flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Connexion</h1>
+    <div className="flex w-full max-w-sm flex-col gap-8">
+      <header className="flex flex-col items-center gap-3 text-center">
+        <Image
+          src="/icons/icon-192.png"
+          alt=""
+          width={72}
+          height={72}
+          unoptimized
+          priority
+          className="rounded-2xl shadow-sm"
+        />
+        <h1 className="text-2xl font-semibold tracking-tight">Connexion</h1>
+        <p className="text-sm text-foreground/60">Connecte-toi pour accéder à BlocusApp.</p>
+      </header>
+
       <Suspense>
         <LoginError searchParams={searchParams as Promise<{ error?: string }>} />
       </Suspense>
-      <DiscordButton />
+
+      <div className="flex flex-col gap-3">
+        <DiscordButton />
+        <GoogleButton />
+      </div>
+
+      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-foreground/50">
+        <span className="h-px flex-1 bg-foreground/15" />
+        ou
+        <span className="h-px flex-1 bg-foreground/15" />
+      </div>
+
+      <GuestLink />
     </div>
   );
 }
