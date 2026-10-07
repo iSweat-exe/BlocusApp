@@ -1,0 +1,2 @@
+-- Dev seed. Profiles are created by the on_auth_user_created trigger.
+-- One account per role is added together with the roles migration (A-006, step 1.3).
