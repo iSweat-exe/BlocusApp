@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { initialsOf } from "@/features/profile/avatar";
+import { Avatar } from "@/components/avatar";
 import { getProfile, listRoles } from "@/lib/data/profiles";
 import { listSanctions } from "@/lib/data/sanctions";
 import type { SessionPermissions } from "@/server/session";
@@ -28,10 +28,7 @@ export async function UserDetail({ id, session }: { id: string; session: Session
 
   if (!profile.ok || !roles.ok) {
     return (
-      <p
-        role="alert"
-        className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
-      >
+      <p role="alert" className="alert alert-error">
         Impossible de charger cet utilisateur pour le moment.
       </p>
     );
@@ -55,38 +52,28 @@ export async function UserDetail({ id, session }: { id: string; session: Session
 
   return (
     <div className="flex flex-col gap-5">
-      <Link
-        href="/admin"
-        className="flex min-h-11 items-center text-sm font-medium text-foreground/70"
-      >
+      <Link href="/admin" className="flex min-h-tap items-center text-sm font-medium text-muted">
         ‹ Utilisateurs
       </Link>
 
       <header className="flex flex-col items-center gap-2 text-center">
-        <div
-          aria-hidden="true"
-          className="flex h-20 w-20 items-center justify-center rounded-full bg-foreground/10 text-2xl font-semibold ring-4 ring-foreground/10"
-        >
-          {initialsOf(user.pseudo)}
-        </div>
+        <Avatar pseudo={user.pseudo} url={user.avatar_url} size="lg" ring />
         <h2 className="max-w-full truncate text-xl font-semibold tracking-tight">{user.pseudo}</h2>
-        <span className="rounded-full bg-red-500/15 px-3 py-1 text-sm font-medium text-red-600 dark:text-red-400">
-          {roleLabel}
-        </span>
-        <p className="text-sm text-foreground/60">
+        <span className="chip chip-accent text-sm">{roleLabel}</span>
+        <p className="text-sm text-muted">
           Inscrit le {dateFormat.format(new Date(user.created_at))}
         </p>
-        <code className="break-all font-mono text-xs text-foreground/50">{user.id}</code>
+        <code className="break-all font-mono text-xs text-faint">{user.id}</code>
       </header>
 
       {activeBan && (
         <section
           aria-label="Ban en cours"
-          className="flex flex-col gap-2 rounded-2xl border border-red-500/40 bg-red-500/10 p-4"
+          className="flex flex-col gap-2 rounded-card border border-danger/40 bg-danger/10 p-4"
         >
-          <p className="font-semibold text-red-600 dark:text-red-400">Utilisateur banni</p>
+          <p className="font-semibold text-danger">Utilisateur banni</p>
           <p className="text-sm">Motif : {activeBan.reason}</p>
-          <p className="text-sm text-foreground/60">
+          <p className="text-sm text-muted">
             {activeBan.expires_at
               ? `Jusqu'au ${dateFormat.format(new Date(activeBan.expires_at))}`
               : "Permanent"}
@@ -95,10 +82,7 @@ export async function UserDetail({ id, session }: { id: string; session: Session
             <form action={liftSanction}>
               <input type="hidden" name="id" value={activeBan.id} />
               <input type="hidden" name="target" value={user.id} />
-              <button
-                type="submit"
-                className="min-h-11 rounded-xl border border-foreground/20 px-4 text-sm font-medium active:bg-foreground/5"
-              >
+              <button type="submit" className="btn btn-outline btn-sm">
                 Lever le ban
               </button>
             </form>
@@ -107,7 +91,7 @@ export async function UserDetail({ id, session }: { id: string; session: Session
       )}
 
       {!canManage && (
-        <p className="text-sm text-foreground/60">
+        <p className="text-sm text-muted">
           Tu ne peux pas sanctionner cet utilisateur : son rôle est supérieur ou égal au tien (ou
           c&apos;est toi).
         </p>
@@ -116,12 +100,9 @@ export async function UserDetail({ id, session }: { id: string; session: Session
       {canBan && !activeBan && <BanForm targetId={user.id} />}
 
       {canMute && (
-        <section
-          aria-label="Mute"
-          className="flex flex-col gap-2 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4"
-        >
+        <section aria-label="Mute" className="flex flex-col gap-2 card p-4">
           <h3 className="font-semibold">Mute</h3>
-          <p className="text-sm text-foreground/60">
+          <p className="text-sm text-muted">
             Le mute servira à empêcher d&apos;écrire sans bloquer la lecture. Il sera activé avec la
             messagerie.
           </p>
@@ -129,7 +110,7 @@ export async function UserDetail({ id, session }: { id: string; session: Session
             type="button"
             disabled
             aria-disabled="true"
-            className="min-h-11 self-start rounded-xl border border-foreground/20 px-4 text-sm opacity-50"
+            className="btn btn-outline btn-sm self-start"
           >
             Mute (bientôt disponible)
           </button>
@@ -149,26 +130,23 @@ export async function UserDetail({ id, session }: { id: string; session: Session
           Historique des sanctions
         </h3>
         {!sanctions.ok ? (
-          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          <p role="alert" className="text-sm text-danger">
             Impossible de charger l&apos;historique.
           </p>
         ) : history.length === 0 ? (
-          <p className="text-sm text-foreground/60">Aucune sanction.</p>
+          <p className="text-sm text-muted">Aucune sanction.</p>
         ) : (
           <ul className="flex flex-col gap-3">
             {history.map((sanction) => {
               const active = isSanctionActive(sanction, now);
               const state = sanction.revoked_at ? "levée" : active ? "en cours" : "expirée";
               return (
-                <li
-                  key={sanction.id}
-                  className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4 text-sm"
-                >
+                <li key={sanction.id} className="card p-4 text-sm">
                   <p className="font-medium">
                     {KIND_LABELS[sanction.kind] ?? sanction.kind} · {state}
                   </p>
                   <p>{sanction.reason}</p>
-                  <p className="text-xs text-foreground/60">
+                  <p className="text-xs text-muted">
                     {dateFormat.format(new Date(sanction.created_at))} →{" "}
                     {sanction.expires_at
                       ? dateFormat.format(new Date(sanction.expires_at))

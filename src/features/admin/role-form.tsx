@@ -31,18 +31,14 @@ export function RoleForm({
           options={options.map((role) => ({ value: role.key, label: role.label }))}
           className="min-w-0 flex-1"
         />
-        <button
-          type="submit"
-          disabled={pending}
-          className="min-h-10 rounded-xl bg-red-500 px-4 text-sm font-semibold text-white active:bg-red-600 disabled:opacity-60"
-        >
+        <button type="submit" disabled={pending} className="btn btn-primary btn-sm">
           {pending ? "…" : "Appliquer"}
         </button>
       </div>
       {state.message && (
         <p
           role={state.status === "error" ? "alert" : "status"}
-          className={state.status === "error" ? "text-xs text-red-500" : "text-xs text-green-600"}
+          className={state.status === "error" ? "text-xs text-danger" : "text-xs text-success"}
         >
           {state.message}
         </p>

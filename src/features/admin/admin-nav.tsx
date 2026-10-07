@@ -24,9 +24,9 @@ export function AdminNav({ links }: { links: AdminLink[] }) {
               href={href}
               prefetch={false}
               aria-current={isActive(href) ? "page" : undefined}
-              className={`flex min-h-10 items-center whitespace-nowrap rounded-full px-5 text-sm font-medium ${
+              className={`flex min-h-control-sm items-center whitespace-nowrap rounded-full px-5 text-sm font-medium ${
                 isActive(href)
-                  ? "bg-red-500 text-white shadow-sm"
+                  ? "bg-accent text-accent-ink shadow-sm"
                   : "bg-foreground/10 active:bg-foreground/15"
               }`}
             >

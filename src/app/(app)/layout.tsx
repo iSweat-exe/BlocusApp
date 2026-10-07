@@ -11,13 +11,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Suspense fallback={<AppHeaderFallback />}>
         <AppHeader />
       </Suspense>
-      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col p-4">{children}</div>
+      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col p-gutter">{children}</div>
       {/* usePathname() needs a Suspense boundary on routes with dynamic segments (/admin/users/[id]). */}
       <Suspense
         fallback={
           <div
             aria-hidden="true"
-            className="h-16 border-t border-foreground/10 pb-[env(safe-area-inset-bottom)]"
+            className="h-16 border-t border-line pb-[env(safe-area-inset-bottom)]"
           />
         }
       >

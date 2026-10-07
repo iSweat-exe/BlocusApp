@@ -70,7 +70,7 @@ export function ImminentBanner({
       {visible.map((event) => (
         <div
           key={event.id}
-          className="flex items-stretch gap-2 rounded-xl bg-red-500 p-1 pl-4 text-white shadow-lg"
+          className="flex items-stretch gap-2 rounded-card bg-accent p-1 pl-4 text-accent-ink shadow-lg"
         >
           <Link href={`/calendar/${event.id}`} className="flex min-w-0 flex-1 flex-col py-3">
             <span className="text-xs font-semibold uppercase tracking-wide">
@@ -89,7 +89,7 @@ export function ImminentBanner({
               addDismissed(storage(), event.id);
               setClosedNow((ids) => [...ids, event.id]);
             }}
-            className="self-start rounded-lg px-3 py-2 text-xl leading-none"
+            className="flex h-tap w-tap items-center justify-center self-start rounded-control text-xl leading-none"
           >
             ×
           </button>

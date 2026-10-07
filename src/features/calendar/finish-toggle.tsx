@@ -16,14 +16,12 @@ export function FinishToggle({ id, finished }: { id: string; finished: boolean }
       <button
         type="submit"
         disabled={pending}
-        className={`rounded-lg px-4 py-3 font-medium disabled:opacity-60 ${
-          finished ? "border border-foreground/20" : "bg-foreground text-background"
-        }`}
+        className={`btn ${finished ? "btn-outline" : "bg-foreground text-background active:opacity-80"}`}
       >
         {pending ? "…" : finished ? "Rouvrir l'événement" : "Marquer comme terminé"}
       </button>
       {state.status === "error" && state.message && (
-        <p role="alert" className="text-sm text-red-500">
+        <p role="alert" className="text-sm text-danger">
           {state.message}
         </p>
       )}

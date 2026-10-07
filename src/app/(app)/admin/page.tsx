@@ -23,12 +23,9 @@ async function AdminContent({ searchParams }: { searchParams: Promise<{ q?: stri
           maxLength={32}
           placeholder="Rechercher un pseudo"
           aria-label="Rechercher un pseudo"
-          className="min-h-12 min-w-0 flex-1 rounded-xl border border-foreground/15 bg-background px-4 text-base"
+          className="field min-w-0 flex-1"
         />
-        <button
-          type="submit"
-          className="min-h-12 rounded-xl bg-foreground/10 px-5 text-sm font-medium active:bg-foreground/15"
-        >
+        <button type="submit" className="btn btn-secondary text-sm">
           Rechercher
         </button>
       </form>
@@ -39,8 +36,8 @@ async function AdminContent({ searchParams }: { searchParams: Promise<{ q?: stri
 
 export default function AdminPage({ searchParams }: PageProps<"/admin">) {
   return (
-    <div className="flex flex-col gap-5">
-      <Suspense fallback={<p className="text-sm text-foreground/60">Chargement…</p>}>
+    <div className="flex flex-col gap-section">
+      <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
         <AdminContent searchParams={searchParams as Promise<{ q?: string }>} />
       </Suspense>
     </div>

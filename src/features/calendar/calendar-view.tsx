@@ -50,7 +50,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
           href={href(shiftMonth(month, -1))}
           prefetch={false}
           aria-label="Mois précédent"
-          className="flex h-11 w-11 items-center justify-center rounded-full text-xl active:bg-foreground/10"
+          className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
         >
           ‹
         </Link>
@@ -72,14 +72,14 @@ export async function CalendarView({ month, day }: { month: string; day: string 
           href={href(shiftMonth(month, 1))}
           prefetch={false}
           aria-label="Mois suivant"
-          className="flex h-11 w-11 items-center justify-center rounded-full text-xl active:bg-foreground/10"
+          className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
         >
           ›
         </Link>
       </div>
 
       {!result.ok && (
-        <p role="alert" className="text-sm text-red-500">
+        <p role="alert" className="alert alert-error">
           Impossible de charger les événements pour le moment.
         </p>
       )}
@@ -89,7 +89,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
         aria-label={`Calendrier ${formatMonthLabel(month)}`}
         className="flex flex-col gap-1"
       >
-        <div role="row" className="grid grid-cols-7 text-center text-xs text-foreground/60">
+        <div role="row" className="grid grid-cols-7 text-center text-xs text-muted">
           {WEEKDAYS.map((name) => (
             <span key={name} role="columnheader">
               {name}
@@ -113,11 +113,11 @@ export async function CalendarView({ month, day }: { month: string; day: string 
                   aria-selected={isSelected}
                   aria-current={isToday ? "date" : undefined}
                   aria-label={`${formatDayKeyLong(cell.key)}${count ? `, ${count} événement${count > 1 ? "s" : ""}` : ""}`}
-                  className={`flex h-14 flex-col items-center justify-center rounded-xl text-sm ${
+                  className={`flex h-14 flex-col items-center justify-center rounded-control text-sm ${
                     isSelected
-                      ? "bg-red-500 text-white"
+                      ? "bg-accent text-accent-ink"
                       : isToday
-                        ? "border border-red-500"
+                        ? "border border-accent"
                         : "bg-foreground/5"
                   } ${cell.inMonth ? "" : "opacity-40"}`}
                 >
@@ -129,7 +129,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
                         ? isSelected
                           ? "bg-white"
                           : open > 0
-                            ? "bg-red-500"
+                            ? "bg-accent"
                             : "bg-foreground/40"
                         : "bg-transparent"
                     }`}
@@ -146,7 +146,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
           {formatDayKeyLong(day)}
         </h3>
         {selected.length === 0 ? (
-          <p className="text-sm text-foreground/60">Aucun événement ce jour-là.</p>
+          <p className="text-sm text-muted">Aucun événement ce jour-là.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {selected.map((event) => (
@@ -154,13 +154,13 @@ export async function CalendarView({ month, day }: { month: string; day: string 
                 <Link
                   href={`/calendar/${event.id}`}
                   aria-disabled={event.finished_at ? true : undefined}
-                  className={`flex flex-col rounded-lg border border-foreground/10 p-3 ${
+                  className={`card-link flex flex-col p-4 ${
                     event.finished_at ? "bg-foreground/5 opacity-60" : ""
                   }`}
                 >
                   <span className="flex items-center justify-between gap-2">
                     <span
-                      className={`text-sm font-medium ${event.finished_at ? "" : "text-red-500"}`}
+                      className={`text-sm font-medium ${event.finished_at ? "" : "text-accent"}`}
                     >
                       {formatTimeRange(event.starts_at, event.ends_at)}
                     </span>
@@ -173,9 +173,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
                   <span className={`font-semibold ${event.finished_at ? "line-through" : ""}`}>
                     {event.title}
                   </span>
-                  {event.location && (
-                    <span className="text-sm text-foreground/60">{event.location}</span>
-                  )}
+                  {event.location && <span className="text-sm text-muted">{event.location}</span>}
                 </Link>
               </li>
             ))}

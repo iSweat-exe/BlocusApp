@@ -17,12 +17,8 @@ export default function Error({
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-4 text-center">
-      <h1 className="text-2xl font-semibold">Une erreur est survenue</h1>
-      <button
-        type="button"
-        onClick={reset}
-        className="rounded-md bg-foreground px-4 py-2 text-background"
-      >
+      <h1 className="page-title">Une erreur est survenue</h1>
+      <button type="button" onClick={reset} className="btn btn-primary">
         Réessayer
       </button>
     </main>

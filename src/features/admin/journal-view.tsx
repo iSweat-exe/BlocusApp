@@ -6,8 +6,7 @@ import { getPseudos, listRoles } from "@/lib/data/profiles";
 import { AUDIT_ACTIONS, describeAuditEntry, formatAuditDate, type JournalParams } from "./audit";
 import { permissionLabel } from "./permission-rules";
 
-const PAGER =
-  "flex min-h-11 items-center rounded-xl bg-foreground/10 px-4 font-medium active:bg-foreground/15";
+const PAGER = "btn btn-secondary btn-sm";
 
 /** Builds a journal URL keeping the filter and an optional cursor. */
 function journalHref(action: string | null, before?: number | null): string {
@@ -28,10 +27,7 @@ export async function JournalView({ params }: { params: JournalParams }) {
 
   if (!page.ok) {
     return (
-      <p
-        role="alert"
-        className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
-      >
+      <p role="alert" className="alert alert-error">
         Impossible de charger le journal pour le moment.
       </p>
     );
@@ -61,25 +57,19 @@ export async function JournalView({ params }: { params: JournalParams }) {
           ]}
           className="min-w-0 flex-1"
         />
-        <button
-          type="submit"
-          className="min-h-12 rounded-xl bg-foreground/10 px-5 text-sm font-medium active:bg-foreground/15"
-        >
+        <button type="submit" className="btn btn-secondary text-sm">
           Filtrer
         </button>
       </form>
 
       {page.value.entries.length === 0 ? (
-        <p className="text-sm text-foreground/60">Aucune entrée.</p>
+        <p className="text-sm text-muted">Aucune entrée.</p>
       ) : (
         <ol className="flex flex-col gap-3">
           {page.value.entries.map((entry) => (
-            <li
-              key={entry.id}
-              className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4"
-            >
+            <li key={entry.id} className="card p-4">
               <p className="text-sm">{describeAuditEntry(entry, names)}</p>
-              <time dateTime={entry.created_at} className="text-xs text-foreground/60">
+              <time dateTime={entry.created_at} className="text-xs text-muted">
                 {formatAuditDate(entry.created_at)}
               </time>
             </li>

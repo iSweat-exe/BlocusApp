@@ -21,7 +21,7 @@ export function AppNav() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="sticky bottom-0 z-30 border-t border-foreground/10 bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+      className="sticky bottom-0 z-30 border-t border-line bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur"
     >
       <ul className="mx-auto flex max-w-3xl">
         {ITEMS.map(({ href, label, Icon }) => {
@@ -32,14 +32,12 @@ export function AppNav() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={`flex min-h-16 flex-col items-center justify-center gap-0.5 px-2 text-xs font-medium transition-colors ${
-                  active
-                    ? "text-red-500"
-                    : "text-foreground/60 [@media(hover:hover)]:hover:text-foreground"
+                  active ? "text-accent" : "text-muted [@media(hover:hover)]:hover:text-foreground"
                 }`}
               >
                 <span
                   className={`flex h-8 w-16 items-center justify-center rounded-full transition-colors ${
-                    active ? "bg-red-500/15" : ""
+                    active ? "bg-accent/15" : ""
                   }`}
                 >
                   <Icon className="h-6 w-6" />

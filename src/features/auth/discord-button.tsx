@@ -38,10 +38,7 @@ export function DiscordButton() {
   }, []);
 
   return (
-    <a
-      href={href}
-      className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[#5865F2] px-4 py-3 text-center font-medium text-white active:bg-[#4752c4]"
-    >
+    <a href={href} className="btn w-full bg-discord text-white active:bg-discord-strong">
       Continuer avec Discord
     </a>
   );
