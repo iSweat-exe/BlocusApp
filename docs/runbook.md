@@ -34,6 +34,14 @@ Actions manuelles (une fois par environnement) :
 
 Le Client Secret ne se met jamais dans le dépôt ni dans un commentaire de `.env`.
 
+## Claims JWT de permissions (A-034)
+
+En local le hook est activé par `supabase/config.toml`. **Sur un projet hébergé**, activer à la main :
+Supabase → Authentication → Hooks → Custom Access Token → type « Postgres », fonction
+`public.custom_access_token_hook`. Sans cela, `requirePermission()` refuse tout (claims absents) ; la RLS
+continue de fonctionner. Après l'activation, les utilisateurs déjà connectés reçoivent les claims au
+prochain refresh du token (≤ 1 h) ou après reconnexion.
+
 ## Déploiement (O-035)
 
 1. Lier le dépôt GitHub à Vercel (une seule fois).
