@@ -96,6 +96,15 @@ modifie son événement depuis le détail (la date devient modifiable) ; la supp
 saisie (`schema.ts`, heures lues en Europe/Paris) et la RLS décide ; le trigger `check_event_start` refuse un
 début dans le passé, mais le texte d'un événement déjà commencé reste modifiable.
 
+**Encart « événement imminent »** (accueil, tout en haut, `imminent-events.tsx` + `imminent-banner.tsx`) : un
+événement qui démarre dans **moins de 30 minutes** (`IMMINENT_WINDOW_MINUTES`) et n'a pas commencé s'affiche
+dans un encart rouge distinct des annonces, avec un compte à rebours (« dans 8 min »), l'heure et le lieu ; un
+appui ouvre `/calendar/[id]`, la croix le ferme. Le serveur lit les événements à la requête
+(`await connection()`), le client rafraîchit le compte à rebours toutes les 15 s et masque l'encart au début de
+l'événement. Les ids fermés sont gardés **par appareil** dans `localStorage` (`blocus.dismissed-events`, 100 max,
+lecture/écriture tolérantes aux erreurs : en navigation privée l'encart se ferme pour la visite seulement). Limite
+connue : un événement qui devient imminent pendant que la page est déjà ouverte n'apparaît qu'au rechargement.
+
 ## PWA
 
 `src/app/manifest.ts`, `public/sw.js` (enregistré en production par

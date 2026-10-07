@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getEvent, listEventsBetween } from "./events";
+import { getEvent, listEventsBetween, listImminentEvents } from "./events";
 
 const maybeSingle = vi.fn();
 const eq = vi.fn();
@@ -7,6 +7,8 @@ const limit = vi.fn();
 const order = vi.fn();
 const lt = vi.fn();
 const gte = vi.fn();
+const gt = vi.fn();
+const lte = vi.fn();
 const select = vi.fn();
 const from = vi.fn();
 
@@ -16,7 +18,9 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: () => ({ from }) }));
 beforeEach(() => {
   vi.clearAllMocks();
   from.mockReturnValue({ select });
-  select.mockReturnValue({ gte, eq });
+  select.mockReturnValue({ gte, gt, eq });
+  gt.mockReturnValue({ lte });
+  lte.mockReturnValue({ order });
   gte.mockReturnValue({ lt });
   lt.mockReturnValue({ order });
   order.mockReturnValue({ order, limit });
@@ -58,5 +62,24 @@ describe("getEvent", () => {
     expect(await getEvent("e1")).toMatchObject({ ok: false, error: "load_failed" });
     maybeSingle.mockRejectedValue(new Error("network"));
     expect(await getEvent("e1")).toMatchObject({ ok: false, error: "load_failed" });
+  });
+});
+
+describe("listImminentEvents", () => {
+  const NOW = new Date("2026-10-07T12:00:00Z");
+
+  it("queries (now, now + window], soonest first, capped at 3", async () => {
+    limit.mockResolvedValue({ data: [{ id: "e1" }], error: null });
+    expect(await listImminentEvents(NOW, 30)).toEqual({ ok: true, value: [{ id: "e1" }] });
+    expect(gt).toHaveBeenCalledWith("starts_at", "2026-10-07T12:00:00.000Z");
+    expect(lte).toHaveBeenCalledWith("starts_at", "2026-10-07T12:30:00.000Z");
+    expect(limit).toHaveBeenCalledWith(3);
+  });
+
+  it("returns load_failed on error or exception", async () => {
+    limit.mockResolvedValue({ data: null, error: { message: "boom" } });
+    expect(await listImminentEvents(NOW, 30)).toMatchObject({ ok: false, error: "load_failed" });
+    limit.mockRejectedValue(new Error("network"));
+    expect(await listImminentEvents(NOW, 30)).toMatchObject({ ok: false, error: "load_failed" });
   });
 });

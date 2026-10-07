@@ -94,6 +94,14 @@ test.describe("app shell", () => {
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
   });
 
+  test("the home page shows no imminent-event banner when there is nothing to show", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1, name: "Accueil" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Événements imminents" })).toHaveCount(0);
+  });
+
   test("serves the public auth pages", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
