@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { canAccessAdmin } from "@/features/admin/access";
 import { getSessionPermissions } from "@/server/session";
 import { signOut } from "./actions";
 
 /**
- * Header controls: sign-in link for Guests; profile link, admin link (with `role.assign`) and sign-out
+ * Header controls: sign-in link for Guests; profile link, admin link (with an admin permission) and sign-out
  * for users.
  * Reads cookies: wrap in Suspense.
  */
@@ -23,7 +24,7 @@ export async function AuthStatus() {
       <Link href="/profil" className="text-sm underline">
         Mon profil
       </Link>
-      {session.permissions.includes("role.assign") && (
+      {canAccessAdmin(session.permissions) && (
         <Link href="/admin" className="text-sm underline">
           Administration
         </Link>

@@ -12,7 +12,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Suspense>
       </header>
       <div className="flex flex-1 flex-col p-4">{children}</div>
-      <AppNav />
+      {/* usePathname() needs a Suspense boundary on routes with dynamic segments (/admin/users/[id]). */}
+      <Suspense
+        fallback={<div aria-hidden="true" className="h-12 border-t border-foreground/10" />}
+      >
+        <AppNav />
+      </Suspense>
     </>
   );
 }

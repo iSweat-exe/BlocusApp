@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { listProfiles, listRoles, PROFILE_PAGE_SIZE } from "@/lib/data/profiles";
 import { getSessionPermissions } from "@/server/session";
 import { assignableRoles, canManageUser, rankOf } from "./hierarchy";
@@ -30,17 +31,24 @@ export async function UserList({ search }: { search: string }) {
       ) : (
         <ul className="flex flex-col gap-2">
           {profiles.value.map((profile) => {
-            const editable = canManageUser(
-              callerRank,
-              rankOf(roles.value, profile.role),
-              profile.id === session?.userId,
-            );
+            const editable =
+              (session?.permissions.includes("role.assign") ?? false) &&
+              canManageUser(
+                callerRank,
+                rankOf(roles.value, profile.role),
+                profile.id === session?.userId,
+              );
             return (
               <li
                 key={profile.id}
                 className="flex items-center justify-between gap-3 rounded-lg border border-foreground/10 p-3"
               >
-                <span className="min-w-0 truncate font-medium">{profile.pseudo}</span>
+                <Link
+                  href={`/admin/users/${profile.id}`}
+                  className="min-w-0 truncate font-medium underline"
+                >
+                  {profile.pseudo}
+                </Link>
                 {editable ? (
                   <RoleForm targetId={profile.id} currentRole={profile.role} options={options} />
                 ) : (

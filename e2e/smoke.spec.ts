@@ -33,6 +33,11 @@ test.describe("app shell", () => {
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
   });
 
+  test("sends Guests away from an admin user page", async ({ page }) => {
+    await page.goto("/admin/users/00000000-0000-0000-0000-0000000000a1");
+    await page.waitForURL("**/login");
+  });
+
   test("sends Guests away from the profile page", async ({ page }) => {
     await page.goto("/profil");
     await page.waitForURL("**/login");
