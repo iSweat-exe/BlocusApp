@@ -117,6 +117,8 @@ fenêtre ouverte (formulaire vierge à chaque ouverture). Un formulaire passé e
 Component la ferme après un succès avec le hook `useDialogClose()` (pas de fonction en prop). Utilisée pour
 « Créer un post » (`announcement-feed.tsx`) et « Ajouter un événement » (`calendar-view.tsx`).
 
+**Liste déroulante réutilisable.** `src/components/select.tsx` (`<Select label options name? defaultValue? value? onChange? size?>`) : feuille en bas d'écran sur mobile, popover dès `sm`, motif ARIA listbox (flèches, Début/Fin, Entrée/Espace, Échap). Dans un formulaire, la valeur part par un `<input type="hidden" name>` : utilisable avec les Server Actions et les formulaires GET. Remplace les `<select>` natifs de l'administration (rôle, durée de ban, filtre du journal).
+
 ## Calendrier
 
 `/calendar` (`src/features/calendar/`) : grille de mois (lundi en premier), repère sur les jours qui ont des

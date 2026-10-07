@@ -20,7 +20,7 @@ async function JournalContent({
 export default function AdminJournalPage({ searchParams }: PageProps<"/admin/journal">) {
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold">Journal d&apos;audit</h2>
+      <h2 className="text-xl font-semibold tracking-tight">Journal d&apos;audit</h2>
       <p className="text-sm text-foreground/60">
         Historique des actions d&apos;administration : changements de rôle, permissions, bans.
       </p>

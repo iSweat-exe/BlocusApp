@@ -14,7 +14,7 @@ async function RolesContent() {
 export default function AdminRolesPage() {
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold">Rôles et permissions</h2>
+      <h2 className="text-xl font-semibold tracking-tight">Rôles et permissions</h2>
       <p className="text-sm text-foreground/60">
         Choisis ce que peut faire chaque rôle. Tu modifies uniquement les rôles en dessous du tien,
         et tu n&apos;accordes que ce que tu possèdes.

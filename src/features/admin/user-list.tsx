@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listProfiles, listRoles, PROFILE_PAGE_SIZE } from "@/lib/data/profiles";
 import { getSessionPermissions } from "@/server/session";
+import { initialsOf } from "@/features/profile/avatar";
 import { assignableRoles, canManageUser, rankOf } from "./hierarchy";
 import { RoleForm } from "./role-form";
 
@@ -14,7 +15,10 @@ export async function UserList({ search }: { search: string }) {
 
   if (!profiles.ok || !roles.ok) {
     return (
-      <p role="alert" className="text-sm text-red-500">
+      <p
+        role="alert"
+        className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
+      >
         Impossible de charger les utilisateurs pour le moment.
       </p>
     );
@@ -29,7 +33,7 @@ export async function UserList({ search }: { search: string }) {
       {profiles.value.length === 0 ? (
         <p className="text-sm text-foreground/60">Aucun utilisateur trouvé.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {profiles.value.map((profile) => {
             const editable =
               (session?.permissions.includes("role.assign") ?? false) &&
@@ -41,21 +45,31 @@ export async function UserList({ search }: { search: string }) {
             return (
               <li
                 key={profile.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-foreground/10 p-3"
+                className="flex flex-col gap-3 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-3"
               >
                 <Link
                   href={`/admin/users/${profile.id}`}
                   prefetch={false}
-                  className="min-w-0 truncate font-medium underline"
+                  className="flex min-h-12 items-center gap-3 rounded-xl active:bg-foreground/5"
                 >
-                  {profile.pseudo}
-                </Link>
-                {editable ? (
-                  <RoleForm targetId={profile.id} currentRole={profile.role} options={options} />
-                ) : (
-                  <span className="shrink-0 text-sm text-foreground/60">
-                    {labelOf(profile.role)}
+                  <span
+                    aria-hidden="true"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-sm font-semibold"
+                  >
+                    {initialsOf(profile.pseudo)}
                   </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate font-semibold">{profile.pseudo}</span>
+                    {!editable && (
+                      <span className="text-sm text-foreground/60">{labelOf(profile.role)}</span>
+                    )}
+                  </span>
+                  <span aria-hidden="true" className="text-foreground/40">
+                    ›
+                  </span>
+                </Link>
+                {editable && (
+                  <RoleForm targetId={profile.id} currentRole={profile.role} options={options} />
                 )}
               </li>
             );

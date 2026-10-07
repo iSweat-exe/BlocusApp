@@ -15,7 +15,10 @@ export async function RoleMatrix({ session }: { session: SessionPermissions }) {
 
   if (!roles.ok || !permissions.ok || !links.ok) {
     return (
-      <p role="alert" className="text-sm text-red-500">
+      <p
+        role="alert"
+        className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
+      >
         Impossible de charger les permissions pour le moment.
       </p>
     );
@@ -32,7 +35,7 @@ export async function RoleMatrix({ session }: { session: SessionPermissions }) {
         <section
           key={role.key}
           aria-labelledby={`role-${role.key}`}
-          className="flex flex-col gap-2 rounded-lg border border-foreground/10 p-4"
+          className="flex flex-col gap-2 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4"
         >
           <h2 id={`role-${role.key}`} className="font-semibold">
             {role.label}
@@ -55,7 +58,7 @@ export async function RoleMatrix({ session }: { session: SessionPermissions }) {
                   callerHolds: session.permissions.includes(permission.key),
                 });
               return (
-                <li key={permission.key} className="flex items-center justify-between gap-3 py-2">
+                <li key={permission.key} className="flex items-center justify-between gap-3 py-3">
                   <div className="min-w-0">
                     <p className="text-sm">
                       {permissionLabel(permission.key, permission.description)}

@@ -11,8 +11,8 @@ async function AdminSections() {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Administration</h1>
+    <div className="flex flex-col gap-5">
+      <h1 className="text-2xl font-semibold tracking-tight">Administration</h1>
       <Suspense fallback={null}>
         <AdminSections />
       </Suspense>
