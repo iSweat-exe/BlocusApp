@@ -45,6 +45,7 @@ describe("matcher", () => {
     "/manifest.webmanifest",
     "/icons/icon-192.png",
     "/favicon.ico",
+    "/api/keep-alive",
     "/logo.png",
     "/pictures/photo.webp",
   ])("skips the asset %s", (path) => {

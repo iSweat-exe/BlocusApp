@@ -57,6 +57,14 @@ compte plus que raccourcir une requête SQL.
   bannissements portés par le JWT se mettent à jour en ≤ 15 min au lieu de 1 h. Les actions sensibles vérifient de
   toute façon en base (`fresh`).
 
+- **Annonces paginées** : 10 au départ, « Voir plus d'annonces » en ajoute 10 (`/?n=20`, …), plafond de **50** (une
+  note l'indique). `n` est arrondi au multiple de 10 (peu de valeurs distinctes : le cache partagé reste petit) et
+  toute valeur invalide retombe sur la première page. Le serveur lit une ligne de plus que demandé pour savoir s'il
+  reste des annonces. Charge utile par visite : au plus 50 annonces, au lieu de 20 sans pagination ni borne claire.
+- **Keep-alive** : `/api/keep-alive` (une lecture d'une ligne) appelé chaque jour à 6 h UTC par Vercel Cron
+  (`vercel.json`) pour que le projet Supabase gratuit ne soit jamais mis en pause après 7 jours sans activité. Si
+  `CRON_SECRET` est défini, tout autre appelant reçoit 401. Exclu du `proxy`.
+
 ## Mesures (Supabase local, build de production, Pixel 7 émulé, 60 utilisateurs, 15 annonces, 20 événements)
 
 « Requêtes réseau » = requêtes vers notre serveur réellement émises (hors ressources servies par le cache du
@@ -100,3 +108,12 @@ Vérifié dans un navigateur (Supabase local) :
 - un invité qui garde l'app ouverte **ne voit pas** une annonce publiée ailleurs (aucun sondage), un retour avant 30 s
   est ignoré, et **après 31 s** le retour sur l'app affiche l'annonce **sans rechargement** ;
 - un événement à 40 minutes entre dans l'encart 12 minutes plus tard **sans rechargement** (« dans 28 min »).
+
+### Après PR 4 (base de données et charge utile)
+
+- Index manquant ajouté sur le journal d'audit filtré par action : 4,6 ms → 0,24 ms pour une action rare dans 100 000
+  entrées (voir `docs/database.md` pour tous les plans).
+- Pagination vérifiée dans un navigateur avec 62 annonces : 10 → 20 → 30 → 40 → 50 cartes, plus de bouton au plafond,
+  `?n=999` donne 50, `?n=abc` et `?n=-1` donnent 10, `?n=15` donne 20 ; le défilement est conservé.
+- `/api/keep-alive` : 200 `{"ok":true}` avec la base locale, 503 si elle est injoignable, 401 sans le secret quand
+  `CRON_SECRET` est défini.

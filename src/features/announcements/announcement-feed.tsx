@@ -1,21 +1,29 @@
+import Link from "next/link";
 import { connection } from "next/server";
 import { FullScreenDialog } from "@/components/full-screen-dialog";
 import { listAnnouncements } from "@/lib/data/announcements";
 import { getSessionPermissions } from "@/server/session";
 import { AnnouncementForm } from "./announcement-form";
 import { formatAnnouncementDate } from "./date";
+import { FEED_MAX, FEED_STEP } from "./feed-limit";
 import { DeleteAnnouncementButton } from "./delete-announcement-button";
 
 /** Home feed: latest announcements for everyone, plus publish/delete controls by permission. */
-export async function AnnouncementFeed() {
+export async function AnnouncementFeed({ limit }: { limit: number }) {
   // The shared cache holds data that does not depend on the request, so Next.js would run it while building the
   // page (stale announcements baked into the shell, and a failing build when the database is unreachable).
   // Reading at request time keeps the data fresh: it is still cached for 30 s across visitors.
   await connection();
-  const [result, session] = await Promise.all([listAnnouncements(), getSessionPermissions()]);
+  const [result, session] = await Promise.all([
+    listAnnouncements(limit + 1),
+    getSessionPermissions(),
+  ]);
   const can = (permission: string) => session?.permissions.includes(permission) ?? false;
   // Read after the data above, so the clock is only used at request time.
   const now = new Date();
+  // One extra row is requested to know whether there is more to show.
+  const announcements = result.ok ? result.value.slice(0, limit) : [];
+  const hasMore = result.ok && result.value.length > limit;
 
   return (
     <section aria-label="Actualités" className="flex flex-col gap-4">
@@ -29,13 +37,13 @@ export async function AnnouncementFeed() {
         <p role="alert" className="text-sm text-red-500">
           Impossible de charger les annonces pour le moment.
         </p>
-      ) : result.value.length === 0 ? (
+      ) : announcements.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-foreground/20 p-6 text-center text-sm text-foreground/60">
           Aucune annonce pour le moment.
         </p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {result.value.map((announcement) => {
+          {announcements.map((announcement) => {
             const canDelete =
               can("announcement.delete") ||
               (can("announcement.publish") && announcement.author_id === session?.userId);
@@ -71,6 +79,22 @@ export async function AnnouncementFeed() {
           })}
         </ul>
       )}
+
+      {hasMore &&
+        (limit < FEED_MAX ? (
+          <Link
+            href={`/?n=${limit + FEED_STEP}`}
+            prefetch={false}
+            scroll={false}
+            className="flex min-h-12 items-center justify-center rounded-xl border border-foreground/20 px-4 text-sm font-medium active:bg-foreground/10"
+          >
+            Voir plus d&apos;annonces
+          </Link>
+        ) : (
+          <p className="text-center text-xs text-foreground/60">
+            Seules les {FEED_MAX} annonces les plus récentes sont affichées.
+          </p>
+        ))}
     </section>
   );
 }

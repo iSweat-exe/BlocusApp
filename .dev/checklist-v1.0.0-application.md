@@ -18,7 +18,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-001** Migrations Supabase versionnées dans `supabase/migrations/` (jamais d'édition manuelle en prod) — _`supabase db reset` rejoue tout_
 - [~] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription — _inscription crée un profil_
 - [ ] **A-003** Tables de rôles/permissions (voir 1.3) et table `moderation_actions` (ban, mute, historique) — _schéma documenté dans `docs/database.md`_
-- [ ] **A-004** Index sur toutes les colonnes filtrées/jointes (pseudo, user_id, created_at) ⚡ — _`EXPLAIN` sur requêtes clés_
+- [~] **A-004** Index sur toutes les colonnes filtrées/jointes (pseudo, user_id, created_at) ⚡ — _`EXPLAIN` sur requêtes clés_ (plans mesurés dans `docs/database.md`)
 - [~] **A-005** Génération des types TS depuis le schéma (`supabase gen types`) — _types importés partout, zéro type écrit à la main_
 - [~] **A-006** Seed de dev (`supabase/seed.sql`) avec un compte par rôle — _documenté_
 
@@ -84,6 +84,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-084** Invalidation propre : toute écriture invalide les clés concernées — _pas de donnée périmée visible_ (`updateTag` après chaque écriture sur annonces et événements)
 - [~] **A-085** Headers HTTP (`Cache-Control`, ETag) pour les assets/avatars ; avatars servis via CDN/Supabase Storage avec cache long + nom de fichier versionné — _bande passante réduite_ (icônes : cache 1 jour fait)
 - [~] **A-087** Politique de préchargement et rendus : `prefetch={false}` sur les liens rarement utilisés, session lue une fois par requête, proxy qui ignore les préchargements — _mesuré dans `docs/performance.md` (−16 à −31 % de requêtes)_ ⚡
+- [~] **A-088** Charge utile et base : annonces paginées (10, « Voir plus », plafond 50), `EXPLAIN` des requêtes chaudes consigné, index du journal d'audit, keep-alive quotidien — _`docs/performance.md`, `docs/database.md`_ ⚡
 - [ ] **A-086** Option : Redis gratuit (Upstash) si le cache en mémoire serverless s'avère insuffisant 🆕 — _à décider après mesure_
 
 ## Étape 1.7 — Mises à jour groupées (batching des changements de profil) ⚡

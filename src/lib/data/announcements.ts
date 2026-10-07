@@ -9,8 +9,8 @@ export type Announcement = Pick<
   "id" | "author_id" | "title" | "body" | "created_at"
 >;
 
-/** Number of announcements shown on the home page (pagination comes with the payload PR). */
-export const FEED_PAGE_SIZE = 20;
+/** Default number of announcements read (the home page asks for its own limit, 10 to 51). */
+export const FEED_PAGE_SIZE = 10;
 
 /**
  * Reads the latest announcements once for everybody: the result is the same for every visitor (RLS lets

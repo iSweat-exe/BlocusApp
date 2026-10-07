@@ -42,6 +42,15 @@ Supabase → Authentication → Hooks → Custom Access Token → type « Postgr
 continue de fonctionner. Après l'activation, les utilisateurs déjà connectés reçoivent les claims au
 prochain refresh du token (≤ 1 h) ou après reconnexion.
 
+## Keep-alive contre la mise en pause (Supabase gratuit)
+
+Un projet Supabase gratuit est mis en pause après ~7 jours sans activité. `vercel.json` déclare un cron quotidien
+(`0 6 * * *`) qui appelle `/api/keep-alive` (une lecture d'une ligne). **À faire une fois sur Vercel** : définir la
+variable d'environnement `CRON_SECRET` (une longue chaîne aléatoire, environnement Production) ; Vercel l'envoie
+alors tout seul en `Authorization: Bearer …` à ses crons et la route refuse tout autre appelant. Vérifier ensuite
+dans Vercel → Settings → Cron Jobs que la tâche apparaît et que sa dernière exécution renvoie 200. L'offre Hobby
+autorise un cron par jour.
+
 ## Durée de vie du jeton (JWT) : 15 minutes
 
 Le JWT porte le rôle et les permissions (`custom_access_token_hook`). Il est renouvelé automatiquement par
