@@ -13,8 +13,14 @@ const isFn = vi.fn();
 const select = vi.fn();
 const from = vi.fn();
 
-vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: () => ({ from }) }));
+const cacheLife = vi.fn();
+const cacheTag = vi.fn();
+
+vi.mock("next/cache", () => ({
+  cacheLife: (...args: unknown[]) => cacheLife(...args),
+  cacheTag: (...args: unknown[]) => cacheTag(...args),
+}));
+vi.mock("@/lib/supabase/public", () => ({ createPublicClient: () => ({ from }) }));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -31,6 +37,20 @@ beforeEach(() => {
 
 const FROM = new Date("2026-10-01T00:00:00Z");
 const TO = new Date("2026-11-01T00:00:00Z");
+
+describe("shared cache", () => {
+  it("every event read uses the 'feed' profile and the 'events' tag", async () => {
+    limit.mockResolvedValue({ data: [], error: null });
+    maybeSingle.mockResolvedValue({ data: null, error: null });
+    await listEventsBetween(FROM, TO);
+    await getEvent("e1");
+    await listImminentEvents(new Date("2026-10-07T12:00:00Z"), 30);
+    expect(cacheLife).toHaveBeenCalledTimes(3);
+    expect(cacheLife).toHaveBeenCalledWith("feed");
+    expect(cacheTag).toHaveBeenCalledTimes(3);
+    expect(cacheTag).toHaveBeenCalledWith("events");
+  });
+});
 
 describe("listEventsBetween", () => {
   it("queries the half-open range, soonest first", async () => {
@@ -77,6 +97,13 @@ describe("listImminentEvents", () => {
     expect(lte).toHaveBeenCalledWith("starts_at", "2026-10-07T12:30:00.000Z");
     expect(isFn).toHaveBeenCalledWith("finished_at", null);
     expect(limit).toHaveBeenCalledWith(3);
+  });
+
+  it("anchors the window to the start of the minute, so a minute is read once for everybody", async () => {
+    limit.mockResolvedValue({ data: [], error: null });
+    await listImminentEvents(new Date("2026-10-07T12:00:42.500Z"), 30);
+    expect(gt).toHaveBeenLastCalledWith("starts_at", "2026-10-07T12:00:00.000Z");
+    expect(lte).toHaveBeenLastCalledWith("starts_at", "2026-10-07T12:30:00.000Z");
   });
 
   it("returns load_failed on error or exception", async () => {

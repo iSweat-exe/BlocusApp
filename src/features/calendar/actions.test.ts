@@ -12,7 +12,11 @@ const redirect = vi.fn();
 const rpc = vi.fn();
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+const updateTag = vi.fn();
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+  updateTag: (...args: unknown[]) => updateTag(...args),
+}));
 vi.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => redirect(...args),
 }));
@@ -79,6 +83,7 @@ describe("createEvent", () => {
   it("inserts UTC instants with the caller as author, ignoring a client-provided author", async () => {
     const state = await createEvent(IDLE, form({ ...VALID, end_time: "12:00", author_id: "evil" }));
     expect(state.status).toBe("success");
+    expect(updateTag).toHaveBeenCalledWith("events");
     expect(insert).toHaveBeenCalledWith({
       title: "Départ",
       description: "Place.",
@@ -116,6 +121,7 @@ describe("updateEvent", () => {
   it("updates the event, allowing a past start (the text of a started event can be edited)", async () => {
     const state = await updateEvent(IDLE, form({ ...VALID, id: ID, date: "2020-01-01" }));
     expect(state.status).toBe("success");
+    expect(updateTag).toHaveBeenCalledWith("events");
     expect(eqId).toHaveBeenCalledWith("id", ID);
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ title: "Départ" }));
   });
@@ -146,6 +152,7 @@ describe("deleteEvent", () => {
     requirePermission.mockResolvedValueOnce({ ok: true, value: { userId: "mod" } });
     await deleteEvent(form({ id: ID }));
     expect(eqAuthor).not.toHaveBeenCalled();
+    expect(updateTag).toHaveBeenCalledWith("events");
     expect(redirect).toHaveBeenCalledWith("/calendar");
   });
 
@@ -194,6 +201,7 @@ describe("setEventFinished", () => {
       message: "Événement terminé.",
     });
     expect(rpc).toHaveBeenLastCalledWith("set_event_finished", { p_id: ID, p_finished: true });
+    expect(updateTag).toHaveBeenCalledWith("events");
     expect(await setEventFinished(IDLE, form({ id: ID, finished: "false" }))).toMatchObject({
       message: "Événement rouvert.",
     });

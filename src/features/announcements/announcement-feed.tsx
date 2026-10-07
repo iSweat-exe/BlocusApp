@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { FullScreenDialog } from "@/components/full-screen-dialog";
 import { listAnnouncements } from "@/lib/data/announcements";
 import { getSessionPermissions } from "@/server/session";
@@ -7,6 +8,10 @@ import { DeleteAnnouncementButton } from "./delete-announcement-button";
 
 /** Home feed: latest announcements for everyone, plus publish/delete controls by permission. */
 export async function AnnouncementFeed() {
+  // The shared cache holds data that does not depend on the request, so Next.js would run it while building the
+  // page (stale announcements baked into the shell, and a failing build when the database is unreachable).
+  // Reading at request time keeps the data fresh: it is still cached for 30 s across visitors.
+  await connection();
   const [result, session] = await Promise.all([listAnnouncements(), getSessionPermissions()]);
   const can = (permission: string) => session?.permissions.includes(permission) ?? false;
   // Read after the data above, so the clock is only used at request time.
