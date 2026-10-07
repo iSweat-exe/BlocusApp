@@ -15,11 +15,11 @@ L'application sert à **gérer une manifestation dans une ville X** :
 ---
 
 ## Étape 1.1 — Schéma de base & fondations BDD
-- [ ] **A-001** Migrations Supabase versionnées dans `supabase/migrations/` (jamais d'édition manuelle en prod) — _`supabase db reset` rejoue tout_
-- [ ] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription — _inscription crée un profil_
+- [~] **A-001** Migrations Supabase versionnées dans `supabase/migrations/` (jamais d'édition manuelle en prod) — _`supabase db reset` rejoue tout_
+- [~] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription (fait sauf « rôle courant », ajouté avec 1.3) — _inscription crée un profil_
 - [ ] **A-003** Tables de rôles/permissions (voir 1.3) et table `moderation_actions` (ban, mute, historique) — _schéma documenté dans `docs/database.md`_
 - [ ] **A-004** Index sur toutes les colonnes filtrées/jointes (pseudo, user_id, created_at) ⚡ — _`EXPLAIN` sur requêtes clés_
-- [ ] **A-005** Génération des types TS depuis le schéma (`supabase gen types`) — _types importés partout, zéro type écrit à la main_
+- [~] **A-005** Génération des types TS depuis le schéma (`supabase gen types`) — _types importés partout, zéro type écrit à la main_
 - [ ] **A-006** Seed de dev (`supabase/seed.sql`) avec un compte par rôle — _documenté_
 
 ## Étape 1.2 — Authentification sécurisée 🔒
@@ -28,7 +28,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [ ] **A-012** SMTP custom configuré (limite e-mails du free tier) — _e-mails reçus_
 - [ ] **A-013** Politique de mot de passe + protection contre fuites (leaked password protection si dispo) + CAPTCHA (Turnstile/hCaptcha) sur signup/login 🆕 — _bots bloqués_
 - [~] **A-014** Middleware Next.js : rafraîchit la session (fait, `src/proxy.ts`), protège les routes privées (reste, cf. A-121) — _route privée inaccessible déconnecté_
-- [ ] **A-015** **RLS activée sur TOUTES les tables du schéma `public`**, politique « deny by default » — _test CI qui échoue si une table n'a pas RLS_
+- [~] **A-015** **RLS activée sur TOUTES les tables du schéma `public`**, politique « deny by default » (test pgTAP écrit ; reste à le brancher en CI) — _test CI qui échoue si une table n'a pas RLS_
 - [ ] **A-016** Politiques RLS écrites par table (select/insert/update/delete séparées), avec `(select auth.uid())` pour la perf ⚡ — _tests pgTAP accès OK/KO_
 - [ ] **A-017** `service_role` utilisée uniquement côté serveur (Route Handlers/Server Actions), jamais exposée — _grep CI sur `NEXT_PUBLIC_`_
 - [ ] **A-018** Vérifier que `anon` n'a aucun droit inattendu (`REVOKE` explicite) — _audit des grants_
