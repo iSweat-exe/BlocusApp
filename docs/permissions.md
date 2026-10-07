@@ -41,6 +41,7 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
 | `user.ban`             |  -   |    -    |     -     |  ✅   |     ✅      |
 | `role.assign`          |  -   |    -    |     -     |  ✅   |     ✅      |
 | `audit.read`           |  -   |    -    |     -     |  ✅   |     ✅      |
+| `permission.manage`    |  -   |    -    |     -     |  ✅   |     ✅      |
 
 ## Implémentation
 
@@ -72,4 +73,14 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   l'autorité). L'action `changeRole` appelle `requirePermission("role.assign", { fresh: true })` puis la RPC
   `assign_role`. Les claims du JWT ne servent qu'à masquer/afficher.
 - **Journal d'audit (A-039)** : `audit_logs` (append-only, écrit uniquement par `write_audit()` appelé depuis les RPC `SECURITY DEFINER`), lisible avec `audit.read`. Actions journalisées : `role.assigned` ; à venir : sanctions, permissions.
+- **Gestion des permissions (A-035, A-036)** (migration `20261007180000_...`) : `effective_permissions(user)` =
+  permissions du rôle + grants − denies (**le deny l'emporte**) ; `super_admin` a tout le catalogue et ignore
+  les overrides. C'est l'unique source de `has_permission()` (RLS) et des claims du JWT. Table
+  `permission_overrides`. RPC `set_role_permission(rôle, permission, accordée)` et
+  `set_user_permission(user, permission, 'grant'|'deny'|null)` : exigent `permission.manage` ;
+  cible de rang **strictement inférieur** (jamais soi-même, jamais `super_admin`) ; on ne peut **accorder**
+  qu'une permission que l'on possède (`privilege_escalation` sinon). Erreurs : `forbidden`,
+  `hierarchy_violation`, `privilege_escalation` (42501) ; `unknown_role`/`unknown_permission`/`unknown_user`/
+  `invalid_effect` (22023). Chaque changement est journalisé (`role_permission.granted|revoked`,
+  `user_permission.granted|denied|cleared`). Les claims suivent au prochain refresh du token (≤ 1 h).
 - Reste à faire : hiérarchie pour ban/mute (A-051/A-052), audit (A-039), usage de `requirePermission` dans les futures actions.

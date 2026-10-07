@@ -87,6 +87,46 @@ export type Database = {
         };
         Relationships: [];
       };
+      permission_overrides: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          effect: string;
+          permission: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          effect: string;
+          permission: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          effect?: string;
+          permission?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "permission_overrides_permission_fkey";
+            columns: ["permission"];
+            isOneToOne: false;
+            referencedRelation: "permissions";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "permission_overrides_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       permissions: {
         Row: {
           description: string;
@@ -196,8 +236,17 @@ export type Database = {
     Functions: {
       assign_role: { Args: { p_role: string; p_target: string }; Returns: undefined };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
+      effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       role_rank: { Args: { p_role: string }; Returns: number };
+      set_role_permission: {
+        Args: { p_granted: boolean; p_permission: string; p_role: string };
+        Returns: undefined;
+      };
+      set_user_permission: {
+        Args: { p_effect: string; p_permission: string; p_target: string };
+        Returns: undefined;
+      };
       write_audit: {
         Args: { p_action: string; p_details?: Json; p_target: string };
         Returns: undefined;

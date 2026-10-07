@@ -46,8 +46,8 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-032** Catalogue exhaustif des permissions (nomenclature `ressource.action`, dont `announcement.publish`, `map.route.edit`, `map.position.declare`) — _fichier unique source de vérité_
 - [~] **A-033** Fonction SQL `has_permission(user_id, 'perm.key')` (`SECURITY DEFINER`, `search_path` fixé) utilisée par les politiques RLS — _testée_
 - [~] **A-034** Permissions injectées dans le JWT via **Custom Access Token Hook** (évite une requête BDD par action) ⚡ — _claims présents dans le token_
-- [ ] **A-035** Matrice rôle × permission éditable depuis le panneau admin (écrit en BDD) — _changer une permission d'un rôle prend effet sans redéploiement_
-- [ ] **A-036** Overrides par utilisateur (grant/deny ciblé) 🆕 — _un deny prime sur un grant_
+- [~] **A-035** Matrice rôle × permission éditable depuis le panneau admin (écrit en BDD) — _changer une permission d'un rôle prend effet sans redéploiement_ (BDD faite ; reste l'UI)
+- [~] **A-036** Overrides par utilisateur (grant/deny ciblé) 🆕 — _un deny prime sur un grant_ (BDD faite ; reste l'UI)
 - [~] **A-037** Hiérarchie de rôles : on ne peut pas agir sur un rôle ≥ au sien — _modo ne peut pas ban un admin (test)_
 - [~] **A-038** Vérification des permissions côté serveur sur chaque Server Action/Route Handler **en plus** de la RLS (helper fait, reste à l'utiliser dans les actions) — _helper unique `requirePermission()`_
 - [~] **A-039** Audit log : toute modification de rôle/permission est tracée (qui, quoi, quand) 🆕 — _table `audit_logs` en lecture seule pour non-admins_ (BDD + journalisation des rôles faits ; reste l'UI et les autres actions)

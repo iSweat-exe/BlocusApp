@@ -79,6 +79,14 @@ Journal des actions d'administration (migration `20261007170000_create_audit_log
 Index `(created_at desc, id desc)` (pagination par curseur), `actor_id`, `target_id`. RLS : `select` avec
 `audit.read` ; aucune écriture client. `assign_role()` journalise chaque changement de rôle.
 
+### `permission_overrides`
+
+Overrides de permission par utilisateur (migration `20261007180000_permission_management.sql`) :
+`(user_id, permission)` PK, `effect` (`grant` | `deny`), `created_by`, `created_at` ; index sur
+`permission`. RLS : lecture de ses propres lignes ou avec `permission.manage` ; écriture uniquement via
+`set_user_permission()`. Fonctions : `effective_permissions(uuid)` (interne), `has_permission` et
+`custom_access_token_hook` (réécrits pour l'utiliser), `set_role_permission`, `set_user_permission`.
+
 ## Développement local
 
 Docker requis. Les secrets Discord locaux viennent de l'environnement (`.env.example`).
