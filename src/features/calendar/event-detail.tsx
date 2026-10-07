@@ -46,7 +46,9 @@ export async function EventDetail({ id }: { id: string }) {
             </span>
           )}
         </div>
-        <p className="text-sm capitalize text-foreground/60">{formatDayLong(event.starts_at)}</p>
+        <p className="text-sm first-letter:uppercase text-foreground/60">
+          {formatDayLong(event.starts_at)}
+        </p>
         <p className="font-medium text-red-500">
           {formatTimeRange(event.starts_at, event.ends_at)}
         </p>

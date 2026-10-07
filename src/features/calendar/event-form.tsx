@@ -48,7 +48,9 @@ export function EventForm(props: Props) {
       {props.mode === "create" ? (
         <>
           <input type="hidden" name="date" value={props.day} />
-          <p className="text-sm capitalize text-foreground/60">{formatDayKeyLong(props.day)}</p>
+          <p className="text-sm first-letter:uppercase text-foreground/60">
+            {formatDayKeyLong(props.day)}
+          </p>
         </>
       ) : (
         <label className="flex flex-col gap-1 text-sm">

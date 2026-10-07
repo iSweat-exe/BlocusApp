@@ -42,3 +42,34 @@ export function UserIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** House: home. */
+export function HomeIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m4 11 8-7 8 7" />
+      <path d="M6 10v9a1 1 0 0 0 1 1h3v-5h4v5h3a1 1 0 0 0 1-1v-9" />
+    </Icon>
+  );
+}
+
+/** Calendar page: calendar. */
+export function CalendarIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="4" y="5" width="16" height="15" rx="2" />
+      <path d="M8 3v4M16 3v4M4 10h16" />
+      <path d="M9 14h.01M12 14h.01M15 14h.01M9 17h.01M12 17h.01" />
+    </Icon>
+  );
+}
+
+/** Folded map: map. */
+export function MapIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m9 4-5 2v14l5-2 6 2 5-2V4l-5 2-6-2Z" />
+      <path d="M9 4v14M15 6v14" />
+    </Icon>
+  );
+}

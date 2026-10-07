@@ -28,7 +28,9 @@ export async function AnnouncementFeed() {
           Impossible de charger les annonces pour le moment.
         </p>
       ) : result.value.length === 0 ? (
-        <p className="text-sm text-foreground/60">Aucune annonce pour le moment.</p>
+        <p className="rounded-2xl border border-dashed border-foreground/20 p-6 text-center text-sm text-foreground/60">
+          Aucune annonce pour le moment.
+        </p>
       ) : (
         <ul className="flex flex-col gap-3">
           {result.value.map((announcement) => {
@@ -36,10 +38,13 @@ export async function AnnouncementFeed() {
               can("announcement.delete") ||
               (can("announcement.publish") && announcement.author_id === session?.userId);
             return (
-              <li key={announcement.id} className="rounded-lg border border-foreground/10 p-4">
+              <li
+                key={announcement.id}
+                className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4 shadow-sm"
+              >
                 <article>
                   <header className="flex items-start justify-between gap-2">
-                    <h2 className="font-semibold">{announcement.title}</h2>
+                    <h2 className="text-base font-semibold leading-snug">{announcement.title}</h2>
                     <time
                       dateTime={announcement.created_at}
                       className="shrink-0 text-xs text-foreground/60"
@@ -47,11 +52,16 @@ export async function AnnouncementFeed() {
                       {dateFormat.format(new Date(announcement.created_at))}
                     </time>
                   </header>
-                  <p className="mt-2 whitespace-pre-wrap text-sm">{announcement.body}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed">
+                    {announcement.body}
+                  </p>
                   {canDelete && (
                     <form action={deleteAnnouncement} className="mt-3">
                       <input type="hidden" name="id" value={announcement.id} />
-                      <button type="submit" className="text-xs text-red-500 underline">
+                      <button
+                        type="submit"
+                        className="-ml-1 min-h-11 px-1 text-sm text-red-500 underline"
+                      >
                         Supprimer
                       </button>
                     </form>
