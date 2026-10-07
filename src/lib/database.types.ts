@@ -93,6 +93,8 @@ export type Database = {
           created_at: string;
           description: string;
           ends_at: string | null;
+          finished_at: string | null;
+          finished_by: string | null;
           id: string;
           location: string;
           starts_at: string;
@@ -105,6 +107,8 @@ export type Database = {
           created_at?: string;
           description?: string;
           ends_at?: string | null;
+          finished_at?: string | null;
+          finished_by?: string | null;
           id?: string;
           location?: string;
           starts_at: string;
@@ -116,6 +120,8 @@ export type Database = {
           created_at?: string;
           description?: string;
           ends_at?: string | null;
+          finished_at?: string | null;
+          finished_by?: string | null;
           id?: string;
           location?: string;
           starts_at?: string;
@@ -327,6 +333,7 @@ export type Database = {
       is_banned: { Args: { p_user_id: string }; Returns: boolean };
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };
+      set_event_finished: { Args: { p_finished: boolean; p_id: string }; Returns: undefined };
       set_role_permission: {
         Args: { p_granted: boolean; p_permission: string; p_role: string };
         Returns: undefined;

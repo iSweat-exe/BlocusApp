@@ -25,7 +25,7 @@ $$;
 
 -- 1-2. effective_permissions: role permissions, and everything for super_admin.
 select is(public.effective_permissions('00000000-0000-0000-0000-0000000000a2'),
-  array['announcement.publish', 'event.create', 'map.position.declare', 'map.route.edit'],
+  array['announcement.publish', 'event.create', 'event.finish', 'map.position.declare', 'map.route.edit'],
   'manager has exactly its role permissions');
 select is(cardinality(public.effective_permissions('00000000-0000-0000-0000-0000000000a5')),
   (select count(*)::int from public.permissions), 'super_admin has the whole catalogue');

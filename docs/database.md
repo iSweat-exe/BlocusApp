@@ -105,6 +105,9 @@ ne peut être créé ni déplacé dans le passé (tolérance 5 min) ; le texte d
 modifiable. RLS : lecture pour `anon` et `authenticated` (Guest) ; insertion avec `event.create` et
 `author_id = auth.uid()` ; modification de ses propres événements (titre, texte, lieu, horaires) avec
 `event.create` ; suppression avec `event.delete`, ou de ses propres événements avec `event.create`.
+Migration `20261007210000_event_finish.sql` : colonnes `finished_at` / `finished_by` (hors des grants de colonnes,
+modifiées seulement par `set_event_finished(id, finished)` qui exige `event.finish`), et la policy de modification
+exclut les événements terminés.
 
 ## Développement local
 
