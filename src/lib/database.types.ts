@@ -166,8 +166,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      assign_role: { Args: { p_role: string; p_target: string }; Returns: undefined };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
+      role_rank: { Args: { p_role: string }; Returns: number };
     };
     Enums: {
       [_ in never]: never;

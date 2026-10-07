@@ -58,4 +58,11 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
 "forbidden">`. Par défaut lit les claims ; `fresh: true` interroge la base (actions sensibles : `user.ban`,
   `role.assign`).
 - **Premier usage en base** : table `announcements` (RLS via `has_permission`) ; voir `database.md`.
-- Reste à faire : hiérarchie appliquée (A-037), audit (A-039), usage de `requirePermission` dans les futures actions.
+- **Hiérarchie (A-037) et anti-lockout (A-058)** (migration `20261007160000_...`) : le seul moyen de
+  changer un rôle est `assign_role(cible, rôle)` (`SECURITY DEFINER`). Il exige `role.assign` et que le rôle
+  actuel de la cible **et** le nouveau rôle aient un rang **strictement inférieur** à celui de l'appelant.
+  Conséquences : un admin gère `user`/`manager`/`moderator`, pas un autre admin ; personne ne change son
+  propre rôle ; personne ne peut créer de `super_admin` via l'app (SQL manuel, voir runbook). Erreurs :
+  `forbidden`, `hierarchy_violation` (42501), `unknown_role`/`unknown_user` (22023). Le trigger
+  `profiles_keep_last_super_admin` empêche de retirer ou supprimer le dernier `super_admin` (`last_super_admin`).
+- Reste à faire : hiérarchie pour ban/mute (A-051/A-052), audit (A-039), usage de `requirePermission` dans les futures actions.
