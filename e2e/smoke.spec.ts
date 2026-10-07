@@ -2,16 +2,15 @@ import { expect, test } from "@playwright/test";
 
 // TODO(auth): once the access guard exists (A-121), assert that private routes redirect to /login.
 test.describe("app shell", () => {
-  test("serves the four main pages with the bottom navigation", async ({ page }) => {
+  test("serves the three main pages with the bottom navigation", async ({ page }) => {
     for (const [path, title] of [
       ["/", "Accueil"],
-      ["/messages", "Messagerie"],
       ["/calendar", "Calendrier"],
       ["/map", "Carte"],
     ] as const) {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
-      await expect(page.getByRole("navigation").getByRole("link")).toHaveCount(4);
+      await expect(page.getByRole("navigation").getByRole("link")).toHaveCount(3);
     }
   });
 
@@ -21,6 +20,11 @@ test.describe("app shell", () => {
     await page.goto("/");
     await expect(page.getByRole("region", { name: "Actualités" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Publier" })).toHaveCount(0);
+  });
+
+  test("does not expose a public messages page", async ({ page }) => {
+    const response = await page.goto("/messages");
+    expect(response?.status()).toBe(404);
   });
 
   test("serves the public auth pages", async ({ page }) => {
