@@ -22,6 +22,28 @@ describe("AppNav", () => {
     expect(screen.getByRole("link", { name: "Accueil" })).not.toHaveAttribute("aria-current");
   });
 
+  it("gives every item an icon above its label, and a comfortable touch target", () => {
+    usePathname.mockReturnValue("/");
+    render(<AppNav />);
+    for (const link of screen.getAllByRole("link")) {
+      expect(link.querySelector("svg")).not.toBeNull();
+      expect(link.className).toContain("min-h-16");
+    }
+    expect(screen.getByRole("navigation", { name: "Navigation principale" }).className).toContain(
+      "safe-area-inset-bottom",
+    );
+  });
+
+  it("matches nested routes (the calendar detail keeps Calendrier active)", () => {
+    usePathname.mockReturnValue("/calendar/00000000-0000-0000-0000-000000000001");
+    render(<AppNav />);
+    expect(screen.getByRole("link", { name: "Calendrier" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("link", { name: "Accueil" })).not.toHaveAttribute("aria-current");
+  });
+
   it("has no link to the removed messages page", () => {
     usePathname.mockReturnValue("/");
     render(<AppNav />);

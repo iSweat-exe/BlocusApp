@@ -49,12 +49,14 @@ export async function CalendarView({ month, day }: { month: string; day: string 
         <Link
           href={href(shiftMonth(month, -1))}
           aria-label="Mois précédent"
-          className="px-3 py-2 text-lg"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-xl active:bg-foreground/10"
         >
           ‹
         </Link>
         <div className="flex flex-col items-center">
-          <h2 className="text-lg font-semibold capitalize">{formatMonthLabel(month)}</h2>
+          <h2 className="text-lg font-semibold first-letter:uppercase">
+            {formatMonthLabel(month)}
+          </h2>
           {monthKeyOf(today) !== month && (
             <Link href={href(monthKeyOf(today), today)} className="text-xs underline">
               Aujourd&apos;hui
@@ -64,7 +66,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
         <Link
           href={href(shiftMonth(month, 1))}
           aria-label="Mois suivant"
-          className="px-3 py-2 text-lg"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-xl active:bg-foreground/10"
         >
           ›
         </Link>
@@ -104,7 +106,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
                   aria-selected={isSelected}
                   aria-current={isToday ? "date" : undefined}
                   aria-label={`${formatDayKeyLong(cell.key)}${count ? `, ${count} événement${count > 1 ? "s" : ""}` : ""}`}
-                  className={`flex h-12 flex-col items-center justify-center rounded-lg text-sm ${
+                  className={`flex h-14 flex-col items-center justify-center rounded-xl text-sm ${
                     isSelected
                       ? "bg-red-500 text-white"
                       : isToday
@@ -133,7 +135,7 @@ export async function CalendarView({ month, day }: { month: string; day: string 
       </div>
 
       <section aria-labelledby="day-title" className="flex flex-col gap-2">
-        <h3 id="day-title" className="font-semibold capitalize">
+        <h3 id="day-title" className="font-semibold first-letter:uppercase">
           {formatDayKeyLong(day)}
         </h3>
         {selected.length === 0 ? (

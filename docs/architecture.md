@@ -80,6 +80,19 @@ Les Server Actions `publishAnnouncement` / `deleteAnnouncement` appellent `requi
 revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en texte brut (React échappe).
 Pagination et cache (A-080+) : étape 1.6.
 
+## Barre du bas et design mobile
+
+`src/components/app-nav.tsx` : trois onglets (Accueil, Calendrier, Carte), chacun avec une **icône** (SVG en
+ligne, `src/components/icons.tsx`) au-dessus de son libellé, **64 px de haut** (Android demande 48 px, iOS 44 px),
+une pastille d'accent derrière l'icône active, un fond flouté et `pb-[env(safe-area-inset-bottom)]` pour ne pas
+passer sous l'indicateur d'accueil de l'iPhone (`viewport-fit=cover` est déjà activé). Les survols ne s'appliquent
+qu'aux pointeurs qui survolent (`@media (hover: hover)`). Le contenu est une colonne centrée de `max-w-3xl`
+(identique sur mobile, centrée sur desktop ; les pages `/profil` et `/admin` y sont aussi).
+`globals.css` : variable `--accent`, `min-height: 100dvh`, pas de délai ni de zoom au double toucher
+(`touch-action: manipulation`), pas de surbrillance grise au toucher, anneau de focus clavier visible,
+`prefers-reduced-motion` respecté. Les dates françaises n'ont que leur première lettre en majuscule
+(`first-letter:uppercase`, pas `capitalize`).
+
 ## En-tête de l'application
 
 `src/components/app-header.tsx` (dans `(app)/layout.tsx`, sous `<Suspense>` avec un repli de même hauteur) :
