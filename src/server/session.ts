@@ -11,6 +11,8 @@ export type SessionPermissions = {
   email: string | null;
   /** Sign-in provider (e.g. `discord`), from the JWT `app_metadata`. */
   provider: string | null;
+  /** Avatar URL shared by the provider (`user_metadata`): untrusted, check it with `safeAvatarUrl()`. */
+  avatarUrl: string | null;
 };
 
 /**
@@ -31,5 +33,7 @@ export async function getSessionPermissions(): Promise<SessionPermissions | null
   const email = typeof claims.email === "string" && claims.email ? claims.email : null;
   const provider =
     typeof claims.app_metadata?.provider === "string" ? claims.app_metadata.provider : null;
-  return { userId: claims.sub, role, permissions, email, provider };
+  const avatar: unknown = claims.user_metadata?.avatar_url;
+  const avatarUrl = typeof avatar === "string" && avatar ? avatar : null;
+  return { userId: claims.sub, role, permissions, email, provider, avatarUrl };
 }

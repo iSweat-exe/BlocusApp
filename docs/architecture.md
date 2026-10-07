@@ -80,6 +80,15 @@ Les Server Actions `publishAnnouncement` / `deleteAnnouncement` appellent `requi
 revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en texte brut (React échappe).
 Pagination et cache (A-080+) : étape 1.6.
 
+## En-tête de l'application
+
+`src/components/app-header.tsx` (dans `(app)/layout.tsx`, sous `<Suspense>` avec un repli de même hauteur) :
+barre collante floutée avec la marque à gauche ; à droite, un bouton rond de 44 px **Administration** (icône
+bouclier, seulement avec une permission d'administration, `canAccessAdmin`) et un bouton **profil** (avatar Discord
+si présent dans les métadonnées du JWT et passé par `safeAvatarUrl`, sinon une icône). Les invités ont un bouton
+« Se connecter ». La section courante est marquée `aria-current` (`header-icon-link.tsx`). **La déconnexion n'est
+plus dans l'en-tête : elle se trouve sur `/profil`.** Les icônes sont des SVG en ligne (`src/components/icons.tsx`).
+
 ## Fenêtre plein écran
 
 `src/components/full-screen-dialog.tsx` : un bouton qui ouvre une fenêtre couvrant tout le viewport

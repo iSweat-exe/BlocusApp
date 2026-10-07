@@ -14,7 +14,10 @@ export function AppNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="sticky bottom-0 border-t border-foreground/10 bg-background pb-[env(safe-area-inset-bottom)]">
+    <nav
+      aria-label="Navigation principale"
+      className="sticky bottom-0 border-t border-foreground/10 bg-background pb-[env(safe-area-inset-bottom)]"
+    >
       <ul className="mx-auto flex max-w-3xl">
         {ITEMS.map(({ href, label }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
