@@ -52,6 +52,15 @@ priorité après l'authentification (A-135).
 `/auth/callback` (Route Handler : échange PKCE `code` → session en cookies httpOnly, `next` validé par
 `safeRedirectPath`) → retour à l'app. `signOut` termine la session. Google = même flux, autre `provider`.
 
+## Fil d'actualités (accueil)
+
+`/` rend `AnnouncementFeed` (`src/features/announcements/`) sous `<Suspense>`. Lecture via
+`src/lib/data/announcements.ts` (client Supabase serveur, RLS autorise `anon` : le Guest lit). Les boutons
+« Publier » / « Supprimer » s'affichent d'après les claims JWT (`src/server/session.ts`, affichage seulement).
+Les Server Actions `publishAnnouncement` / `deleteAnnouncement` appellent `requirePermission()` puis la RLS
+revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en texte brut (React échappe).
+Pagination et cache (A-080+) : étape 1.6.
+
 ## PWA
 
 `src/app/manifest.ts`, `public/sw.js` (enregistré en production par

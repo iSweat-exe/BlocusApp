@@ -15,6 +15,14 @@ test.describe("app shell", () => {
     }
   });
 
+  test("home shows the announcements section without crashing when the data is unreachable", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.getByRole("region", { name: "Actualités" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Publier" })).toHaveCount(0);
+  });
+
   test("serves the public auth pages", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
