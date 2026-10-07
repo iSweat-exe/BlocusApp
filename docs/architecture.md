@@ -80,6 +80,15 @@ Les Server Actions `publishAnnouncement` / `deleteAnnouncement` appellent `requi
 revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en texte brut (React échappe).
 Pagination et cache (A-080+) : étape 1.6.
 
+## Fenêtre plein écran
+
+`src/components/full-screen-dialog.tsx` : un bouton qui ouvre une fenêtre couvrant tout le viewport
+(`<dialog>` natif : piège du focus, Échap et geste « retour » Android pour fermer, focus restitué ; `h-dvh`, marges
+`env(safe-area-inset-*)` pour l'iPhone ; défilement de la page bloquée derrière). Le contenu n'est monté que
+fenêtre ouverte (formulaire vierge à chaque ouverture). Un formulaire passé en `children` depuis un Server
+Component la ferme après un succès avec le hook `useDialogClose()` (pas de fonction en prop). Utilisée pour
+« Créer un post » (`announcement-feed.tsx`) et « Ajouter un événement » (`calendar-view.tsx`).
+
 ## Calendrier
 
 `/calendar` (`src/features/calendar/`) : grille de mois (lundi en premier), repère sur les jours qui ont des

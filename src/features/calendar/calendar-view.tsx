@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FullScreenDialog } from "@/components/full-screen-dialog";
 import { listEventsBetween } from "@/lib/data/events";
 import { getSessionPermissions } from "@/server/session";
 import { EventForm } from "./event-form";
@@ -174,12 +175,9 @@ export async function CalendarView({ month, day }: { month: string; day: string 
       </section>
 
       {canCreate && (
-        <details className="rounded-lg border border-foreground/10">
-          <summary className="cursor-pointer rounded-lg bg-red-500 px-4 py-3 text-center font-medium text-white">
-            Ajouter un événement
-          </summary>
+        <FullScreenDialog triggerLabel="Ajouter un événement" title="Nouvel événement">
           <EventForm mode="create" day={day} />
-        </details>
+        </FullScreenDialog>
       )}
     </div>
   );

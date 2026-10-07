@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { useDialogClose } from "@/components/full-screen-dialog";
 import { publishAnnouncement, type PublishState } from "./actions";
 import { BODY_MAX, TITLE_MAX } from "./schema";
 
@@ -10,19 +11,17 @@ const INITIAL_STATE: PublishState = { status: "idle" };
 export function AnnouncementForm() {
   const [state, action, pending] = useActionState(publishAnnouncement, INITIAL_STATE);
   const formRef = useRef<HTMLFormElement>(null);
+  const closeDialog = useDialogClose();
 
   useEffect(() => {
-    if (state.status === "success") formRef.current?.reset();
-  }, [state]);
+    if (state.status === "success") {
+      formRef.current?.reset();
+      closeDialog();
+    }
+  }, [state, closeDialog]);
 
   return (
-    <form
-      ref={formRef}
-      action={action}
-      className="flex flex-col gap-3 rounded-lg border border-foreground/10 p-4"
-    >
-      <h2 className="font-semibold">Publier une annonce</h2>
-
+    <form ref={formRef} action={action} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1 text-sm">
         Titre
         <input
@@ -30,7 +29,7 @@ export function AnnouncementForm() {
           required
           maxLength={TITLE_MAX}
           aria-invalid={state.fieldErrors?.title ? true : undefined}
-          className="rounded border border-foreground/20 bg-background px-3 py-2 text-base"
+          className="rounded-lg border border-foreground/20 bg-background px-3 py-3 text-base"
         />
         {state.fieldErrors?.title && (
           <span className="text-red-500">{state.fieldErrors.title}</span>
@@ -42,10 +41,10 @@ export function AnnouncementForm() {
         <textarea
           name="body"
           required
-          rows={4}
+          rows={8}
           maxLength={BODY_MAX}
           aria-invalid={state.fieldErrors?.body ? true : undefined}
-          className="rounded border border-foreground/20 bg-background px-3 py-2 text-base"
+          className="rounded-lg border border-foreground/20 bg-background px-3 py-3 text-base"
         />
         {state.fieldErrors?.body && <span className="text-red-500">{state.fieldErrors.body}</span>}
       </label>
@@ -62,7 +61,7 @@ export function AnnouncementForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-red-500 px-4 py-3 font-medium text-white disabled:opacity-60"
+        className="rounded-xl bg-red-500 px-4 py-3 text-base font-semibold text-white disabled:opacity-60"
       >
         {pending ? "Publication…" : "Publier"}
       </button>

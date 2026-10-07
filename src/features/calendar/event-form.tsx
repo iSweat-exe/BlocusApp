@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { useDialogClose } from "@/components/full-screen-dialog";
 import { createEvent, updateEvent, type EventFormState } from "./actions";
 import { DESCRIPTION_MAX, LOCATION_MAX, TITLE_MAX } from "./schema";
 import { formatDayKeyLong } from "./time";
@@ -29,10 +30,14 @@ export function EventForm(props: Props) {
     INITIAL_STATE,
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const closeDialog = useDialogClose();
 
   useEffect(() => {
-    if (state.status === "success" && props.mode === "create") formRef.current?.reset();
-  }, [state, props.mode]);
+    if (state.status === "success" && props.mode === "create") {
+      formRef.current?.reset();
+      closeDialog();
+    }
+  }, [state, props.mode, closeDialog]);
 
   const errors = state.fieldErrors;
 
