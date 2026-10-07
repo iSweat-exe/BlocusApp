@@ -59,6 +59,17 @@ l'hydratation et dans une PWA installée) → Discord → Supabase →
 `/auth/callback` (Route Handler : échange PKCE `code` → session en cookies httpOnly, `next` validé par
 `safeRedirectPath`) → retour à l'app. `signOut` termine la session. Google = même flux, autre `provider`.
 
+**Connexion Discord sur mobile / PWA.** Une fois la page hydratée, le lien est remplacé par l'URL
+`https://discord.com/oauth2/authorize?...` elle-même (obtenue via `GET /auth/login/discord?format=json`, qui
+lit la redirection de Supabase sans la suivre, voir `src/features/auth/discord-url.ts`) : un lien touché par
+l'utilisateur peut alors ouvrir l'**application Discord** (liens universels / App Links), ce qu'une redirection
+serveur ne déclenche pas. Sans JavaScript, le lien reste `/auth/login/discord` (redirection serveur).
+**Limites connues, à vérifier sur de vrais téléphones** : sur iOS, une PWA installée n'a pas le même stockage
+que Safari, donc si la connexion se termine dans Safari ou via l'application Discord, la session n'arrive pas
+dans la PWA (cookie PKCE et session ailleurs) ; sur Android le comportement d'ouverture dans l'application
+Discord est un bug connu côté Discord. La solution robuste est un transfert de session par code à usage
+unique (non implémenté, voir le suivi dans la checklist).
+
 ## Fil d'actualités (accueil)
 
 `/` rend `AnnouncementFeed` (`src/features/announcements/`) sous `<Suspense>`. Lecture via

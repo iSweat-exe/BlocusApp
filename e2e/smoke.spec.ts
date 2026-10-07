@@ -60,6 +60,14 @@ test.describe("app shell", () => {
     expect(response.headers()["set-cookie"]).toContain("code-verifier");
   });
 
+  test("the Discord login endpoint can also return its URL as JSON", async ({ request }) => {
+    const response = await request.get("/auth/login/discord?format=json");
+    expect(response.ok()).toBe(true);
+    const { url } = await response.json();
+    // Discord itself when Supabase is reachable, otherwise the Supabase authorize URL.
+    expect(url).toMatch(/^https:\/\/(discord\.com\/oauth2\/authorize|[^/]+\/auth\/v1\/authorize)/);
+  });
+
   test("sends Guests away from the profile page", async ({ page }) => {
     await page.goto("/profil");
     await page.waitForURL("**/login");
@@ -71,7 +79,8 @@ test.describe("app shell", () => {
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
     const discordLink = page.getByRole("link", { name: "Continuer avec Discord" });
     await expect(discordLink).toBeVisible();
-    await expect(discordLink).toHaveAttribute("href", "/auth/login/discord");
+    // Starts on the server-redirect URL, then points straight at the provider once hydrated.
+    await expect(discordLink).toHaveAttribute("href", /^(\/auth\/login\/discord|https:\/\/)/);
     await page.goto("/register");
     await expect(page.getByRole("heading", { name: "Inscription" })).toBeVisible();
   });
