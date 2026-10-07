@@ -27,14 +27,14 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [ ] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_
 - [ ] **A-012** SMTP custom configuré (limite e-mails du free tier) — _e-mails reçus_
 - [ ] **A-013** Politique de mot de passe + protection contre fuites (leaked password protection si dispo) + CAPTCHA (Turnstile/hCaptcha) sur signup/login 🆕 — _bots bloqués_
-- [ ] **A-014** Middleware Next.js : rafraîchit la session, protège les routes privées — _route privée inaccessible déconnecté_
+- [~] **A-014** Middleware Next.js : rafraîchit la session (fait, `src/proxy.ts`), protège les routes privées (reste, cf. A-121) — _route privée inaccessible déconnecté_
 - [ ] **A-015** **RLS activée sur TOUTES les tables du schéma `public`**, politique « deny by default » — _test CI qui échoue si une table n'a pas RLS_
 - [ ] **A-016** Politiques RLS écrites par table (select/insert/update/delete séparées), avec `(select auth.uid())` pour la perf ⚡ — _tests pgTAP accès OK/KO_
 - [ ] **A-017** `service_role` utilisée uniquement côté serveur (Route Handlers/Server Actions), jamais exposée — _grep CI sur `NEXT_PUBLIC_`_
 - [ ] **A-018** Vérifier que `anon` n'a aucun droit inattendu (`REVOKE` explicite) — _audit des grants_
 - [ ] **A-019** Rate limit sur les endpoints d'auth (login, reset) — _429 après N essais_
 - [ ] **A-020** Utiliser le Supabase Security Advisor (lints) et corriger tous les warnings 🆕 — _0 warning_
-- [ ] **A-021** **Priorité** : connexion / inscription via **Discord** et **Google** (Supabase OAuth, redirect URLs, callback PKCE) pour accéder à l'application 🆕 🔒 — _login OAuth E2E OK sur les 2 providers_
+- [~] **A-021** **Priorité** : connexion / inscription via **Discord** (code fait, Google à venir ; reste : config Discord/Supabase + test réel, cf. `runbook.md`) et **Google** (Supabase OAuth, redirect URLs, callback PKCE) pour accéder à l'application 🆕 🔒 — _login OAuth E2E OK sur les 2 providers_
 - [ ] **A-022** **Priorité** : mode **Guest** = consultation sans interaction (accueil, carte, actualités) ; toute action renvoie vers le login ; `anon` en SELECT limité aux données publiques 🆕 🔒 — _un guest ne peut rien écrire (test RLS)_
 > Note : A-011 (e-mail / mot de passe) est conservé tant que non tranché, cf. [`decisions-a-valider.md`](./decisions-a-valider.md).
 

@@ -20,6 +20,20 @@ dev et prod ; ne jamais pointer une preview vers la base de production.
   compromis, le rotater, puis nettoyer l'historique si nécessaire.
 - Le mot de passe de la base Postgres ne doit apparaître nulle part dans le projet.
 
+## Connexion Discord (A-021)
+
+Actions manuelles (une fois par environnement) :
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) → New Application → OAuth2 :
+   ajouter le redirect `https://<project-ref>.supabase.co/auth/v1/callback`, copier Client ID et Secret.
+2. Supabase → Authentication → Providers → Discord : activer, coller Client ID / Secret.
+3. Supabase → Authentication → URL Configuration : `Site URL` = URL de production ; `Redirect URLs` =
+   `https://<prod>/auth/callback`, `https://*-<équipe>.vercel.app/auth/callback` (previews) et
+   `http://localhost:3000/auth/callback`.
+4. `NEXT_PUBLIC_SITE_URL` renseigné dans Vercel (utilisé pour le `redirectTo`).
+
+Le Client Secret ne se met jamais dans le dépôt ni dans un commentaire de `.env`.
+
 ## Déploiement (O-035)
 
 1. Lier le dépôt GitHub à Vercel (une seule fois).
