@@ -100,6 +100,16 @@ describe("describeAuditEntry", () => {
     );
   });
 
+  it("describes finished and reopened events", () => {
+    const details = { event_id: "e1", title: "Rassemblement" };
+    expect(
+      describeAuditEntry(entry({ action: "event.finished", target_id: null, details }), NAMES),
+    ).toBe("alice a marqué l'événement « Rassemblement » comme terminé.");
+    expect(
+      describeAuditEntry(entry({ action: "event.reopened", target_id: null, details }), NAMES),
+    ).toBe("alice a rouvert l'événement « Rassemblement ».");
+  });
+
   it("copes with deleted accounts, missing details and unknown actions", () => {
     expect(describeAuditEntry(entry({ actor_id: "zzzzzzzzzz", details: null }), NAMES)).toContain(
       "compte supprimé (zzzzzzzz)",

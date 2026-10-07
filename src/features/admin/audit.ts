@@ -6,6 +6,8 @@ export const AUDIT_ACTIONS: Record<string, string> = {
   "user_permission.granted": "Permissions accordées à un utilisateur",
   "user_permission.denied": "Permissions refusées à un utilisateur",
   "user_permission.cleared": "Overrides réinitialisés",
+  "event.finished": "Événements terminés",
+  "event.reopened": "Événements rouverts",
   "user.banned": "Bans",
   "sanction.revoked": "Sanctions levées",
 };
@@ -87,6 +89,10 @@ export function describeAuditEntry(entry: AuditEntryView, names: AuditNames): st
       const duration = until ? `jusqu'au ${formatAuditDate(until)}` : "définitivement";
       return `${actor} a banni ${target} ${duration} — motif : ${detail(entry.details, "reason") ?? "non précisé"}.`;
     }
+    case "event.finished":
+      return `${actor} a marqué l'événement « ${detail(entry.details, "title") ?? "?"} » comme terminé.`;
+    case "event.reopened":
+      return `${actor} a rouvert l'événement « ${detail(entry.details, "title") ?? "?"} ».`;
     case "sanction.revoked":
       return `${actor} a levé une sanction de ${target}.`;
     default:

@@ -113,7 +113,10 @@ export async function updateEvent(
   if (error) return { status: "error", message: databaseMessage(error.message) };
   // RLS hides other people's events: nothing matched.
   if (!data || data.length === 0) {
-    return { status: "error", message: "Tu ne peux modifier que tes propres événements." };
+    return {
+      status: "error",
+      message: "Impossible de modifier : ce n'est pas ton événement, ou il est terminé.",
+    };
   }
 
   revalidatePath(`/calendar/${id}`);
@@ -143,4 +146,53 @@ export async function deleteEvent(formData: FormData): Promise<void> {
   revalidatePath("/calendar");
   revalidatePath("/");
   redirect("/calendar");
+}
+
+/**
+ * Marks an event as finished (`finished=true`) or reopens it. Requires `event.finish`, checked against the
+ * database; `set_event_finished()` re-checks it and journals the change.
+ */
+export async function setEventFinished(
+  _previous: EventFormState,
+  formData: FormData,
+): Promise<EventFormState> {
+  const id = formData.get("id");
+  const finished = formData.get("finished");
+  if (typeof id !== "string" || !UUID.test(id) || (finished !== "true" && finished !== "false")) {
+    return { status: "error", message: "Demande invalide." };
+  }
+
+  const permission = await requirePermission("event.finish", { fresh: true });
+  if (!permission.ok) {
+    return {
+      status: "error",
+      message:
+        permission.error === "unauthenticated"
+          ? "Connecte-toi pour continuer."
+          : "Tu n'as pas le droit de terminer des événements.",
+    };
+  }
+
+  const supabase = createClient(await cookies());
+  const { error } = await supabase.rpc("set_event_finished", {
+    p_id: id,
+    p_finished: finished === "true",
+  });
+  if (error) {
+    return {
+      status: "error",
+      message:
+        error.message === "unknown_event"
+          ? "Cet événement n'existe plus."
+          : "La modification a échoué. Réessaie.",
+    };
+  }
+
+  revalidatePath(`/calendar/${id}`);
+  revalidatePath("/calendar");
+  revalidatePath("/");
+  return {
+    status: "success",
+    message: finished === "true" ? "Événement terminé." : "Événement rouvert.",
+  };
 }

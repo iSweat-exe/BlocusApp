@@ -96,6 +96,12 @@ modifie son événement depuis le détail (la date devient modifiable) ; la supp
 saisie (`schema.ts`, heures lues en Europe/Paris) et la RLS décide ; le trigger `check_event_start` refuse un
 début dans le passé, mais le texte d'un événement déjà commencé reste modifiable.
 
+**Événements terminés.** Avec `event.finish`, le détail propose « Marquer comme terminé » / « Rouvrir »
+(`setEventFinished` → RPC `set_event_finished`, journalisé). Un événement terminé est **grisé** avec un badge
+« Terminé » (liste du jour : texte barré et `aria-disabled`, repère gris dans la grille), son bouton « Modifier »
+est désactivé (la RLS refuse aussi la modification par l'auteur), et il n'apparaît plus dans l'encart d'accueil.
+Il reste consultable et supprimable.
+
 **Encart « événement imminent »** (accueil, tout en haut, `imminent-events.tsx` + `imminent-banner.tsx`) : un
 événement qui démarre dans **moins de 30 minutes** (`IMMINENT_WINDOW_MINUTES`) et n'a pas commencé s'affiche
 dans un encart rouge distinct des annonces, avec un compte à rebours (« dans 8 min »), l'heure et le lieu ; un
