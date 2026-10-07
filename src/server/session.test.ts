@@ -16,16 +16,19 @@ describe("getSessionPermissions", () => {
 
   it("returns the user id and string permissions from the claims", async () => {
     getClaims.mockResolvedValue({
-      data: { claims: { sub: "u1", permissions: ["announcement.publish", 42] } },
+      data: {
+        claims: { sub: "u1", app_role: "manager", permissions: ["announcement.publish", 42] },
+      },
     });
     expect(await getSessionPermissions()).toEqual({
       userId: "u1",
+      role: "manager",
       permissions: ["announcement.publish"],
     });
   });
 
   it("treats missing or malformed permissions as none", async () => {
     getClaims.mockResolvedValue({ data: { claims: { sub: "u1", permissions: "oops" } } });
-    expect(await getSessionPermissions()).toEqual({ userId: "u1", permissions: [] });
+    expect(await getSessionPermissions()).toEqual({ userId: "u1", role: null, permissions: [] });
   });
 });

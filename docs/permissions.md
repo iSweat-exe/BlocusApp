@@ -65,4 +65,9 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   propre rôle ; personne ne peut créer de `super_admin` via l'app (SQL manuel, voir runbook). Erreurs :
   `forbidden`, `hierarchy_violation` (42501), `unknown_role`/`unknown_user` (22023). Le trigger
   `profiles_keep_last_super_admin` empêche de retirer ou supprimer le dernier `super_admin` (`last_super_admin`).
+- **Panneau admin** (`/admin`, `src/features/admin/`) : visible avec `role.assign` (admin, super_admin).
+  Liste et recherche de pseudo (50 max), sélecteur de rôle uniquement pour les utilisateurs de rang
+  strictement inférieur et jamais pour soi-même (`hierarchy.ts` reflète `assign_role`, qui reste
+  l'autorité). L'action `changeRole` appelle `requirePermission("role.assign", { fresh: true })` puis la RPC
+  `assign_role`. Les claims du JWT ne servent qu'à masquer/afficher.
 - Reste à faire : hiérarchie pour ban/mute (A-051/A-052), audit (A-039), usage de `requirePermission` dans les futures actions.

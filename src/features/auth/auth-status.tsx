@@ -1,14 +1,15 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getSessionPermissions } from "@/server/session";
 import { signOut } from "./actions";
 
-/** Shows a sign-out button for signed-in users and a sign-in link for Guests. Reads cookies: wrap in Suspense. */
+/**
+ * Header controls: sign-in link for Guests; admin link (with `role.assign`) and sign-out for users.
+ * Reads cookies: wrap in Suspense.
+ */
 export async function AuthStatus() {
-  const supabase = createClient(await cookies());
-  const { data } = await supabase.auth.getClaims();
+  const session = await getSessionPermissions();
 
-  if (!data?.claims) {
+  if (!session) {
     return (
       <Link href="/login" className="text-sm underline">
         Se connecter
@@ -17,10 +18,17 @@ export async function AuthStatus() {
   }
 
   return (
-    <form action={signOut}>
-      <button type="submit" className="text-sm underline">
-        Déconnexion
-      </button>
-    </form>
+    <div className="flex items-center gap-4">
+      {session.permissions.includes("role.assign") && (
+        <Link href="/admin" className="text-sm underline">
+          Administration
+        </Link>
+      )}
+      <form action={signOut}>
+        <button type="submit" className="text-sm underline">
+          Déconnexion
+        </button>
+      </form>
+    </div>
   );
 }

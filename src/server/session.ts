@@ -2,7 +2,12 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 /** What the UI needs to know about the current user to show or hide controls. */
-export type SessionPermissions = { userId: string; permissions: string[] };
+export type SessionPermissions = {
+  userId: string;
+  /** Application role from the `app_role` claim, `null` when the hook did not set it. */
+  role: string | null;
+  permissions: string[];
+};
 
 /**
  * Reads the signed-in user and their permissions from the JWT claims, or `null` for a Guest.
@@ -18,5 +23,6 @@ export async function getSessionPermissions(): Promise<SessionPermissions | null
   const permissions = Array.isArray(granted)
     ? granted.filter((item): item is string => typeof item === "string")
     : [];
-  return { userId: claims.sub, permissions };
+  const role = typeof claims.app_role === "string" ? claims.app_role : null;
+  return { userId: claims.sub, role, permissions };
 }
