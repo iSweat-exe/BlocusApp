@@ -42,6 +42,19 @@ Supabase → Authentication → Hooks → Custom Access Token → type « Postgr
 continue de fonctionner. Après l'activation, les utilisateurs déjà connectés reçoivent les claims au
 prochain refresh du token (≤ 1 h) ou après reconnexion.
 
+## Durée de vie du jeton (JWT) : 15 minutes
+
+Le JWT porte le rôle et les permissions (`custom_access_token_hook`). Il est renouvelé automatiquement par
+`src/proxy.ts` ; sa durée de vie fixe le délai maximal avant qu'un changement de rôle, de permission ou un
+bannissement soit visible dans l'interface (les actions sensibles vérifient de toute façon en base).
+
+- Local : `jwt_expiry = 900` dans `supabase/config.toml` (déjà fait).
+- **Projet hébergé (à régler à la main)** : tableau de bord Supabase, réglage « JWT expiry » du projet
+  (Authentication → Sessions, ou Project Settings → API / JWT Keys selon la version du tableau de bord) :
+  mettre **900** secondes (valeur par défaut : 3600). Les utilisateurs déjà connectés reçoivent la nouvelle durée à
+  leur prochain renouvellement. Coût : un renouvellement de jeton par utilisateur actif et par quart d'heure (appel à
+  Supabase Auth et ~5 requêtes du hook), négligeable pour ~200 utilisateurs simultanés.
+
 ## Déploiement (O-035)
 
 1. Lier le dépôt GitHub à Vercel (une seule fois).

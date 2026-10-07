@@ -143,6 +143,27 @@ describe("ImminentBanner", () => {
     expect(screen.queryByRole("region")).toBeNull();
   });
 
+  it("shows an event once it enters the 30-minute window, without any new data", () => {
+    render(<ImminentBanner serverNow={NOW} events={[event("e1", 40)]} />);
+    expect(screen.queryByRole("region")).toBeNull();
+    act(() => {
+      vi.advanceTimersByTime(11 * 60_000);
+    });
+    expect(screen.getByRole("region", { name: "Événements imminents" })).toBeInTheDocument();
+    expect(screen.getByText(/dans 29 min/)).toBeInTheDocument();
+  });
+
+  it("shows at most three imminent events", () => {
+    render(
+      <ImminentBanner
+        serverNow={NOW}
+        events={[event("a", 5), event("b", 10), event("c", 15), event("d", 20)]}
+      />,
+    );
+    expect(screen.getAllByRole("link")).toHaveLength(3);
+    expect(screen.queryByText("Événement d")).toBeNull();
+  });
+
   it("shows nothing for events outside the window", () => {
     render(<ImminentBanner serverNow={NOW} events={[event("e1", 90)]} />);
     expect(screen.queryByRole("region")).toBeNull();
