@@ -92,4 +92,7 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   résolus (compte supprimé = identifiant tronqué), filtre par type d'action, pagination par curseur sur
   `id` (25 par page, « Plus anciennes → » / « ← Plus récentes »). Paramètres d'URL validés
   (`parseJournalParams`). Rien n'est écrit depuis l'interface : le journal est alimenté par les RPC.
+- **Calendrier** : `event.create` (créer, et modifier ses propres événements), `event.delete` (supprimer
+  n'importe lequel ; supprimer les siens suffit avec `event.create`). Boutons affichés d'après les claims,
+  vérification `fresh` côté serveur, RLS en base.
 - Reste à faire : hiérarchie pour ban/mute (A-051/A-052), audit (A-039), usage de `requirePermission` dans les futures actions.

@@ -77,6 +77,12 @@ test.describe("app shell", () => {
     await expect(page.getByRole("grid")).toBeVisible();
   });
 
+  test("Guests do not get event creation controls", async ({ page }) => {
+    await page.goto("/calendar");
+    await expect(page.getByRole("grid")).toBeVisible();
+    await expect(page.getByText("Ajouter un événement")).toHaveCount(0);
+  });
+
   test("an invalid event id shows the not-found page", async ({ page }) => {
     await page.goto("/calendar/not-a-uuid");
     await expect(page.getByRole("heading", { name: "Page introuvable" })).toBeVisible();
