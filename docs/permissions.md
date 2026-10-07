@@ -44,6 +44,7 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
 | `permission.manage`    |  -   |    -    |     -     |  ✅   |     ✅      |
 | `event.create`         |  -   |   ✅    |     -     |  ✅   |     ✅      |
 | `event.delete`         |  -   |    -    |    ✅     |  ✅   |     ✅      |
+| `event.finish`         |  -   |   ✅    |    ✅     |  ✅   |     ✅      |
 
 ## Implémentation
 
@@ -95,4 +96,7 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
 - **Calendrier** : `event.create` (créer, et modifier ses propres événements), `event.delete` (supprimer
   n'importe lequel ; supprimer les siens suffit avec `event.create`). Boutons affichés d'après les claims,
   vérification `fresh` côté serveur, RLS en base.
+- **Événements terminés** : `event.finish` permet de marquer **n'importe quel** événement comme terminé ou de
+  le rouvrir (RPC `set_event_finished`, idempotente, journalisée `event.finished` / `event.reopened`). Un
+  événement terminé n'est plus modifiable par son auteur (RLS) mais reste supprimable.
 - Reste à faire : hiérarchie pour ban/mute (A-051/A-052), audit (A-039), usage de `requirePermission` dans les futures actions.

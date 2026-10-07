@@ -21,7 +21,7 @@ select is(pg_temp.claims_for('00000000-0000-0000-0000-0000000000a1') -> 'permiss
 select is(pg_temp.claims_for('00000000-0000-0000-0000-0000000000a2') ->> 'app_role', 'manager',
   'role is exposed as app_role');
 select is(pg_temp.claims_for('00000000-0000-0000-0000-0000000000a2') -> 'permissions',
-  '["announcement.publish", "event.create", "map.position.declare", "map.route.edit"]'::jsonb,
+  '["announcement.publish", "event.create", "event.finish", "map.position.declare", "map.route.edit"]'::jsonb,
   'manager gets exactly its permissions');
 select is(jsonb_array_length(pg_temp.claims_for('00000000-0000-0000-0000-0000000000a5') -> 'permissions'),
   (select count(*)::int from public.permissions), 'super_admin gets the whole catalogue');
