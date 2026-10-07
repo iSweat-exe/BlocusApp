@@ -43,6 +43,25 @@ Données de référence RBAC (migration `20261007130000_create_rbac.sql`) : `rol
 `permissions(key, description)`, `role_permissions(role, permission)` (PK composite, index sur
 `permission`). Fonction `has_permission(uuid, text)`. Détail : [`permissions.md`](./permissions.md).
 
+### `announcements`
+
+Annonces du fil d'accueil (migration `20261007150000_create_announcements.sql`).
+
+| Colonne      | Type          | Notes                                                           |
+| ------------ | ------------- | --------------------------------------------------------------- |
+| `id`         | `uuid` PK     | `gen_random_uuid()`                                             |
+| `author_id`  | `uuid`        | FK `profiles(id)` `on delete set null` (l'annonce survit au compte) |
+| `title`      | `text`        | 1 à 120 caractères                                              |
+| `body`       | `text`        | 1 à 5000 caractères                                             |
+| `created_at` | `timestamptz` | défaut `now()`                                                  |
+| `updated_at` | `timestamptz` | trigger `set_updated_at`                                        |
+
+Index : `(created_at desc, id desc)` pour le fil (pagination par curseur), `author_id`.
+RLS : lecture pour `anon` et `authenticated` (Guest) ; insertion si `announcement.publish` et
+`author_id = auth.uid()` ; modification (titre/corps) de ses propres annonces si `announcement.publish` ;
+suppression si `announcement.delete`, ou de ses propres annonces si `announcement.publish`.
+Le pseudo de l'auteur n'est pas exposé aux Guests (`profiles` est réservé aux connectés).
+
 ## Développement local
 
 Docker requis. Les secrets Discord locaux viennent de l'environnement (`.env.example`).
