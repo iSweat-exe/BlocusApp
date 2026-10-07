@@ -35,6 +35,7 @@ Profil public 1:1 avec `auth.users` (migration `20261007120000_create_profiles.s
 - RLS : `select` pour `authenticated` ; `update` limité à sa propre ligne et aux colonnes `pseudo` et
   `avatar_url` (grant par colonne) ; aucun `insert`/`delete` côté client ; `anon` sans aucun droit.
 - `role` (`text`, FK `roles.key`, défaut `user`) ajoutée par la migration RBAC ; non modifiable par le client.
+- Fonctions `role_rank(text)`, `assign_role(uuid, text)` et trigger `profiles_keep_last_super_admin` : voir [`permissions.md`](./permissions.md).
 - À venir : `moderation_actions`, `audit_logs`.
 
 ### `roles`, `permissions`, `role_permissions`

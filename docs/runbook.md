@@ -51,8 +51,18 @@ prochain refresh du token (≤ 1 h) ou après reconnexion.
 
 ## Création d'un `super_admin`
 
-Uniquement par migration SQL ou SQL manuel exécuté par un mainteneur, jamais via l'UI publique. Procédure
-détaillée à écrire à l'étape 1.4 (A-059).
+Uniquement par SQL exécuté par un mainteneur (éditeur SQL Supabase), jamais via l'application :
+`assign_role()` interdit de promouvoir quiconque en `super_admin`. L'utilisateur doit s'être connecté une
+fois (son profil existe) :
+
+```sql
+update public.profiles set role = 'super_admin' where pseudo = '<pseudo>';
+```
+
+Puis se déconnecter / reconnecter pour renouveler le token. Garde-fou : le **dernier** `super_admin` ne peut
+être ni rétrogradé ni supprimé (trigger `profiles_keep_last_super_admin`, erreur `last_super_admin`) : pour le
+remplacer, promouvoir d'abord le nouveau, puis rétrograder l'ancien. Cela bloque aussi la suppression de son
+compte `auth.users` (cascade).
 
 ## Sauvegarde et restauration (O-073)
 

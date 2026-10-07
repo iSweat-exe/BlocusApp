@@ -48,7 +48,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-034** Permissions injectées dans le JWT via **Custom Access Token Hook** (évite une requête BDD par action) ⚡ — _claims présents dans le token_
 - [ ] **A-035** Matrice rôle × permission éditable depuis le panneau admin (écrit en BDD) — _changer une permission d'un rôle prend effet sans redéploiement_
 - [ ] **A-036** Overrides par utilisateur (grant/deny ciblé) 🆕 — _un deny prime sur un grant_
-- [ ] **A-037** Hiérarchie de rôles : on ne peut pas agir sur un rôle ≥ au sien — _modo ne peut pas ban un admin (test)_
+- [~] **A-037** Hiérarchie de rôles : on ne peut pas agir sur un rôle ≥ au sien — _modo ne peut pas ban un admin (test)_
 - [~] **A-038** Vérification des permissions côté serveur sur chaque Server Action/Route Handler **en plus** de la RLS (helper fait, reste à l'utiliser dans les actions) — _helper unique `requirePermission()`_
 - [ ] **A-039** Audit log : toute modification de rôle/permission est tracée (qui, quoi, quand) 🆕 — _table `audit_logs` en lecture seule pour non-admins_
 - [ ] **A-040** Tests automatisés : pour chaque rôle, chaque permission autorisée/refusée — _matrice testée en CI_
@@ -62,8 +62,8 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [ ] **A-055** Panneau admin `/admin` protégé : liste/recherche des users, rôles, sanctions, logs — _accès super_admin uniquement_
 - [ ] **A-056** Actions supplémentaires : suspendre/supprimer un compte, forcer la déconnexion, reset du profil (pseudo/avatar), shadow-ban 🆕 — _à GARDER ou RETIRER_
 - [ ] **A-057** Mode « maintenance / lecture seule globale » activable par un admin (kill switch) 🆕 — _bascule sans redéploiement_
-- [ ] **A-058** Protection anti-lockout : impossible de retirer le dernier `super_admin` 🆕 — _contrainte en BDD_
-- [ ] **A-059** Les super_admins sont créés uniquement via migration/SQL manuel, jamais via l'UI publique 🔒 — _documenté dans `runbook.md`_
+- [~] **A-058** Protection anti-lockout : impossible de retirer le dernier `super_admin` 🆕 — _contrainte en BDD_
+- [~] **A-059** Les super_admins sont créés uniquement via migration/SQL manuel, jamais via l'UI publique 🔒 — _documenté dans `runbook.md`_
 - [ ] **A-060** 2FA (TOTP) obligatoire pour les rôles admin 🆕 🔒 — _non contournable_
 
 ## Étape 1.5 — Compression des données avant envoi à la BDD ⚡
