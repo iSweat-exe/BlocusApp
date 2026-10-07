@@ -1,6 +1,15 @@
 /** An event shows in the home banner from this many minutes before it starts, until it starts. */
 export const IMMINENT_WINDOW_MINUTES = 30;
 
+/**
+ * The server sends the events of the next 3 hours and the browser keeps those in the 30-minute window as
+ * time passes: an event becomes "imminent" without any reload or refetch.
+ */
+export const IMMINENT_FETCH_MINUTES = 180;
+
+/** At most this many imminent events are shown at once. */
+export const MAX_IMMINENT_SHOWN = 3;
+
 /** localStorage key of the event ids the user closed (per device). */
 export const DISMISSED_STORAGE_KEY = "blocus.dismissed-events";
 /** Only the most recent ids are kept so the list cannot grow forever. */

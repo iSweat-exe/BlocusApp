@@ -66,6 +66,11 @@ const nextConfig: NextConfig = {
     ];
   },
   cacheComponents: true,
+  experimental: {
+    // Client router cache: going back to a page visited less than 30 s ago does not hit the server again.
+    // Writes (Server Actions with updateTag/revalidatePath) and RefreshOnReturn bypass it.
+    staleTimes: { dynamic: 30 },
+  },
   cacheLife: {
     // Public data shared by every visitor (announcements, events): at most one database read per 30 s,
     // refreshed in the background, dropped after 5 min without a visit. Writes expire it at once (updateTag).

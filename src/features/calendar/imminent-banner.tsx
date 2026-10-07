@@ -7,6 +7,7 @@ import {
   countdownLabel,
   DISMISSED_STORAGE_KEY,
   isImminent,
+  MAX_IMMINENT_SHOWN,
   parseDismissed,
 } from "./imminent";
 
@@ -59,9 +60,9 @@ export function ImminentBanner({
     return () => window.clearInterval(timer);
   }, []);
 
-  const visible = events.filter(
-    (event) => !dismissed.includes(event.id) && isImminent(event.startsAt, now),
-  );
+  const visible = events
+    .filter((event) => !dismissed.includes(event.id) && isImminent(event.startsAt, now))
+    .slice(0, MAX_IMMINENT_SHOWN);
   if (visible.length === 0) return null;
 
   return (

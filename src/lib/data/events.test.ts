@@ -90,13 +90,13 @@ describe("getEvent", () => {
 describe("listImminentEvents", () => {
   const NOW = new Date("2026-10-07T12:00:00Z");
 
-  it("queries (now, now + window], soonest first, capped at 3", async () => {
+  it("queries (now, now + window], soonest first, capped at 10", async () => {
     limit.mockResolvedValue({ data: [{ id: "e1" }], error: null });
     expect(await listImminentEvents(NOW, 30)).toEqual({ ok: true, value: [{ id: "e1" }] });
     expect(gt).toHaveBeenCalledWith("starts_at", "2026-10-07T12:00:00.000Z");
     expect(lte).toHaveBeenCalledWith("starts_at", "2026-10-07T12:30:00.000Z");
     expect(isFn).toHaveBeenCalledWith("finished_at", null);
-    expect(limit).toHaveBeenCalledWith(3);
+    expect(limit).toHaveBeenCalledWith(10);
   });
 
   it("anchors the window to the start of the minute, so a minute is read once for everybody", async () => {

@@ -66,7 +66,7 @@ async function fetchImminentEvents(sinceIso: string, minutes: number): Promise<E
     // A finished event is never "imminent".
     .is("finished_at", null)
     .order("starts_at", { ascending: true })
-    .limit(3);
+    .limit(10);
   if (error) throw new Error(error.message);
   return data;
 }

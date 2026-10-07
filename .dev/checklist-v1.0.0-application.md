@@ -78,7 +78,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 
 ## Étape 1.6 — Cache ⚡
 - [ ] **A-080** Cartographie des données lues fréquemment et de leur TTL (profils, rôles/permissions, listes) — _tableau dans `docs/architecture.md`_
-- [ ] **A-081** Cache client (TanStack Query / SWR) : `staleTime`, déduplication des requêtes identiques, pas de refetch au focus inutile — _vérifié dans l'onglet réseau_
+- [~] **A-081** Cache client (TanStack Query / SWR) : `staleTime`, déduplication des requêtes identiques, pas de refetch au focus inutile — _vérifié dans l'onglet réseau_ (cache du routeur 30 s, rafraîchissement au retour sur l'app, encart imminent sans rechargement : fait ; React Query/SWR non retenu)
 - [~] **A-082** Cache serveur Next.js (`unstable_cache`/`use cache`/`revalidateTag`) pour les données partagées — _invalidation par tag testée_ (annonces et événements : cache partagé 30 s fait, voir `docs/performance.md`)
 - [ ] **A-083** Cache des permissions (JWT claims + cache court) — _0 requête BDD par vérification de permission courante_
 - [~] **A-084** Invalidation propre : toute écriture invalide les clés concernées — _pas de donnée périmée visible_ (`updateTag` après chaque écriture sur annonces et événements)

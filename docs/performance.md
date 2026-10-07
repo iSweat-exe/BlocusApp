@@ -40,6 +40,23 @@ compte plus que raccourcir une requête SQL.
 - **Événements imminents** : la fenêtre est ancrée au début de la minute courante, donc tous les visiteurs d'une même
   minute partagent une seule lecture ; l'encart masque côté client ceux qui ont déjà commencé.
 
+- **Fraîcheur sans sondage** : `RefreshOnReturn` (`src/components/refresh-on-return.tsx`, monté dans
+  `(app)/layout.tsx`) appelle `router.refresh()` quand l'utilisateur **revient** sur l'app (onglet ou PWA de nouveau
+  visible, page restaurée du cache avant/arrière, réseau retrouvé), **au plus une fois toutes les 30 s**. Aucune
+  minuterie réseau : une app que personne ne regarde ne coûte rien. Les données rafraîchies viennent du cache partagé
+  (≤ 30 s), donc le rafraîchissement ne multiplie pas les lectures en base. **Pas de Realtime** (quota gratuit de ~200
+  connexions = notre pic) et **pas de polling** (1000 utilisateurs × une requête toutes les 3 min dépasseraient le quota
+  de requêtes edge).
+- **Cache du routeur client** : `experimental.staleTimes.dynamic = 30` (`next.config.ts`) : revenir sur une page vue
+  il y a moins de 30 s ne sollicite pas le serveur. Les écritures (Server Actions) et `RefreshOnReturn` contournent ce
+  cache.
+- **Encart « événement imminent »** : le serveur envoie les événements ouverts des **3 prochaines heures**
+  (`IMMINENT_FETCH_MINUTES`) et le navigateur ne montre que ceux de la fenêtre de 30 minutes (3 au maximum) : un
+  événement devient imminent **sans rechargement**.
+- **Durée de vie du jeton : 15 min** (`jwt_expiry = 900`, voir `docs/runbook.md`) : rôles, permissions et
+  bannissements portés par le JWT se mettent à jour en ≤ 15 min au lieu de 1 h. Les actions sensibles vérifient de
+  toute façon en base (`fresh`).
+
 ## Mesures (Supabase local, build de production, Pixel 7 émulé, 60 utilisateurs, 15 annonces, 20 événements)
 
 « Requêtes réseau » = requêtes vers notre serveur réellement émises (hors ressources servies par le cache du
@@ -71,3 +88,15 @@ Fraîcheur vérifiée dans un navigateur sur Supabase local :
   suivant** (≈ 0,4 s) ;
 - ligne écrite **directement en base**, sans invalidation (cas d'une autre instance) : visible après **31 s**, soit le
   décalage maximum prévu (30 s de cache + un rafraîchissement en arrière-plan).
+
+### Après PR 3 (fraîcheur et cache du routeur)
+
+| Scénario | Référence | Après PR 2 | Après PR 3 |
+|---|---|---|---|
+| B. Accueil → Calendrier → Accueil → Calendrier → Accueil | 30 req., 4 navigations serveur | 26 req., 4 | **23** req., **1** navigation serveur |
+| Six changements d'onglet en moins de 30 s | 6 navigations serveur | 6 | **1** |
+
+Vérifié dans un navigateur (Supabase local) :
+- un invité qui garde l'app ouverte **ne voit pas** une annonce publiée ailleurs (aucun sondage), un retour avant 30 s
+  est ignoré, et **après 31 s** le retour sur l'app affiche l'annonce **sans rechargement** ;
+- un événement à 40 minutes entre dans l'encart 12 minutes plus tard **sans rechargement** (« dans 28 min »).
