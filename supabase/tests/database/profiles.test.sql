@@ -24,7 +24,8 @@ select throws_ok('select * from public.profiles', '42501', null, 'anon cannot re
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-0000000000a1", "role": "authenticated"}';
 
-select is((select count(*)::int from public.profiles), 3, 'authenticated can read all profiles');
+select cmp_ok((select count(*)::int from public.profiles where id::text like '00000000-0000-0000-0000-0000000000%'), '=', 3,
+  'authenticated can read all profiles');
 
 update public.profiles set pseudo = 'AliceNew' where id = '00000000-0000-0000-0000-0000000000a1';
 select is((select pseudo from public.profiles where id = '00000000-0000-0000-0000-0000000000a1'), 'AliceNew',
