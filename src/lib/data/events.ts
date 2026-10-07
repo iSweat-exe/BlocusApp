@@ -51,3 +51,28 @@ export async function getEvent(id: string): Promise<Result<EventDetail | null, "
     return err("load_failed", cause instanceof Error ? cause.message : "unknown error");
   }
 }
+
+/**
+ * Lists the events that start within the next `minutes` minutes (not yet started), soonest first.
+ * Used by the home banner; readable by Guests (RLS allows `anon`).
+ * @param now - Current time (the caller reads the clock after `connection()`).
+ * @param minutes - Size of the window.
+ */
+export async function listImminentEvents(
+  now: Date,
+  minutes: number,
+): Promise<Result<EventSummary[], "load_failed">> {
+  try {
+    const supabase = createClient(await cookies());
+    const { data, error } = await supabase
+      .from("events")
+      .select("id, title, location, starts_at, ends_at")
+      .gt("starts_at", now.toISOString())
+      .lte("starts_at", new Date(now.getTime() + minutes * 60_000).toISOString())
+      .order("starts_at", { ascending: true })
+      .limit(3);
+    return error ? err("load_failed", error.message) : ok(data);
+  } catch (cause) {
+    return err("load_failed", cause instanceof Error ? cause.message : "unknown error");
+  }
+}
