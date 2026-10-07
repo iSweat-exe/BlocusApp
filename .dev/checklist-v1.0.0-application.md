@@ -79,9 +79,9 @@ L'application sert à **gérer une manifestation dans une ville X** :
 ## Étape 1.6 — Cache ⚡
 - [ ] **A-080** Cartographie des données lues fréquemment et de leur TTL (profils, rôles/permissions, listes) — _tableau dans `docs/architecture.md`_
 - [ ] **A-081** Cache client (TanStack Query / SWR) : `staleTime`, déduplication des requêtes identiques, pas de refetch au focus inutile — _vérifié dans l'onglet réseau_
-- [ ] **A-082** Cache serveur Next.js (`unstable_cache`/`use cache`/`revalidateTag`) pour les données partagées — _invalidation par tag testée_
+- [~] **A-082** Cache serveur Next.js (`unstable_cache`/`use cache`/`revalidateTag`) pour les données partagées — _invalidation par tag testée_ (annonces et événements : cache partagé 30 s fait, voir `docs/performance.md`)
 - [ ] **A-083** Cache des permissions (JWT claims + cache court) — _0 requête BDD par vérification de permission courante_
-- [ ] **A-084** Invalidation propre : toute écriture invalide les clés concernées — _pas de donnée périmée visible_
+- [~] **A-084** Invalidation propre : toute écriture invalide les clés concernées — _pas de donnée périmée visible_ (`updateTag` après chaque écriture sur annonces et événements)
 - [~] **A-085** Headers HTTP (`Cache-Control`, ETag) pour les assets/avatars ; avatars servis via CDN/Supabase Storage avec cache long + nom de fichier versionné — _bande passante réduite_ (icônes : cache 1 jour fait)
 - [~] **A-087** Politique de préchargement et rendus : `prefetch={false}` sur les liens rarement utilisés, session lue une fois par requête, proxy qui ignore les préchargements — _mesuré dans `docs/performance.md` (−16 à −31 % de requêtes)_ ⚡
 - [ ] **A-086** Option : Redis gratuit (Upstash) si le cache en mémoire serverless s'avère insuffisant 🆕 — _à décider après mesure_

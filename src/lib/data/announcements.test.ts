@@ -6,8 +6,14 @@ const order = vi.fn();
 const select = vi.fn();
 const from = vi.fn();
 
-vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: () => ({ from }) }));
+const cacheLife = vi.fn();
+const cacheTag = vi.fn();
+
+vi.mock("next/cache", () => ({
+  cacheLife: (...args: unknown[]) => cacheLife(...args),
+  cacheTag: (...args: unknown[]) => cacheTag(...args),
+}));
+vi.mock("@/lib/supabase/public", () => ({ createPublicClient: () => ({ from }) }));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -17,6 +23,13 @@ beforeEach(() => {
 });
 
 describe("listAnnouncements", () => {
+  it("is shared by every visitor: public client, 'feed' cache profile, 'announcements' tag", async () => {
+    limit.mockResolvedValue({ data: [], error: null });
+    await listAnnouncements();
+    expect(cacheLife).toHaveBeenCalledWith("feed");
+    expect(cacheTag).toHaveBeenCalledWith("announcements");
+  });
+
   it("returns the rows, newest first, with the requested limit", async () => {
     const rows = [{ id: "1", author_id: null, title: "t", body: "b", created_at: "2026-10-07" }];
     limit.mockResolvedValue({ data: rows, error: null });

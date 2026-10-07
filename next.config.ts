@@ -66,6 +66,11 @@ const nextConfig: NextConfig = {
     ];
   },
   cacheComponents: true,
+  cacheLife: {
+    // Public data shared by every visitor (announcements, events): at most one database read per 30 s,
+    // refreshed in the background, dropped after 5 min without a visit. Writes expire it at once (updateTag).
+    feed: { stale: 30, revalidate: 30, expire: 300 },
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

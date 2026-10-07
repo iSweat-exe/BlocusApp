@@ -21,6 +21,14 @@ refuse d'émettre un nouveau token (connexion et renouvellement échouent en 403
 possible, au plus une heure (durée de vie de l'access token), la **lecture** de contenus publics déjà
 accessibles aux invités. Un ban temporaire se lève tout seul à l'expiration (évalué à chaque lecture).
 
+## Cache partagé
+
+Le cache serveur partagé (`'use cache'`, `src/lib/data/announcements.ts`, `src/lib/data/events.ts`) ne contient que
+des données lisibles par le rôle `anon`, lues par un client sans cookies (`src/lib/supabase/public.ts`). Ne jamais y
+mettre une donnée qui varie selon l'utilisateur (permissions, profil, administration) : elle serait servie à tout le
+monde. Si une règle RLS de lecture de ces tables est un jour restreinte (par exemple « membres seulement »), il faut
+retirer la lecture du cache partagé au même moment.
+
 ## En-têtes HTTP
 
 Définis dans `next.config.ts` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`,

@@ -8,7 +8,11 @@ const eqId = vi.fn();
 const deleteFn = vi.fn();
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+const updateTag = vi.fn();
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+  updateTag: (...args: unknown[]) => updateTag(...args),
+}));
 vi.mock("@/server/require-permission", () => ({
   requirePermission: (...args: unknown[]) => requirePermission(...args),
 }));
@@ -60,6 +64,7 @@ describe("publishAnnouncement", () => {
     );
     expect(state.status).toBe("success");
     expect(insert).toHaveBeenCalledWith({ title: "Départ", body: "14h", author_id: "u1" });
+    expect(updateTag).toHaveBeenCalledWith("announcements");
   });
 
   it("reports a database failure", async () => {
@@ -80,6 +85,7 @@ describe("deleteAnnouncement", () => {
   it("deletes any announcement with announcement.delete", async () => {
     requirePermission.mockResolvedValueOnce({ ok: true, value: { userId: "mod" } });
     await deleteAnnouncement(form({ id: ID }));
+    expect(updateTag).toHaveBeenCalledWith("announcements");
     expect(eqId).toHaveBeenCalledWith("id", ID);
     expect(eqAuthor).not.toHaveBeenCalled();
   });
