@@ -77,7 +77,10 @@ unique (non implémenté, voir le suivi dans la checklist).
 `src/lib/data/announcements.ts` (client Supabase serveur, RLS autorise `anon` : le Guest lit). Les boutons
 « Publier » / « Supprimer » s'affichent d'après les claims JWT (`src/server/session.ts`, affichage seulement).
 Les Server Actions `publishAnnouncement` / `deleteAnnouncement` appellent `requirePermission()` puis la RLS
-revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en texte brut (React échappe).
+revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en texte brut (React échappe). Cartes volontairement sobres (bordure, pas de barre
+colorée, d'ombre ni de pastille) : date lisible (« Aujourd'hui, 19:35 », « Hier, 15:11 », « 1 oct., 09:00 ») au-dessus du
+titre pleine largeur, puis le texte ; la suppression est un bouton discret en pied de carte (seulement si
+autorisé) qui demande une confirmation explicite (`delete-announcement-button.tsx`).
 Pagination et cache (A-080+) : étape 1.6.
 
 ## Barre du bas et design mobile
