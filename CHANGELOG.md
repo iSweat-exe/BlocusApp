@@ -1,0 +1,78 @@
+# Changelog
+
+## [0.2.0](https://github.com/iSweat-exe/BlocusApp/compare/blocusapp-v0.1.0...blocusapp-v0.2.0) (2026-10-08)
+
+
+### Features
+
+* **admin:** add a back-end health page with score, Vercel status and history ([#73](https://github.com/iSweat-exe/BlocusApp/issues/73)) ([8a69cf3](https://github.com/iSweat-exe/BlocusApp/commit/8a69cf370995db149d4fbe3be92762301e0f9287))
+* **admin:** add admin panel to list users and change roles ([#21](https://github.com/iSweat-exe/BlocusApp/issues/21)) ([776039b](https://github.com/iSweat-exe/BlocusApp/commit/776039bb41d082f36730816e15a8cfdc7945b1be))
+* **admin:** add audit journal page ([#28](https://github.com/iSweat-exe/BlocusApp/issues/28)) ([cfc7020](https://github.com/iSweat-exe/BlocusApp/commit/cfc7020904e054999cd86de40af2a82963bf07b0))
+* **admin:** add role permission matrix and per-user overrides UI ([#27](https://github.com/iSweat-exe/BlocusApp/issues/27)) ([30a795f](https://github.com/iSweat-exe/BlocusApp/commit/30a795fff205b03c97221c6583054135d9393d0b))
+* **admin:** add user page with ban, lift and sanction history ([#26](https://github.com/iSweat-exe/BlocusApp/issues/26)) ([a858a6b](https://github.com/iSweat-exe/BlocusApp/commit/a858a6b20651297d79dc44d9f1a28ca6966cc1e3))
+* **admin:** redesign the admin area with a mobile-app look and a reusable Select ([#48](https://github.com/iSweat-exe/BlocusApp/issues/48)) ([0eb1051](https://github.com/iSweat-exe/BlocusApp/commit/0eb105119275c0edd64fd833ba4ca9b5c46dc312))
+* **analytics:** add vercel analytics component ([b511c83](https://github.com/iSweat-exe/BlocusApp/commit/b511c83fd9ec425f187e422f5e67afc5357e2152))
+* **announcements:** simplify the announcement cards and confirm deletion ([#40](https://github.com/iSweat-exe/BlocusApp/issues/40)) ([7f15b9f](https://github.com/iSweat-exe/BlocusApp/commit/7f15b9f503668d47d8a26af3cdc58a609af157af))
+* **auth:** add Discord OAuth login with session refresh proxy ([#13](https://github.com/iSweat-exe/BlocusApp/issues/13)) ([c9b58c5](https://github.com/iSweat-exe/BlocusApp/commit/c9b58c5d49bec3be096b21a0f9602539fbde7c64))
+* **auth:** add permission claims to JWT and requirePermission helper ([#16](https://github.com/iSweat-exe/BlocusApp/issues/16)) ([f647dd4](https://github.com/iSweat-exe/BlocusApp/commit/f647dd4a9eab1c67e178c156ddd0dd8a63bddd39))
+* **auth:** point the Discord login link at discord.com so the mobile app can open ([#30](https://github.com/iSweat-exe/BlocusApp/issues/30)) ([52edc7b](https://github.com/iSweat-exe/BlocusApp/commit/52edc7bcbeba6941139142a8481770b7dc2ec304))
+* **auth:** redesign the login page with a disabled Google button and Guest mode ([#46](https://github.com/iSweat-exe/BlocusApp/issues/46)) ([1d24f74](https://github.com/iSweat-exe/BlocusApp/commit/1d24f74acb9ac4cc7df709b8b01773726659495d))
+* **auth:** sign in with Google and show every linked provider on the profile ([#68](https://github.com/iSweat-exe/BlocusApp/issues/68)) ([0102894](https://github.com/iSweat-exe/BlocusApp/commit/0102894af309977071eb175e766b8d231a5b4adc))
+* **calendar:** add event creation, edition and deletion ([#33](https://github.com/iSweat-exe/BlocusApp/issues/33)) ([8a2c248](https://github.com/iSweat-exe/BlocusApp/commit/8a2c24833ea86f4d1c6374b50dfa053dba8e758b))
+* **calendar:** add month view, day list and event detail ([#32](https://github.com/iSweat-exe/BlocusApp/issues/32)) ([2e53d92](https://github.com/iSweat-exe/BlocusApp/commit/2e53d924392503fa8f688982b3d1237e451873d4))
+* **calendar:** mark events as finished and grey them out ([#36](https://github.com/iSweat-exe/BlocusApp/issues/36)) ([1e54a8e](https://github.com/iSweat-exe/BlocusApp/commit/1e54a8e6cf92f2b24bb4a8c48659b68d6508f9b2))
+* **db:** add announcements table with permission-based RLS ([#17](https://github.com/iSweat-exe/BlocusApp/issues/17)) ([662268d](https://github.com/iSweat-exe/BlocusApp/commit/662268d21d0cb8cd41357f10233c344d5687f588))
+* **db:** add audit log and journal role changes ([#23](https://github.com/iSweat-exe/BlocusApp/issues/23)) ([74db606](https://github.com/iSweat-exe/BlocusApp/commit/74db606d39f7542eaff6d8652e104f7b9c2b3bbe))
+* **db:** add bans with expiry, session revocation and JWT refusal ([#25](https://github.com/iSweat-exe/BlocusApp/issues/25)) ([31ccf1f](https://github.com/iSweat-exe/BlocusApp/commit/31ccf1f079be9ee90da6c8fdeb3a460a937b3602))
+* **db:** add calendar events with permission-based RLS ([#31](https://github.com/iSweat-exe/BlocusApp/issues/31)) ([582d04e](https://github.com/iSweat-exe/BlocusApp/commit/582d04e0532eb18e295e1ee74b81f4f272e8a397))
+* **db:** add editable role permissions and per-user overrides ([#24](https://github.com/iSweat-exe/BlocusApp/issues/24)) ([bccff09](https://github.com/iSweat-exe/BlocusApp/commit/bccff09633f394bda96d2bd5128ef13de16b9f67))
+* **db:** add event.finish and set_event_finished ([#35](https://github.com/iSweat-exe/BlocusApp/issues/35)) ([4628d4b](https://github.com/iSweat-exe/BlocusApp/commit/4628d4bcad78ff643b05a2f76ce0dab6933d00dc))
+* **db:** add profiles table with sign-up trigger, RLS and pgTAP tests ([#14](https://github.com/iSweat-exe/BlocusApp/issues/14)) ([8b18162](https://github.com/iSweat-exe/BlocusApp/commit/8b18162b5f1a1d61d4c038e960c0d58db9bd030c))
+* **db:** add RBAC roles, permissions and has_permission ([#15](https://github.com/iSweat-exe/BlocusApp/issues/15)) ([cc8a0bf](https://github.com/iSweat-exe/BlocusApp/commit/cc8a0bf9ea1f942e01f8bad44eb8976aa35be238))
+* **db:** enforce role hierarchy and protect the last super_admin ([#19](https://github.com/iSweat-exe/BlocusApp/issues/19)) ([30122f5](https://github.com/iSweat-exe/BlocusApp/commit/30122f517d5468c15656c83cd15414a987fdbc4b))
+* **freshness:** refresh on return, router cache and imminent events without reload ([#43](https://github.com/iSweat-exe/BlocusApp/issues/43)) ([64e071f](https://github.com/iSweat-exe/BlocusApp/commit/64e071ff7cb898e2d7e37ab038ac58b2aabd22d0))
+* **home:** add announcements feed with permission-gated publishing ([#18](https://github.com/iSweat-exe/BlocusApp/issues/18)) ([256029c](https://github.com/iSweat-exe/BlocusApp/commit/256029c5e79cb6da957eea40ac53b64202c45d9c))
+* **home:** show an imminent-event banner at the top of the home page ([#34](https://github.com/iSweat-exe/BlocusApp/issues/34)) ([30450e3](https://github.com/iSweat-exe/BlocusApp/commit/30450e360b542f806523aed8d97522f68c082936))
+* **map:** add the base map with MapLibre and OpenFreeMap ([#59](https://github.com/iSweat-exe/BlocusApp/issues/59)) ([56c85fd](https://github.com/iSweat-exe/BlocusApp/commit/56c85fd4ca905aab35c36d460c8ebf3dd7bafaec))
+* **map:** declared position of the demonstration, with details on tap and removal by its author ([#61](https://github.com/iSweat-exe/BlocusApp/issues/61)) ([72ab96c](https://github.com/iSweat-exe/BlocusApp/commit/72ab96cb6596e3385ef18294d230548078509b7d))
+* **map:** show an under-development indicator on the map page ([#53](https://github.com/iSweat-exe/BlocusApp/issues/53)) ([78b1bbc](https://github.com/iSweat-exe/BlocusApp/commit/78b1bbcaf1a26e8f85b538e620e8065f66ec00bc))
+* **map:** show the route and let managers edit it on mobile ([#60](https://github.com/iSweat-exe/BlocusApp/issues/60)) ([e319933](https://github.com/iSweat-exe/BlocusApp/commit/e3199336c308a00d8d2465a037659956e4d07431))
+* **posts:** edit mode, compressed photo, show-author and draft/private/public ([#77](https://github.com/iSweat-exe/BlocusApp/issues/77)) ([a857fbe](https://github.com/iSweat-exe/BlocusApp/commit/a857fbe5ca5d70f0e4be12616b89d858a56429ad))
+* **profile:** add the /profil page ([#22](https://github.com/iSweat-exe/BlocusApp/issues/22)) ([dcacbf1](https://github.com/iSweat-exe/BlocusApp/commit/dcacbf1951c1008684787d66a082662c30da9667))
+* **profile:** redesign the profile page with a mobile-app look ([#47](https://github.com/iSweat-exe/BlocusApp/issues/47)) ([b882f21](https://github.com/iSweat-exe/BlocusApp/commit/b882f21582b59ab31c7ada72b114f08366798746))
+* **security:** add http security headers and error boundaries ([8294a5d](https://github.com/iSweat-exe/BlocusApp/commit/8294a5da2ac66749298a27adf6037bbb1c3d6aa7))
+* **settings:** add a Settings tab with a customizable accent color ([#50](https://github.com/iSweat-exe/BlocusApp/issues/50)) ([1621294](https://github.com/iSweat-exe/BlocusApp/commit/1621294d3a9f51913fef8bc4c1b26a090555998e))
+* **settings:** add a System / Light / Dark theme setting ([#51](https://github.com/iSweat-exe/BlocusApp/issues/51)) ([f630632](https://github.com/iSweat-exe/BlocusApp/commit/f63063205ef4ba339eb9ee34fa677cee2d57d0c5))
+* **ui:** add a full-screen dialog and use it to create posts and events ([#37](https://github.com/iSweat-exe/BlocusApp/issues/37)) ([5274e2b](https://github.com/iSweat-exe/BlocusApp/commit/5274e2b5f92c0ffd738aff88f2506b88761d09f3))
+* **ui:** add the app header with admin and profile buttons ([#38](https://github.com/iSweat-exe/BlocusApp/issues/38)) ([e447440](https://github.com/iSweat-exe/BlocusApp/commit/e447440db5d48e7b342385fb99720f425badf895))
+* **ui:** add the icon bottom navigation and polish the mobile design ([#39](https://github.com/iSweat-exe/BlocusApp/issues/39)) ([f754dcd](https://github.com/iSweat-exe/BlocusApp/commit/f754dcd4168c17f52cf03f3bab05183d49842a74))
+* **ui:** centralized design system and mobile-app redesign of the whole app ([#49](https://github.com/iSweat-exe/BlocusApp/issues/49)) ([43a52d8](https://github.com/iSweat-exe/BlocusApp/commit/43a52d8013469e9dc60795f5fdb87d5179d48eb0))
+* **ui:** turn the full-screen dialogs into swipeable mobile sheets ([#54](https://github.com/iSweat-exe/BlocusApp/issues/54)) ([b16177a](https://github.com/iSweat-exe/BlocusApp/commit/b16177a09028c8eabb6a8de1c5851eb9b96fc21a))
+
+
+### Bug Fixes
+
+* **admin:** log unexpected database errors of admin actions ([#74](https://github.com/iSweat-exe/BlocusApp/issues/74)) ([dd04980](https://github.com/iSweat-exe/BlocusApp/commit/dd04980b492010604cd558495e406c693e83a5ce))
+* **auth:** allow Google avatars in the header and profile ([#69](https://github.com/iSweat-exe/BlocusApp/issues/69)) ([d935314](https://github.com/iSweat-exe/BlocusApp/commit/d935314e0ac52bf980230ffa6ac38fe0bc164715))
+* **auth:** apply role and permission changes right away instead of at token expiry ([#55](https://github.com/iSweat-exe/BlocusApp/issues/55)) ([cf03111](https://github.com/iSweat-exe/BlocusApp/commit/cf031110319da71324dfd1dc4de5b18637eb7625))
+* **auth:** keep the Supabase session check out of the static shell ([#70](https://github.com/iSweat-exe/BlocusApp/issues/70)) ([f2d5048](https://github.com/iSweat-exe/BlocusApp/commit/f2d504877e73dc958658584d9acf58443bea2fc9))
+* **auth:** sign out through a POST route and fix the Discord PKCE race ([#72](https://github.com/iSweat-exe/BlocusApp/issues/72)) ([16c5745](https://github.com/iSweat-exe/BlocusApp/commit/16c5745f8daa55c9a027ec6b30f11679065a742d))
+* **auth:** start the Discord login with a plain link instead of a form action ([#29](https://github.com/iSweat-exe/BlocusApp/issues/29)) ([167fd54](https://github.com/iSweat-exe/BlocusApp/commit/167fd542d1f74700e9ca6f37e90fdeb477986207))
+* **db:** give the permission epoch bump a WHERE clause for pg-safeupdate ([#75](https://github.com/iSweat-exe/BlocusApp/issues/75)) ([1021714](https://github.com/iSweat-exe/BlocusApp/commit/1021714f3b0f075fc2c403bdc943216bd0345a5c))
+* **db:** keep the base letter of accented characters in the initial pseudo ([#71](https://github.com/iSweat-exe/BlocusApp/issues/71)) ([f13ca9a](https://github.com/iSweat-exe/BlocusApp/commit/f13ca9aca6046cdaa990c79c91971ad4ce12000f))
+* **ui:** keep the app at 100% on mobile (no pinch or double-tap zoom) ([#62](https://github.com/iSweat-exe/BlocusApp/issues/62)) ([f16e7c6](https://github.com/iSweat-exe/BlocusApp/commit/f16e7c66cef0e011a34777ad0d8b0fb7e76cee4b))
+* **ui:** keep the tab bar clear of the Android bottom edge ([#57](https://github.com/iSweat-exe/BlocusApp/issues/57)) ([346a970](https://github.com/iSweat-exe/BlocusApp/commit/346a97001733d935fcb5f955488f833d38c6d113))
+* **ui:** raise the minimum bottom clearance of the tab bar to 2rem on Android ([#58](https://github.com/iSweat-exe/BlocusApp/issues/58)) ([bc57ad6](https://github.com/iSweat-exe/BlocusApp/commit/bc57ad66e5bf98586ee051d6f612803f63440aa0))
+* **ui:** smooth slide-up and slide-down animation for full-screen sheets ([#63](https://github.com/iSweat-exe/BlocusApp/issues/63)) ([1a8aec4](https://github.com/iSweat-exe/BlocusApp/commit/1a8aec4923401ca5665bb82b37fc440cecb0332b))
+* **ui:** stop full-screen sheets from jumping while they slide up ([#64](https://github.com/iSweat-exe/BlocusApp/issues/64)) ([dbe8556](https://github.com/iSweat-exe/BlocusApp/commit/dbe85562edaec17433b981ef363475d0ddf5af69))
+
+
+### Performance Improvements
+
+* **calendar:** select days on the client and build the date formatter once ([#52](https://github.com/iSweat-exe/BlocusApp/issues/52)) ([f09ae65](https://github.com/iSweat-exe/BlocusApp/commit/f09ae65693ced622d732222bb7733494e81fae6c))
+* cut Vercel and Supabase free-tier quota usage (lot 1) ([#65](https://github.com/iSweat-exe/BlocusApp/issues/65)) ([da03492](https://github.com/iSweat-exe/BlocusApp/commit/da034927535b98a0decbf82f48bf4bb541d94b83))
+* **data:** share public reads through a 30 s server cache ([#42](https://github.com/iSweat-exe/BlocusApp/issues/42)) ([c338351](https://github.com/iSweat-exe/BlocusApp/commit/c33835179315df0045d4877d1cf6f19b3c585a16))
+* **db:** paginate announcements, index the audit filter and add a keep-alive cron ([#44](https://github.com/iSweat-exe/BlocusApp/issues/44)) ([a493d46](https://github.com/iSweat-exe/BlocusApp/commit/a493d4660bfce99b156201cfa3f59f51bc31f4ff))
+* **db:** prune map entries of the audit log after 90 days (quota lot 3) ([#67](https://github.com/iSweat-exe/BlocusApp/issues/67)) ([88af2e9](https://github.com/iSweat-exe/BlocusApp/commit/88af2e9a9109968da8167c873b5c4bda5a1b9e93))
+* manual refresh button, 2-minute shared cache and static login page (quota lot 2) ([#66](https://github.com/iSweat-exe/BlocusApp/issues/66)) ([5a34902](https://github.com/iSweat-exe/BlocusApp/commit/5a34902b75e49b1fbabffe4bfe7087ff39b406ac))
+* **network:** stop prefetching rarely used links and read the session once ([#41](https://github.com/iSweat-exe/BlocusApp/issues/41)) ([257ea55](https://github.com/iSweat-exe/BlocusApp/commit/257ea55960c4041e8508f9d001869aefa523ed26))
