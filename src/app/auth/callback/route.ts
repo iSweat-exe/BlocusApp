@@ -13,6 +13,13 @@ export async function GET(request: Request) {
     const supabase = createClient(await cookies());
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(`${origin}${next}`);
+    // Reason only (no code, no token): it is the one clue to why a sign-in failed.
+    console.error("OAuth code exchange failed:", error.code ?? error.name, error.message);
+  } else {
+    console.error(
+      "OAuth callback without a code:",
+      searchParams.get("error_description") ?? "none",
+    );
   }
 
   return NextResponse.redirect(`${origin}/login?error=oauth_callback`);
