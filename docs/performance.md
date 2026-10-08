@@ -132,6 +132,14 @@ de 25 ms de CPU par rendu faite lors de l'audit.
 | 10 rechargements de l'accueil | 113 requêtes, 20 SQL | 86–90 requêtes, 0 SQL (à chaud) |
 | Liste admin | 35 requêtes | 24 requêtes |
 
+## Page carte (exception de poids)
+
+`/map` charge MapLibre GL JS (mesuré : chunk de 279 Ko compressés, plus 143 Ko pour le worker et 10 Ko de CSS) : c'est le seul endroit où le budget de 100 Ko par page est
+dépassé, volontairement. Il est isolé dans un chunk chargé à la demande (`next/dynamic`, `ssr: false`) : aucune autre
+page ne le télécharge, et le style, les tuiles, les polices et les pictogrammes viennent d'OpenFreeMap (aucune requête
+vers notre serveur ni notre base pour la carte de fond). Le worker (`maplibre-gl-worker.mjs`, 508 Ko non compressé)
+est un fichier statique mis en cache par le navigateur.
+
 ## Page calendrier (PR 6)
 
 Audit de `/calendar` : la lecture en base était déjà minimale (une requête par mois, partagée par le cache de 30 s,

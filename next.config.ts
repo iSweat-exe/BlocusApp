@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { TILES_ORIGIN } from "./src/features/map/map-config";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -18,11 +19,13 @@ const contentSecurityPolicy = [
   // used in development comes from va.vercel-scripts.com.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  // cdn.discordapp.com serves the Discord avatars shown on /profil.
-  `img-src 'self' data: blob: ${supabaseOrigin} https://cdn.discordapp.com`,
+  // cdn.discordapp.com serves the Discord avatars shown on /profil; the tiles origin serves the map images.
+  `img-src 'self' data: blob: ${supabaseOrigin} https://cdn.discordapp.com ${TILES_ORIGIN}`,
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWs}${isDev ? " ws://localhost:*" : ""}`,
-  "worker-src 'self'",
+  // The map fetches its style, vector tiles, glyphs and sprites from the tiles origin.
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWs} ${TILES_ORIGIN}${isDev ? " ws://localhost:*" : ""}`,
+  // MapLibre parses tiles in a worker (a same-origin file, or a blob: wrapper around a cross-origin one).
+  "worker-src 'self' blob:",
   "manifest-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",

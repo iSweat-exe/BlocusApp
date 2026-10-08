@@ -12,5 +12,6 @@ Un ADR n'est jamais supprimé : s'il est remplacé, son statut passe à `Superse
 | [0002](./0002-compression-scope.md)        | Périmètre de la compression des données | Proposed |
 | [0003](./0003-error-monitoring.md)         | Monitoring des erreurs                 | Proposed |
 | [0004](./0004-design-system-tokens.md)     | Design system centralisé (tokens)      | Proposed |
+| [0005](./0005-map-library.md)              | Librairie et fond de carte             | Proposed |
 
 À venir : bibliothèque de carte (A-126), stratégie de cache (A-080), modèle de messagerie (A-124).
