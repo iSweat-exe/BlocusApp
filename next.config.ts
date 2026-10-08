@@ -75,9 +75,12 @@ const nextConfig: NextConfig = {
     staleTimes: { dynamic: 30 },
   },
   cacheLife: {
-    // Public data shared by every visitor (announcements, events): at most one database read per 30 s,
-    // refreshed in the background, dropped after 5 min without a visit. Writes expire it at once (updateTag).
-    feed: { stale: 30, revalidate: 30, expire: 300 },
+    // Public data shared by every visitor (announcements, events, map route): at most one database read per
+    // 2 min per server instance, refreshed in the background, dropped after 10 min without a visit. Writes
+    // expire it at once (updateTag) and the "Actualiser" button expires it on demand.
+    feed: { stale: 30, revalidate: 120, expire: 600 },
+    // Live data, read often during a demonstration (the declared position on the map): 30 s.
+    live: { stale: 30, revalidate: 30, expire: 300 },
   },
   partialPrefetching: true,
   turbopack: {

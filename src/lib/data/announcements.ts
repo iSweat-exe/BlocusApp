@@ -14,8 +14,9 @@ export const FEED_PAGE_SIZE = 10;
 
 /**
  * Reads the latest announcements once for everybody: the result is the same for every visitor (RLS lets
- * `anon` read them), so it is cached and shared for 30 s ("feed" profile). Publishing or deleting calls
- * `updateTag("announcements")`, so the author sees the change immediately and others within 30 s.
+ * `anon` read them), so it is cached and shared for 2 min ("feed" profile). Publishing or deleting calls
+ * `updateTag("announcements")`, so the author sees the change immediately; the others get it within 2 min, or at
+ * once with the "Actualiser" button.
  * A failure is thrown, never returned: an error must not be cached.
  */
 async function fetchAnnouncements(limit: number): Promise<Announcement[]> {

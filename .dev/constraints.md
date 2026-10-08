@@ -20,6 +20,7 @@
 | Vercel Hobby | durée de fonction, bande passante, invocations plafonnées | Cache + batch pour limiter les invocations. |
 | Vercel Hobby | ~1 M requêtes edge, ~1 M invocations (le `proxy` en compte une par requête qu'il intercepte), ~4 h de CPU actif | Le `proxy` ne s'exécute que pour les connectés, jamais pour un préchargement ; garder peu de requêtes par écran. |
 | Vercel Hobby | **~10 Go de transfert depuis le serveur** (Fast Origin Transfer) : au-delà, projet mis en pause | Servir un maximum depuis le CDN (coques statiques), alléger les pages rendues par le serveur (≈ 66 Ko chacune). |
+| Supabase (cache partagé) | le cache `'use cache'` est **par instance** Vercel : N instances chaudes = N lectures par donnée et par fenêtre | Fenêtre de 2 min (`feed`), bouton « Actualiser » pour la fraîcheur à la demande. |
 | Vercel Web Analytics | 50 000 événements/mois, puis collecte coupée | Échantillonnage à 5 % (`SampledAnalytics`). |
 | Supabase Auth | ≈ 150 renouvellements de jeton par tranche de 5 min et par IP ; **tous partent des IP de Vercel** | Jeton de 1 h ; une sanction ne doit pas forcer tout le monde à renouveler en même temps. |
 | Supabase DB | `auth.audit_log_entries` grossit à chaque renouvellement de jeton | Écriture du journal d'audit Auth en base désactivée (`docs/runbook.md`). |

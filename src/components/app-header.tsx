@@ -4,6 +4,7 @@ import { canAccessAdmin } from "@/features/admin/access";
 import { safeAvatarUrl } from "@/features/profile/avatar";
 import { getSessionPermissions } from "@/server/session";
 import { Avatar } from "./avatar";
+import { RefreshButton } from "./refresh-button";
 import { HeaderIconLink } from "./header-icon-link";
 import { ShieldIcon, UserIcon } from "./icons";
 
@@ -41,6 +42,7 @@ export async function AppHeader() {
         </Link>
 
         <nav aria-label="Compte" className="flex items-center gap-2">
+          <RefreshButton />
           {!session ? (
             <Link
               href="/login"
