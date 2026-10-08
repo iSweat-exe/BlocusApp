@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import type { Database } from "@/lib/database.types";
 import { err, ok, type Result } from "@/lib/result";
+import { requestCookies } from "@/lib/supabase/request-cookies";
 import { createClient } from "@/lib/supabase/server";
 
 /** A user as shown in the admin list. */
@@ -26,7 +26,7 @@ export function escapeLike(value: string): string {
  */
 export async function listProfiles(search = ""): Promise<Result<AdminProfile[], "load_failed">> {
   try {
-    const supabase = createClient(await cookies());
+    const supabase = createClient(await requestCookies());
     let query = supabase
       .from("profiles")
       .select("id, pseudo, avatar_url, role, created_at")
@@ -44,7 +44,7 @@ export async function listProfiles(search = ""): Promise<Result<AdminProfile[], 
 /** Lists the roles of the hierarchy (reference data readable by signed-in users). */
 export async function listRoles(): Promise<Result<Role[], "load_failed">> {
   try {
-    const supabase = createClient(await cookies());
+    const supabase = createClient(await requestCookies());
     const { data, error } = await supabase.from("roles").select("key, label, rank").order("rank");
     return error ? err("load_failed", error.message) : ok(data);
   } catch (cause) {
@@ -61,7 +61,7 @@ export type OwnProfile = AdminProfile & { updated_at: string };
  */
 export async function getProfile(id: string): Promise<Result<OwnProfile | null, "load_failed">> {
   try {
-    const supabase = createClient(await cookies());
+    const supabase = createClient(await requestCookies());
     const { data, error } = await supabase
       .from("profiles")
       .select("id, pseudo, avatar_url, role, created_at, updated_at")
@@ -83,7 +83,7 @@ export async function getPseudos(
   const unique = [...new Set(ids)];
   if (unique.length === 0) return ok(new Map());
   try {
-    const supabase = createClient(await cookies());
+    const supabase = createClient(await requestCookies());
     const { data, error } = await supabase.from("profiles").select("id, pseudo").in("id", unique);
     if (error) return err("load_failed", error.message);
     return ok(new Map(data.map((profile) => [profile.id, profile.pseudo])));
