@@ -48,6 +48,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-034** Permissions injectées dans le JWT via **Custom Access Token Hook** (évite une requête BDD par action) ⚡ — _claims présents dans le token_
 - [~] **A-035** Matrice rôle × permission éditable depuis le panneau admin (écrit en BDD) — _changer une permission d'un rôle prend effet sans redéploiement_ (BDD + UI faites, à valider en production)
 - [~] **A-036** Overrides par utilisateur (grant/deny ciblé) 🆕 — _un deny prime sur un grant_ (BDD + UI faites, à valider en production)
+- [~] **A-036b** Les changements de rôle / permission / override / sanction sont pris en compte **tout de suite** (époque `permission_epoch` + réémission du token par le proxy) au lieu d'attendre l'expiration du JWT — _correctif ; migration à appliquer sur le projet hébergé_
 - [~] **A-037** Hiérarchie de rôles : on ne peut pas agir sur un rôle ≥ au sien — _modo ne peut pas ban un admin (test)_
 - [~] **A-038** Vérification des permissions côté serveur sur chaque Server Action/Route Handler **en plus** de la RLS (helper fait, reste à l'utiliser dans les actions) — _helper unique `requirePermission()`_
 - [~] **A-039** Audit log : toute modification de rôle/permission est tracée (qui, quoi, quand) 🆕 — _table `audit_logs` en lecture seule pour non-admins_ (BDD, journalisation de toutes les actions d'administration et page `/admin/journal` faites, à valider en production)
