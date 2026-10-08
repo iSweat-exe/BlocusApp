@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AUTH_COOKIE_NAME } from "@/lib/supabase/cookie";
 import { config, proxy } from "./proxy";
 
 const updateSession = vi.fn();
@@ -28,8 +29,27 @@ describe("proxy", () => {
 });
 
 describe("matcher", () => {
-  // Next.js compiles the matcher with path-to-regexp; the negative look-ahead is plain regex syntax.
-  const matcher = new RegExp(`^${config.matcher[0]}$`);
+  const entries = config.matcher;
+  // Next.js compiles `source` with path-to-regexp; the negative look-ahead is plain regex syntax.
+  const matcher = new RegExp(`^${entries[0]?.source}$`);
+
+  it("has one entry for the session cookie and one for its chunked form, sharing the same source", () => {
+    expect(entries).toHaveLength(2);
+    expect(entries[1]?.source).toBe(entries[0]?.source);
+    expect(entries.map((entry) => entry.has[0]?.key)).toEqual([
+      AUTH_COOKIE_NAME,
+      `${AUTH_COOKIE_NAME}.0`,
+    ]);
+  });
+
+  it("skips link prefetches, whatever header the browser uses", () => {
+    for (const entry of entries) {
+      expect(entry.missing).toEqual([
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ]);
+    }
+  });
 
   it.each(["/", "/calendar", "/calendar/123", "/admin/users/abc", "/auth/callback", "/login"])(
     "runs for the page %s",
@@ -43,6 +63,8 @@ describe("matcher", () => {
     "/_next/image",
     "/sw.js",
     "/manifest.webmanifest",
+    "/robots.txt",
+    "/sitemap.xml",
     "/icons/icon-192.png",
     "/favicon.ico",
     "/api/keep-alive",

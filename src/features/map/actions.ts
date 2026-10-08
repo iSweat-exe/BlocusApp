@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { revalidatePath, updateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { parseRoutePoints } from "@/lib/map-route";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/require-permission";
@@ -60,7 +60,6 @@ export async function saveMapRoute(
   }
 
   updateTag("map-route");
-  revalidatePath("/map");
   return { status: "success", versionId: data };
 }
 
@@ -126,7 +125,6 @@ export async function declareMapPosition(
   }
 
   updateTag("map-positions");
-  revalidatePath("/map");
   return { status: "success" };
 }
 
@@ -182,6 +180,5 @@ export async function removeMapPosition(id: unknown): Promise<RemovePositionStat
   }
 
   updateTag("map-positions");
-  revalidatePath("/map");
   return { status: "success" };
 }

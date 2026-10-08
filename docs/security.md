@@ -9,7 +9,8 @@
 3. Aucun secret dans le dépôt (scan `gitleaks` en CI). Les `.env*` sont ignorés, sauf `.env.example`.
 4. Validation de toutes les entrées côté serveur (schéma) ; limites de taille avant et après décompression.
 5. Rate limiting sur l'authentification et l'envoi de messages.
-6. Sessions Supabase en cookies httpOnly (`@supabase/ssr`), jamais en `localStorage`.
+6. Sessions Supabase en cookies httpOnly (`@supabase/ssr`), jamais en `localStorage`. Le cookie a un nom fixe, `blocus-auth`
+   (`src/lib/supabase/cookie.ts`), commun à tous les clients Supabase ; le `matcher` du `proxy` en dépend.
 7. Le cache ne contient jamais de réponse authentifiée partagée entre utilisateurs ; le service worker ne
    met pas en cache les réponses authentifiées.
 

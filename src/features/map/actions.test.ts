@@ -4,11 +4,9 @@ import { declareMapPosition, removeMapPosition, saveMapRoute } from "./actions";
 const requirePermission = vi.fn();
 const rpc = vi.fn();
 const updateTag = vi.fn();
-const revalidatePath = vi.fn();
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
 vi.mock("next/cache", () => ({
-  revalidatePath: (...args: unknown[]) => revalidatePath(...args),
   updateTag: (...args: unknown[]) => updateTag(...args),
 }));
 vi.mock("@/server/require-permission", () => ({
@@ -75,7 +73,6 @@ describe("saveMapRoute", () => {
     });
     expect(result).toEqual({ status: "success", versionId: "new-version-id" });
     expect(updateTag).toHaveBeenCalledWith("map-route");
-    expect(revalidatePath).toHaveBeenCalledWith("/map");
   });
 
   it("clears the route with an empty list", async () => {
@@ -131,7 +128,6 @@ describe("declareMapPosition", () => {
       p_label: "Place",
     });
     expect(updateTag).toHaveBeenCalledWith("map-positions");
-    expect(revalidatePath).toHaveBeenCalledWith("/map");
   });
 
   it("accepts a missing label", async () => {
@@ -157,7 +153,6 @@ describe("removeMapPosition", () => {
     expect(requirePermission).toHaveBeenCalledWith("map.position.declare", { fresh: true });
     expect(rpc).toHaveBeenCalledWith("remove_map_position", { p_id: ID });
     expect(updateTag).toHaveBeenCalledWith("map-positions");
-    expect(revalidatePath).toHaveBeenCalledWith("/map");
   });
 
   it("refuses a Guest before touching the database", async () => {

@@ -65,7 +65,8 @@ rendues par le serveur** (le cache du routeur client de 30 s et les préchargeme
 |---|---|---|---|
 | CPU actif | ~4 h | 600 000 × 14 ms ≈ 2,4 h | ~60 % |
 | Transfert | 100 Go | 600 000 × 66 Ko ≈ 40 Go | ~40 % |
-| Invocations de fonctions | ~1 M | ≤ 600 000 + cron | ≤ 60 % |
+| Invocations de fonctions | ~1 M | 600 000 rendus **+ le `proxy`** (une invocation de plus par requête qu'il intercepte : avant la PR « quotas, lot 1 », aussi pour les invités et les préchargements, soit ~1,5 à 2,6 M au total) | voir `docs/performance.md` |
+| Transfert depuis le serveur (« Fast Origin Transfer ») | **~10 Go** | 600 000 × 20 à 66 Ko ≈ 12 à 40 Go | **à mesurer en production** : probablement le premier quota à surveiller |
 
 **Limites de la mesure** : le CPU est celui de cette machine (Vercel n'est pas identique), le test n'exécute qu'une
 seule instance (en production `use cache` est en mémoire **par instance** : avec plusieurs instances le taux de

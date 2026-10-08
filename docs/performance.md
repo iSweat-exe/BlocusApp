@@ -53,11 +53,12 @@ compte plus que raccourcir une requête SQL.
 - **Encart « événement imminent »** : le serveur envoie les événements ouverts des **3 prochaines heures**
   (`IMMINENT_FETCH_MINUTES`) et le navigateur ne montre que ceux de la fenêtre de 30 minutes (3 au maximum) : un
   événement devient imminent **sans rechargement**.
-- **Durée de vie du jeton : 15 min** (`jwt_expiry = 900`, voir `docs/runbook.md`) : rôles, permissions et
-  bannissements portés par le JWT se mettent à jour en ≤ 15 min au lieu de 1 h, **et immédiatement à la requête suivante**
-  grâce à `permission_epoch` (`docs/permissions.md` : au plus une lecture en base toutes les 10 s par instance, aucune
-  requête de plus pour le visiteur). Les actions sensibles vérifient de
-  toute façon en base (`fresh`).
+- **Durée de vie du jeton : 1 h** (`jwt_expiry = 3600`, voir `docs/runbook.md`) : un jeton de 15 min faisait renouveler
+  chaque utilisateur actif 4 fois plus souvent, tous depuis les adresses IP de Vercel (limite Supabase Auth ≈ 150
+  renouvellements par tranche de 5 min et par IP, un refus déconnecte). Rôles, permissions et sanctions sont pris en
+  compte **à la requête suivante** grâce à `permission_epoch` (`docs/permissions.md` : au plus une lecture en base toutes
+  les 10 s par instance, aucune requête de plus pour le visiteur) ; seule une sanction qui expire toute seule peut
+  rester visible jusqu'à 1 h. Les actions sensibles vérifient de toute façon en base (`fresh`).
 
 - **Annonces paginées** : 10 au départ, « Voir plus d'annonces » en ajoute 10 (`/?n=20`, …), plafond de **50** (une
   note l'indique). `n` est arrondi au multiple de 10 (peu de valeurs distinctes : le cache partagé reste petit) et
@@ -66,6 +67,28 @@ compte plus que raccourcir une requête SQL.
 - **Keep-alive** : `/api/keep-alive` (une lecture d'une ligne) appelé chaque jour à 6 h UTC par Vercel Cron
   (`vercel.json`) pour que le projet Supabase gratuit ne soit jamais mis en pause après 7 jours sans activité. Si
   `CRON_SECRET` est défini, tout autre appelant reçoit 401. Exclu du `proxy`.
+
+## Quotas Vercel Hobby et Supabase Free : lot 1 (PR « optimisation des quotas »)
+
+Audit fait avant l'ouverture au public (estimation à ~600 000 pages par mois ; **à confirmer dans Vercel → Usage et
+Supabase → Usage une semaine après l'ouverture**). Quotas à connaître (à revérifier) : Vercel Hobby = 1 M requêtes
+edge, 1 M invocations de fonctions, 4 h de CPU actif, 100 Go de transfert **et ~10 Go de transfert depuis le
+serveur (« Fast Origin Transfer »)**, 50 000 événements Web Analytics ; Supabase Free = 500 Mo de base, 5 Go d'egress,
+Auth limité par IP. Sur Hobby rien n'est facturé : un quota dépassé **met le projet en pause** (jusqu'à 30 jours).
+
+| Problème trouvé | Correction | Quota |
+|---|---|---|
+| `src/proxy.ts` est une fonction Node distincte, invoquée pour **chaque** requête : document, navigation, préchargement (`.rsc`), Server Action, et aussi pour les invités qui n'ont rien à rafraîchir | `matcher` à objets : seulement avec un cookie de session (`blocus-auth` ou `blocus-auth.0`, nom fixé dans `src/lib/supabase/cookie.ts` au lieu de `sb-<ref>-auth-token`), jamais pour un préchargement (en-têtes `next-router-prefetch` et `purpose: prefetch`), ni pour `robots.txt` et `sitemap.xml`. Un préchargement d'une coque statique est alors servi par le CDN sans fonction | Invocations (÷ 2 à 3 estimé) |
+| `<Analytics />` envoie un événement par vue (≈ 600 000 contre 50 000 inclus : collecte coupée après ~2,5 jours), chacun étant aussi une requête edge | `SampledAnalytics` : 5 % des navigateurs (tirage mémorisé), `ANALYTICS_SAMPLE_RATE` | Analytics, requêtes edge |
+| `RefreshOnReturn` relançait un rendu complet à chaque retour sur l'app après 30 s de vie de la page, même après 2 s d'absence | Rafraîchit seulement si l'app est restée **cachée ≥ 2 min** (`MIN_AWAY_MS`) ; une navigation remet l'âge de la page à zéro | Invocations, CPU, transfert |
+| Jeton de 15 min : renouvellements ×4 | 1 h (voir plus haut) | Auth, base |
+| `auth.audit_log_entries` : 2 lignes par renouvellement, jamais purgées (500 Mo atteints en 4 à 8 mois) | Réglage du tableau de bord (`docs/runbook.md`) | **Taille de la base** |
+| Fonctions Vercel à Washington, base en Irlande | `"regions": ["dub1"]` dans `vercel.json` | Durée des fonctions, latence |
+| `revalidatePath` en plus de `updateTag` : `updateTag` purge déjà le cache du routeur et rend la page de nouveau ; `revalidatePath` régénérait en plus une coque statique sans données | `updateTag` seul dans les actions annonces, calendrier et carte (admin : inchangé, ses données ne sont pas en cache partagé) | Invocations, écritures ISR |
+| Geist Mono préchargée sur toutes les pages (52 Ko) alors que quatre écrans l'utilisent ; deux logos de 168 Ko servis depuis `public/` | `preload: false` ; logos déplacés dans `design/` (sources des icônes) | Transfert |
+
+Effet attendu sur le cache de partage : les lectures publiques restent revalidées toutes les 30 s ; c'est le lot
+suivant qui évaluera 60–120 s et un bouton d'actualisation manuelle.
 
 ## Mesures (Supabase local, build de production, Pixel 7 émulé, 60 utilisateurs, 15 annonces, 20 événements)
 

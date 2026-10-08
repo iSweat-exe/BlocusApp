@@ -3,41 +3,68 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-/** The page is not refreshed again before this delay: it matches the 30 s of the shared data cache. */
+/** The page is not refreshed twice within this delay: it matches the 30 s of the shared data cache. */
 export const MIN_REFRESH_GAP_MS = 30_000;
 
 /**
- * Keeps the app up to date without polling: when the user comes back (the tab or the installed PWA becomes
- * visible again, the page is restored from the back/forward cache, or the network returns), the server
- * components are refreshed, at most once every 30 s. Nothing runs in the background while nobody looks, so it
- * costs nothing when the app is idle. State of client components (open dialogs, typed text) is preserved.
+ * The user must have been away at least this long before coming back refreshes the page. A quick switch to
+ * another app (a message, the camera, a copied address) must not cost a full server render: every refresh is a
+ * function invocation plus the transfer of the whole page, which is what the free quotas are made of.
+ */
+export const MIN_AWAY_MS = 120_000;
+
+/**
+ * Keeps the app up to date without polling: when the user comes back after a while (the tab or the installed
+ * PWA was hidden for at least {@link MIN_AWAY_MS}, the page is restored from the back/forward cache, or the
+ * network returns), the server components are refreshed. Nothing runs in the background while nobody looks, so
+ * it costs nothing when the app is idle. State of client components (open dialogs, typed text) is preserved.
+ * (No `usePathname` here: a runtime hook in the layout would stop the pages from being prerendered.)
  */
 export function RefreshOnReturn() {
   const router = useRouter();
   const lastRefresh = useRef(0);
+  const hiddenAt = useRef<number | null>(null);
+
+  // The page that was just rendered is fresh.
+  useEffect(() => {
+    lastRefresh.current = Date.now();
+  }, []);
 
   useEffect(() => {
-    // The page has just been rendered: it is fresh now.
-    lastRefresh.current = Date.now();
-
-    const refreshIfStale = () => {
-      if (document.visibilityState !== "visible") return;
-      const now = Date.now();
-      if (now - lastRefresh.current < MIN_REFRESH_GAP_MS) return;
-      lastRefresh.current = now;
+    const refresh = () => {
+      lastRefresh.current = Date.now();
       router.refresh();
     };
+
+    /** The user is back. `unknownAway`: no hidden event was seen (back/forward cache), so use the page age. */
+    const onReturn = (unknownAway: boolean) => {
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      const left = hiddenAt.current;
+      hiddenAt.current = null;
+      const away = left === null ? (unknownAway ? now - lastRefresh.current : 0) : now - left;
+      if (away < MIN_AWAY_MS || now - lastRefresh.current < MIN_REFRESH_GAP_MS) return;
+      refresh();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") hiddenAt.current = Date.now();
+      else onReturn(false);
+    };
     const onPageShow = (event: PageTransitionEvent) => {
-      if (event.persisted) refreshIfStale();
+      if (event.persisted) onReturn(true);
+    };
+    const onOnline = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastRefresh.current >= MIN_REFRESH_GAP_MS) refresh();
     };
 
-    document.addEventListener("visibilitychange", refreshIfStale);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("pageshow", onPageShow);
-    window.addEventListener("online", refreshIfStale);
+    window.addEventListener("online", onOnline);
     return () => {
-      document.removeEventListener("visibilitychange", refreshIfStale);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("pageshow", onPageShow);
-      window.removeEventListener("online", refreshIfStale);
+      window.removeEventListener("online", onOnline);
     };
   }, [router]);
 
