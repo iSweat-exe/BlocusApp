@@ -79,6 +79,15 @@ Journal des actions d'administration (migration `20261007170000_create_audit_log
 Index `(created_at desc, id desc)` (pagination par curseur), `actor_id`, `target_id`. RLS : `select` avec
 `audit.read` ; aucune écriture client. `assign_role()` journalise chaque changement de rôle.
 
+**Rétention** (migration `20261008230000_prune_map_audit.sql`) : les entrées `map.position_declared` et
+`map.route_saved` (une par position déclarée ou tracé enregistré, soit ~220 000 lignes par an pendant des événements
+fréquents, 50 à 80 Mo avec les 5 index, alors que les tables de la carte n'en gardent que 200 et 20) sont supprimées au
+bout de **90 jours**. La purge est faite par un trigger `after insert` sur ces deux actions (`prune_map_audit()`, au plus
+500 lignes par insertion, parcours d'index sur `audit_logs_action_idx`) : elle est payée par l'activité qui crée les
+lignes, sans `pg_cron` ni extension à activer (rien qui puisse casser le pipeline de migrations). Les actions
+d'administration (rôles, permissions, sanctions, événements) ne sont **jamais** purgées. Test :
+`supabase/tests/database/audit_map_retention.test.sql`.
+
 ### `permission_overrides`
 
 Overrides de permission par utilisateur (migration `20261007180000_permission_management.sql`) :
