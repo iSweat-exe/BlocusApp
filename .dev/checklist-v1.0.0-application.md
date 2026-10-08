@@ -137,8 +137,8 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-125c** **Accueil** : un événement qui démarre dans moins de 30 min s'affiche tout en haut dans un encart distinct, fermable (mémorisé sur l'appareil), cliquable vers le détail — _disparaît au début de l'événement_ (fait, à valider en production)
 - [~] **A-125d** Événements terminés : permission `event.finish`, RPC `set_event_finished`, événement grisé et non modifiable, retiré de l'encart d'accueil — _fait (BDD + interface), à valider en production_
 - [~] **A-126** **Carte** : choix de la lib de carte via ADR (Leaflet/OSM gratuit vs Mapbox/Google, quotas, édition tactile) 🆕 — _ADR 0005 : MapLibre + OpenFreeMap ; fond de carte, thème clair/sombre et « Me localiser » faits ; reste : valider l'ADR, ville X et emprise_
-- [ ] **A-126a** Affichage du **tracé des déplacements** (polyline / GeoJSON) sur la carte 🆕 — _tracé visible, lecture cachée (1.6)_
-- [ ] **A-126b** **Édition du tracé sur mobile** : ajouter / déplacer / supprimer des points au doigt, annuler/rétablir, sauvegarde groupée (1.7) 🆕 — _testé au pouce sur iPhone et Android réels_
+- [~] **A-126a** Affichage du **tracé des déplacements** (polyline / GeoJSON) sur la carte 🆕 — _fait : tracé visible pour tous (Guests compris), lecture en cache 30 s ; à valider avec de vraies tuiles_
+- [~] **A-126b** **Édition du tracé sur mobile** : ajouter / déplacer / supprimer des points au doigt, annuler/rétablir, sauvegarde groupée (1.7) 🆕 — _fait (viseur central, glisser, annuler/rétablir, 1 sauvegarde = 1 requête, conflits détectés) ; reste : tester au pouce sur iPhone et Android réels_
 - [ ] **A-126c** **Outils gérants** : déclarer le **lieu actuel de la manifestation** (position GPS + heure de déclaration, historique, dernière position mise en avant) ; autres actions gérants à lister avec toi (points d'intérêt, zones…) 🆕 🔒 — _permissions `map.*` vérifiées en RLS et côté serveur_
 - [ ] **A-127** Respect de la vie privée sur la carte : seule la position de la manifestation, déclarée par un gérant, est affichée (pas de géolocalisation des utilisateurs sans consentement) 🆕 🔒 — _décision documentée_
 

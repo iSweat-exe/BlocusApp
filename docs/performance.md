@@ -140,6 +140,9 @@ page ne le télécharge, et le style, les tuiles, les polices et les pictogramme
 vers notre serveur ni notre base pour la carte de fond). Le worker (`maplibre-gl-worker.mjs`, 508 Ko non compressé)
 est un fichier statique mis en cache par le navigateur.
 
+Le tracé de la carte suit la règle des données publiques : lecture sans cookie mise en cache 30 s (une requête, au plus
+500 points, soit quelques dizaines de Ko dans le pire cas), invalidée par `updateTag('map-route')` à chaque sauvegarde.
+
 ## Page calendrier (PR 6)
 
 Audit de `/calendar` : la lecture en base était déjà minimale (une requête par mois, partagée par le cache de 30 s,

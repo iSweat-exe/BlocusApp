@@ -10,6 +10,7 @@ export const AUDIT_ACTIONS: Record<string, string> = {
   "event.reopened": "Événements rouverts",
   "user.banned": "Bans",
   "sanction.revoked": "Sanctions levées",
+  "map.route_saved": "Tracé de la carte modifié",
 };
 
 /** An audit log row as needed by the UI. */
@@ -59,6 +60,12 @@ function detail(details: unknown, key: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+function detailNumber(details: unknown, key: string): number | undefined {
+  if (typeof details !== "object" || details === null) return undefined;
+  const value = (details as Record<string, unknown>)[key];
+  return typeof value === "number" ? value : undefined;
+}
+
 function userName(id: string | null, names: AuditNames): string {
   if (!id) return "Système";
   return names.users.get(id) ?? `compte supprimé (${id.slice(0, 8)})`;
@@ -93,6 +100,8 @@ export function describeAuditEntry(entry: AuditEntryView, names: AuditNames): st
       return `${actor} a marqué l'événement « ${detail(entry.details, "title") ?? "?"} » comme terminé.`;
     case "event.reopened":
       return `${actor} a rouvert l'événement « ${detail(entry.details, "title") ?? "?"} ».`;
+    case "map.route_saved":
+      return `${actor} a modifié le tracé de la carte (${detailNumber(entry.details, "points") ?? "?"} points).`;
     case "sanction.revoked":
       return `${actor} a levé une sanction de ${target}.`;
     default:

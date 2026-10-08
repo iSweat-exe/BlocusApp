@@ -33,7 +33,7 @@ l'option 4 en cas de besoin ne touche qu'un fichier et la CSP.
 - L'attribution « © OpenStreetMap contributors » est une obligation de licence (ODbL) : conservée, repliée derrière un
   petit bouton « i ».
 - « Me localiser » utilise `navigator.geolocation` **sur l'appareil seulement** (marqueur local, rien n'est envoyé).
-- Édition du tracé (A-126b) : éditeur maison sur une source GeoJSON (viseur central, poignées, annuler/rétablir) plutôt
+- Édition du tracé (A-126b, **faite**) : éditeur maison sur une source GeoJSON (viseur central, poignées, annuler/rétablir) plutôt
   qu'une librairie de dessin dont le comportement au toucher n'est pas établi ; à rouvrir si l'essai sur téléphones réels
   ne convainc pas (Terra Draw, MIT, est la piste).
 

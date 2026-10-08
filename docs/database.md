@@ -117,6 +117,19 @@ triggers par instruction la mettent à jour après tout changement de `role_perm
 DEFINER, exécutable par `anon` et `authenticated`) renvoie la date : aucune donnée utilisateur. Sert à réémettre les
 tokens périmés, voir `docs/permissions.md`. Test : `supabase/tests/database/permission_epoch.test.sql`.
 
+## Tracé de la carte (`map_route_versions`)
+
+Migration `20261008200000_map_route.sql`. Le tracé est une suite de points `[longitude, latitude]` enregistrée comme une
+**nouvelle version** à chaque sauvegarde ; le tracé courant est la plus récente, les **20 dernières** sont gardées
+(retour en arrière possible). Colonnes : `id`, `author_id` (`set null` si le compte est supprimé), `points` (jsonb),
+`point_count` (calculée), `created_at`. `is_valid_route()` (immuable, aussi en contrainte `CHECK`) : tableau vide (pas de
+tracé) ou 2 à 500 points, chacun `[lng, lat]` numérique dans les bornes du monde. RLS : lecture pour `anon` et
+`authenticated` (Guest compris) ; **aucune écriture directe**. `save_map_route(p_points, p_base)` (SECURITY DEFINER,
+`authenticated`) exige `map.route.edit`, valide les points, refuse avec `stale_route` (40001) si une autre version a été
+enregistrée depuis `p_base` (l'éditeur ne l'écrase jamais en silence ; verrou consultatif pour les sauvegardes
+simultanées), élague les vieilles versions et journalise `map.route_saved`. Test :
+`supabase/tests/database/map_route.test.sql`.
+
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 
 Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées

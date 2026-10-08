@@ -138,6 +138,31 @@ export type Database = {
           },
         ];
       };
+      map_route_versions: {
+        Row: {
+          author_id: string | null;
+          created_at: string;
+          id: string;
+          point_count: number | null;
+          points: Json;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id?: string | null;
+          created_at?: string;
+          id?: string;
+          point_count?: never;
+          points: Json;
+        };
+        Update: {
+          author_id?: string | null;
+          created_at?: string;
+          id?: string;
+          point_count?: never;
+          points?: Json;
+        };
+        Relationships: [];
+      };
       moderation_actions: {
         Row: {
           created_at: string;
@@ -331,9 +356,11 @@ export type Database = {
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
       get_permission_epoch: { Args: never; Returns: string };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
+      is_valid_route: { Args: { p_points: Json }; Returns: boolean };
       is_banned: { Args: { p_user_id: string }; Returns: boolean };
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };
+      save_map_route: { Args: { p_base?: string; p_points: Json }; Returns: string };
       set_event_finished: { Args: { p_finished: boolean; p_id: string }; Returns: undefined };
       set_role_permission: {
         Args: { p_granted: boolean; p_permission: string; p_role: string };

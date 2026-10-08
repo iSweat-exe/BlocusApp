@@ -2,9 +2,17 @@
 
 import { Map as MapLibreMap, Marker, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useReducer, useRef, useState, useTransition } from "react";
+import { PencilIcon } from "@/components/icons";
+import { routeBounds, routeToGeoJSON, type LngLat } from "@/lib/map-route";
+import { saveMapRoute } from "./actions";
 import { DEFAULT_VIEW, LOCATE_ZOOM, MAP_STYLES } from "./map-config";
+import { canSave, editorReducer, initEditor, isDirty } from "./route-editor-state";
+import { addRouteLayers, setRouteData, setRouteEditing } from "./route-layers";
+import { RouteToolbar, type ToolbarError } from "./route-toolbar";
 import { useMapTheme } from "./use-map-theme";
+import { useRouteEditing } from "./use-route-editing";
 
 // MapLibre 6 runs in a module worker it normally finds next to its own file, which a bundler breaks:
 // point it at the file the bundler emits.
@@ -32,11 +40,23 @@ const LOCATE_MESSAGES: Record<Exclude<LocateState, "idle" | "locating">, string>
   unavailable: "Ta position n'est pas disponible pour le moment.",
 };
 
+/** The route as the page gives it to the map. */
+export type MapViewRoute = { id: string; points: LngLat[] };
+
+type Props = {
+  /** The current route, or `null` when none was drawn yet. */
+  route: MapViewRoute | null;
+  /** Holds `map.route.edit` (display only: the Server Action and the database re-check it). */
+  canEditRoute: boolean;
+};
+
 /**
- * The map. Client-only (WebGL) and loaded on demand by `MapLoader`, so its ~250 KB never weigh on other pages.
- * "Me localiser" shows the user's own position **on this device only**: it is never sent anywhere (A-127).
+ * The map: base map, the route, route editing for those who may, and "Me localiser". Client-only (WebGL),
+ * loaded on demand by `MapLoader`. "Me localiser" shows the user's own position **on this device only**: it is
+ * never sent anywhere (A-127).
  */
-export default function MapView() {
+export default function MapView({ route, canEditRoute }: Props) {
+  const router = useRouter();
   const theme = useMapTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -45,51 +65,123 @@ export default function MapView() {
   const [supported] = useState(canUseWebGL);
   const [styleFailed, setStyleFailed] = useState(false);
   const failed = !supported || styleFailed;
-  const [ready, setReady] = useState(false);
+  // Set once the style is loaded: from then on the map accepts layers and camera moves.
+  const [map, setMap] = useState<MapLibreMap | null>(null);
+  const ready = map !== null;
   const [locate, setLocate] = useState<LocateState>("idle");
-  // The map is created once, with the theme of that moment; later changes go through setStyle().
+  // The map is created once, with the theme and route of that moment; later changes go through setStyle() /
+  // setData().
   const [initialTheme] = useState(theme);
+  const [initialRoute] = useState(route);
+
+  // Route editing.
+  const [editing, setEditing] = useState(false);
+  const [editor, dispatch] = useReducer(editorReducer, route?.points ?? [], initEditor);
+  const [baseId, setBaseId] = useState<string | null>(null);
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
+  const [saveError, setSaveError] = useState<ToolbarError | null>(null);
+  const [saving, startSaving] = useTransition();
+
+  const shownPoints = useMemo(
+    () => (editing ? editor.points : (route?.points ?? [])),
+    [editing, editor.points, route],
+  );
+  const shownSelected = editing ? editor.selected : null;
+  const latest = useRef({ data: routeToGeoJSON(shownPoints, shownSelected), editing });
+  useEffect(() => {
+    latest.current = { data: routeToGeoJSON(shownPoints, shownSelected), editing };
+  }, [shownPoints, shownSelected, editing]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container || !supported) return;
-    const map = new MapLibreMap({
+    const bounds = routeBounds(initialRoute?.points ?? []);
+    const created = new MapLibreMap({
       container,
       style: MAP_STYLES[initialTheme],
-      center: DEFAULT_VIEW.center,
-      zoom: DEFAULT_VIEW.zoom,
+      ...(bounds
+        ? { bounds, fitBoundsOptions: { padding: 48, maxZoom: 17 } }
+        : { center: DEFAULT_VIEW.center, zoom: DEFAULT_VIEW.zoom }),
       // Keep the attribution (a licence obligation) but folded behind a small "i" button.
       attributionControl: { compact: true },
       // Rotation by two-finger twist stays; tilting the camera has no use for a flat route map.
       pitchWithRotate: false,
       dragRotate: false,
     });
-    mapRef.current = map;
-    map.touchZoomRotate.disableRotation();
-    map.on("load", () => setReady(true));
+    mapRef.current = created;
+    created.touchZoomRotate.disableRotation();
+    // Every style load (the first one, and after a theme switch) needs the route layers again.
+    created.on("style.load", () =>
+      addRouteLayers(created, latest.current.data, latest.current.editing),
+    );
+    created.on("load", () => setMap(created));
     // A style that cannot be fetched (provider down, offline) leaves an empty map: say so.
-    map.on("error", () => {
-      if (!map.isStyleLoaded()) setStyleFailed(true);
+    created.on("error", () => {
+      if (!created.isStyleLoaded()) setStyleFailed(true);
     });
     return () => {
       meRef.current?.remove();
       meRef.current = null;
-      map.remove();
+      created.remove();
       mapRef.current = null;
+      setMap(null);
     };
-  }, [supported, initialTheme]);
+  }, [supported, initialTheme, initialRoute]);
 
   // Follow the app theme without recreating the map (keeps the position and zoom).
   const appliedTheme = useRef(initialTheme);
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || appliedTheme.current === theme) return;
+    const instance = mapRef.current;
+    if (!instance || appliedTheme.current === theme) return;
     appliedTheme.current = theme;
-    map.setStyle(MAP_STYLES[theme]);
+    instance.setStyle(MAP_STYLES[theme]);
   }, [theme]);
 
+  // Keep the map in step with the route being shown or edited.
+  useEffect(() => {
+    if (!map) return;
+    setRouteData(map, routeToGeoJSON(shownPoints, shownSelected));
+  }, [map, shownPoints, shownSelected]);
+  useEffect(() => {
+    if (map) setRouteEditing(map, editing);
+  }, [map, editing]);
+
+  useRouteEditing(map, editing, dispatch);
+
+  const startEditing = () => {
+    dispatch({ type: "reset", points: route?.points ?? [] });
+    setBaseId(route?.id ?? null);
+    setSaveError(null);
+    setConfirmingDiscard(false);
+    setEditing(true);
+  };
+  const stopEditing = () => {
+    setEditing(false);
+    setConfirmingDiscard(false);
+    setSaveError(null);
+  };
+  const save = () => {
+    setSaveError(null);
+    startSaving(async () => {
+      const result = await saveMapRoute(editor.points, baseId);
+      if (result.status === "success") {
+        // The page re-renders with the new route (the action revalidates it).
+        stopEditing();
+      } else {
+        setSaveError({ message: result.message, stale: result.code === "stale" });
+      }
+    });
+  };
+  const reload = () => {
+    stopEditing();
+    router.refresh();
+  };
+  const center = (): LngLat | null => {
+    const at = map?.getCenter();
+    return at ? [at.lng, at.lat] : null;
+  };
+
   const locateMe = () => {
-    const map = mapRef.current;
     if (!map || !("geolocation" in navigator)) {
       setLocate("unavailable");
       return;
@@ -138,7 +230,62 @@ export default function MapView() {
         </div>
       )}
 
-      <div className="pointer-events-none absolute inset-x-3 bottom-8 z-10 flex flex-col items-end gap-2">
+      {ready && !editing && (
+        <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-start justify-between gap-2">
+          {canEditRoute ? (
+            <button
+              type="button"
+              onClick={startEditing}
+              className="btn btn-sm pointer-events-auto gap-2 border border-line-strong bg-background/90 shadow-lg backdrop-blur"
+            >
+              <PencilIcon className="h-4 w-4" />
+              Modifier le tracé
+            </button>
+          ) : (
+            <span />
+          )}
+          {!route && (
+            <p className="chip pointer-events-auto bg-background/90 text-muted shadow backdrop-blur">
+              Pas encore de tracé
+            </p>
+          )}
+        </div>
+      )}
+
+      {editing && (
+        <RouteToolbar
+          pointCount={editor.points.length}
+          hasSelection={editor.selected !== null}
+          canUndo={editor.past.length > 0}
+          canRedo={editor.future.length > 0}
+          canSave={canSave(editor)}
+          dirty={isDirty(editor)}
+          saving={saving}
+          error={saveError}
+          confirmingDiscard={confirmingDiscard}
+          onClose={stopEditing}
+          onSave={save}
+          onAdd={() => {
+            const at = center();
+            if (at) dispatch({ type: "add", point: at });
+          }}
+          onMoveHere={() => {
+            const at = center();
+            if (at) dispatch({ type: "moveSelectedTo", point: at });
+          }}
+          onDelete={() => dispatch({ type: "removeSelected" })}
+          onUndo={() => dispatch({ type: "undo" })}
+          onRedo={() => dispatch({ type: "redo" })}
+          onConfirmDiscard={setConfirmingDiscard}
+          onReload={reload}
+        />
+      )}
+
+      <div
+        className={`pointer-events-none absolute inset-x-3 z-10 flex flex-col items-end gap-2 ${
+          editing ? "bottom-60" : "bottom-8"
+        }`}
+      >
         {(locate === "denied" || locate === "unavailable") && (
           <p role="status" className="alert alert-error pointer-events-auto max-w-xs text-xs">
             {LOCATE_MESSAGES[locate]}

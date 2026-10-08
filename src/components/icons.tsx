@@ -105,3 +105,42 @@ export function WrenchIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** Counter-clockwise arrow: undo. */
+export function UndoIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M9 14 4 9l5-5" />
+      <path d="M4 9h10a6 6 0 0 1 0 12h-3" />
+    </Icon>
+  );
+}
+
+/** Clockwise arrow: redo. */
+export function RedoIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m15 14 5-5-5-5" />
+      <path d="M20 9H10a6 6 0 0 0 0 12h3" />
+    </Icon>
+  );
+}
+
+/** Pencil: edit. */
+export function PencilIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+      <path d="m13.5 6.5 4 4" />
+    </Icon>
+  );
+}
+
+/** Cross: close. */
+export function CloseIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m6 6 12 12M18 6 6 18" />
+    </Icon>
+  );
+}
