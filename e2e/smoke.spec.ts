@@ -249,11 +249,12 @@ test.describe("app shell", () => {
     await expect(page.getByRole("heading", { name: "Inscription" })).toBeVisible();
   });
 
-  test("the login page shows a disabled Google button and a working Guest mode", async ({
-    page,
-  }) => {
+  test("the login page links to Google sign-in and has a working Guest mode", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByRole("button", { name: /Continuer avec Google/ })).toBeDisabled();
+    await expect(page.getByRole("link", { name: /Continuer avec Google/ })).toHaveAttribute(
+      "href",
+      "/auth/login/google",
+    );
     await page.getByRole("link", { name: /invité/ }).click();
     await page.waitForURL((url) => url.pathname === "/");
     await expect(page.getByRole("heading", { level: 1, name: "Accueil" })).toBeVisible();
