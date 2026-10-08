@@ -129,3 +129,32 @@ de 25 ms de CPU par rendu faite lors de l'audit.
 | 5 écrans enchaînés | 30 requêtes, 8 SQL | 23 requêtes, 2 SQL, 1 navigation serveur |
 | 10 rechargements de l'accueil | 113 requêtes, 20 SQL | 86–90 requêtes, 0 SQL (à chaud) |
 | Liste admin | 35 requêtes | 24 requêtes |
+
+## Page calendrier (PR 6)
+
+Audit de `/calendar` : la lecture en base était déjà minimale (une requête par mois, partagée par le cache de 30 s,
+index `events_starts_at_idx`). Les coûts restants étaient ailleurs.
+
+| Problème trouvé | Correction |
+|---|---|
+| **Chaque tap sur un jour = une navigation serveur** (un rendu de la page + une requête réseau), alors que les événements du mois sont déjà chargés | `MonthView` (client) reçoit tous les événements du mois en un seul envoi ; le jour sélectionné est un état client et l'URL est tenue à jour avec `history.replaceState` (reste partageable). Sans JavaScript, les jours restent des liens et le serveur rend le jour demandé |
+| **`Intl.DateTimeFormat` reconstruit à chaque conversion** (`zonedFields` : 2 fois par `zonedToUtc`, 1 fois par événement, 1 à 2 fois par case de la grille) : environ 100 µs la construction | Formateur construit une seule fois au chargement du module |
+| Liens des événements du jour préchargés par défaut (une requête de préchargement par ligne) | `prefetch={false}`, conformément à la règle ci-dessus |
+| Regroupement par jour en O(n²) (`[...liste, x]` à chaque événement) | `push` dans un tableau par jour |
+| Le client recevait des horodatages bruts et refaisait le travail de fuseau horaire | Le serveur regroupe par jour et formate la plage horaire ; le client ne reçoit que `id`, `title`, `location`, `time`, `finished` |
+
+Mesures (build de production, Pixel 7 émulé, sans base de données : les événements sont vides, ce qui ne change pas
+le nombre de requêtes) :
+
+| Mesure | Avant | Après |
+|---|---|---|
+| Requêtes serveur pour 5 taps sur des jours différents | **5** (un rendu chacune, `?_rsc=`) | **0** |
+| CPU d'un rendu de mois (42 cases + 100 événements, micro-banc) | **23,1 ms** | **1,4 ms** |
+| Lectures en base par affichage du mois | 1 (cache partagé) | 1 (inchangé) |
+
+Le micro-banc mesure la logique de dates seule (hors React) ; il a mis en évidence que la page du calendrier
+dépassait à elle seule le budget de CPU par page (≈ 14 ms, voir plus haut).
+
+**Choix non retenu** : charger trois mois d'un coup pour rendre aussi les flèches « mois précédent / suivant »
+instantanées. Chaque visite enverrait trois fois plus de données pour économiser une requête à ceux qui changent de
+mois ; le cache du routeur (30 s) et le cache partagé rendent déjà ce changement bon marché.

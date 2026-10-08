@@ -112,6 +112,22 @@ test.describe("app shell", () => {
     await expect(page.getByRole("grid")).toBeVisible();
   });
 
+  test("picking another day in the calendar costs no request to the server", async ({ page }) => {
+    await page.goto("/calendar?month=2026-10&day=2026-10-07");
+    await expect(page.getByRole("grid")).toBeVisible();
+    // Wait for hydration: the grid cells only switch day client-side once it is done.
+    await page.waitForLoadState("networkidle");
+
+    const requests: string[] = [];
+    page.on("request", (request) => requests.push(request.url()));
+    await page.getByRole("gridcell", { name: /^jeudi 8 octobre 2026/ }).click();
+    await expect(page.getByRole("heading", { name: "jeudi 8 octobre 2026" })).toBeVisible();
+    await page.getByRole("gridcell", { name: /^vendredi 9 octobre 2026/ }).click();
+    await expect(page.getByRole("heading", { name: "vendredi 9 octobre 2026" })).toBeVisible();
+    expect(page.url()).toContain("day=2026-10-09");
+    expect(requests).toEqual([]);
+  });
+
   test("Guests do not get event creation controls", async ({ page }) => {
     await page.goto("/calendar");
     await expect(page.getByRole("grid")).toBeVisible();
