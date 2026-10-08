@@ -8,6 +8,7 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build(deps)"
+    labels: ["dependencies", "type: build"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
@@ -17,3 +18,4 @@ updates:
       interval: weekly
     commit-message:
       prefix: "ci(deps)"
+    labels: ["github_actions", "type: ci"]

@@ -1,0 +1,33 @@
+name: Sync labels
+
+# Applies .github/labels.yml to the repository labels. Nothing is ever deleted.
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/labels.yml
+      - .github/scripts/sync-labels.sh
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: labels-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync labels
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: bash .github/scripts/sync-labels.sh

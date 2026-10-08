@@ -10,3 +10,5 @@ skills-lock.json
 coverage
 playwright-report
 test-results
+# One label per line on purpose: easier to read and diff than prettier's expanded form.
+.github/labels.yml
