@@ -1,26 +1,11 @@
 import Image from "next/image";
 import { Suspense } from "react";
 import { DiscordButton } from "@/features/auth/discord-button";
+import { LoginError } from "@/features/auth/login-error";
 import { GoogleButton } from "@/features/auth/google-button";
 import { GuestLink } from "@/features/auth/guest-link";
 
-const ERRORS: Record<string, string> = {
-  oauth_start: "Impossible de démarrer la connexion. Réessaie.",
-  oauth_callback: "La connexion a échoué. Réessaie.",
-};
-
-async function LoginError({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
-  const message = error ? ERRORS[error] : undefined;
-  if (!message) return null;
-  return (
-    <p role="alert" className="alert alert-error">
-      {message}
-    </p>
-  );
-}
-
-export default function LoginPage({ searchParams }: PageProps<"/login">) {
+export default function LoginPage() {
   return (
     <div className="flex w-full max-w-sm flex-col gap-8">
       <header className="flex flex-col items-center gap-3 text-center">
@@ -38,7 +23,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
       </header>
 
       <Suspense>
-        <LoginError searchParams={searchParams as Promise<{ error?: string }>} />
+        <LoginError />
       </Suspense>
 
       <div className="flex flex-col gap-3">

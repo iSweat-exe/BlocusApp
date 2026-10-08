@@ -10,7 +10,6 @@ const deleteFn = vi.fn();
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
 const updateTag = vi.fn();
 vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn(),
   updateTag: (...args: unknown[]) => updateTag(...args),
 }));
 vi.mock("@/server/require-permission", () => ({

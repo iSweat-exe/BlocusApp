@@ -66,18 +66,78 @@ alors tout seul en `Authorization: Bearer …` à ses crons et la route refuse t
 dans Vercel → Settings → Cron Jobs que la tâche apparaît et que sa dernière exécution renvoie 200. L'offre Hobby
 autorise un cron par jour.
 
-## Durée de vie du jeton (JWT) : 15 minutes
+## Durée de vie du jeton (JWT) : 1 heure
 
 Le JWT porte le rôle et les permissions (`custom_access_token_hook`). Il est renouvelé automatiquement par
-`src/proxy.ts` ; sa durée de vie fixe le délai maximal avant qu'un changement de rôle, de permission ou un
-bannissement soit visible dans l'interface (les actions sensibles vérifient de toute façon en base).
+`src/proxy.ts`. Sa durée de vie est de **1 heure** (valeur par défaut de Supabase) : elle fixe le délai maximal avant
+qu'une sanction qui **expire toute seule** (mute ou bannissement temporaire arrivé à échéance) soit visible dans
+l'interface. Tout le reste est pris en compte à la requête suivante : les changements de rôle, de permission et les
+sanctions passent par `permission_epoch` (`docs/permissions.md`), un bannissement supprime la session, et les actions
+sensibles vérifient de toute façon en base (`fresh`).
 
-- Local : `jwt_expiry = 900` dans `supabase/config.toml` (déjà fait).
-- **Projet hébergé (à régler à la main)** : tableau de bord Supabase, réglage « JWT expiry » du projet
-  (Authentication → Sessions, ou Project Settings → API / JWT Keys selon la version du tableau de bord) :
-  mettre **900** secondes (valeur par défaut : 3600). Les utilisateurs déjà connectés reçoivent la nouvelle durée à
-  leur prochain renouvellement. Coût : un renouvellement de jeton par utilisateur actif et par quart d'heure (appel à
-  Supabase Auth et ~5 requêtes du hook), négligeable pour ~200 utilisateurs simultanés.
+Pourquoi pas 15 minutes (valeur utilisée avant) : chaque utilisateur actif renouvelait son jeton 4 fois plus
+souvent, et **tous les renouvellements partent des adresses IP de Vercel** : la limite de Supabase Auth
+(150 renouvellements par tranche de 5 minutes et par IP, par défaut) est alors atteinte plus vite, et un refus (429)
+déconnecte l'utilisateur dont le jeton vient d'expirer. Chaque renouvellement écrit aussi 2 lignes dans le journal
+d'audit d'Auth (voir plus bas) et renvoie l'objet utilisateur complet (egress).
+
+- Local : `jwt_expiry = 3600` dans `supabase/config.toml`.
+- **Projet hébergé (à vérifier à la main)** : tableau de bord Supabase, réglage « JWT expiry » (Authentication →
+  Sessions, ou Project Settings → API / JWT Keys selon la version) : mettre **3600** secondes. Si le projet avait été
+  réglé à 900, les utilisateurs déjà connectés reçoivent la nouvelle durée à leur prochain renouvellement.
+
+## Journal d'audit de Supabase Auth : ne pas l'écrire en base
+
+Depuis 2025, Supabase Auth écrit **2 lignes par renouvellement de jeton** (`token_refreshed` et `token_revoked`) dans
+`auth.audit_log_entries`, une table que rien ne purge. À 1000 utilisateurs actifs, cela représente des millions de
+lignes par an : le quota de **500 Mo** de la base gratuite serait atteint en 4 à 8 mois, alors que toutes les tables de
+l'application ensemble restent sous 20 Mo par an.
+
+**À faire une fois sur le projet hébergé** : tableau de bord Supabase → Authentication → Audit Logs → activer
+« Disable writing auth audit logs to the project database ». Les journaux restent consultables dans le tableau de bord
+(Logs Explorer), seul l'accès en SQL à cet historique est perdu. Contrôler ensuite la taille avec :
+
+```sql
+select relname, pg_size_pretty(pg_total_relation_size(c.oid))
+from pg_class c join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'auth' order by pg_total_relation_size(c.oid) desc limit 5;
+```
+
+Si la table `auth.audit_log_entries` est déjà volumineuse, elle peut être vidée depuis l'éditeur SQL du tableau de
+bord (`truncate auth.audit_log_entries;`) : c'est un journal, pas une donnée de l'application. Le journal d'audit de
+l'application (`audit_logs`) est distinct et n'est pas concerné.
+
+## Région des fonctions Vercel
+
+`vercel.json` fixe `"regions": ["dub1"]` (Dublin) : le projet Supabase est à **Irlande (eu-west-1)**. Sans cela, les
+fonctions tournent par défaut à Washington (`iad1`) : chaque lecture en base, renouvellement de jeton ou lecture de
+l'epoch ajoutait ~90 ms d'aller-retour transatlantique à la durée de la fonction (durée comptée en mémoire
+provisionnée) et à la latence perçue. Si le projet Supabase est un jour recréé dans une autre région, changer cette
+valeur (une seule région est autorisée sur l'offre Hobby).
+
+## Contrôle des quotas (une semaine après l'ouverture, puis chaque mois) (A-114)
+
+Les chiffres de `docs/performance.md` sont des **estimations** (600 000 pages par mois). À comparer aux vrais :
+
+| Où | Quoi lire | Attendu (alerte si > 70 % du quota) |
+|---|---|---|
+| Vercel → Usage → Edge Requests, par chemin | requêtes par jour × 30 | < 1 M. Beaucoup de `/_vercel/insights` : revoir `ANALYTICS_SAMPLE_RATE` |
+| Vercel → Usage → Function Invocations, par fonction | `/_middleware` (le `proxy`) et les pages | < 1 M au total. Le `proxy` ne doit compter que les connectés |
+| Vercel → Usage → Fast Origin Transfer | Go du mois | < 10 Go (≈ 13 Ko par ouverture d'app) |
+| Vercel → Usage → Active CPU | heures du mois | < 4 h (≈ 14 ms par page rendue) |
+| Vercel → Analytics | événements | < 50 000 (5 % des navigateurs) |
+| Supabase → Reports / Usage | Database size, Egress, MAU | < 500 Mo (≈ 28 Mo au départ), < 5 Go, < 50 000 |
+| Supabase → Authentication → Logs | erreurs 429 | aucune : sinon revoir la durée du jeton |
+
+Mesure de la taille des tables après quelques semaines :
+
+```sql
+select schemaname, relname, pg_size_pretty(pg_total_relation_size(relid)) as size
+from pg_stat_user_tables order by pg_total_relation_size(relid) desc limit 10;
+```
+
+Si un quota approche : agir d'abord sur le plus gros consommateur de la liste ci-dessus (voir les leviers dans
+`docs/performance.md`) ; sur Hobby un dépassement **met le projet en pause** (jusqu'à 30 jours), il n'est pas facturé.
 
 ## Déploiement (O-035)
 

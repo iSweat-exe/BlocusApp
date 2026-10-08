@@ -154,3 +154,13 @@ export function PinIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** Circular arrow: refresh. */
+export function RefreshIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M20 12a8 8 0 1 1-2.3-5.7" />
+      <path d="M20 4v4.5h-4.5" />
+    </Icon>
+  );
+}

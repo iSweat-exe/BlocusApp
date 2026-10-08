@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { revalidatePath, updateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/require-permission";
 import { type AnnouncementFieldErrors, validateAnnouncementInput } from "./schema";
@@ -44,7 +44,6 @@ export async function publishAnnouncement(
   if (error) return { status: "error", message: "La publication a échoué. Réessaie." };
 
   updateTag("announcements");
-  revalidatePath("/");
   return { status: "success", message: "Annonce publiée." };
 }
 
@@ -71,5 +70,4 @@ export async function deleteAnnouncement(formData: FormData): Promise<void> {
   }
 
   updateTag("announcements");
-  revalidatePath("/");
 }

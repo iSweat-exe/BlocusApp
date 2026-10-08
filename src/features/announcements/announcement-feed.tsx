@@ -12,7 +12,7 @@ import { DeleteAnnouncementButton } from "./delete-announcement-button";
 export async function AnnouncementFeed({ limit }: { limit: number }) {
   // The shared cache holds data that does not depend on the request, so Next.js would run it while building the
   // page (stale announcements baked into the shell, and a failing build when the database is unreachable).
-  // Reading at request time keeps the data fresh: it is still cached for 30 s across visitors.
+  // Reading at request time keeps the data fresh: it is still cached for 2 min across visitors.
   await connection();
   const [result, session] = await Promise.all([
     listAnnouncements(limit + 1),

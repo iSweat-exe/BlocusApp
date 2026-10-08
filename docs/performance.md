@@ -26,15 +26,15 @@ compte plus que raccourcir une requête SQL.
 - **Fichiers statiques** : `/icons/*` est servi avec `Cache-Control: public, max-age=86400,
   stale-while-revalidate=604800` (par défaut un fichier de `public/` est revalidé à chaque chargement).
 
-- **Cache partagé des données publiques** (`'use cache'`, profil `feed` : revalider à 30 s, expirer à 5 min,
-  défini dans `next.config.ts`) : annonces, événements d'une plage de dates, détail d'un événement, événements
+- **Cache partagé des données publiques** (`'use cache'`, profil `feed` : revalider à 2 min, expirer à 10 min,
+  défini dans `next.config.ts` ; profil `live` à 30 s pour la position déclarée sur la carte) : annonces, événements d'une plage de dates, détail d'un événement, événements
   imminents (`src/lib/data/announcements.ts`, `src/lib/data/events.ts`). Ces lectures passent par un client Supabase
   **sans cookies** (`src/lib/supabase/public.ts`, rôle `anon`) : le résultat ne dépend donc pas de qui demande et peut
   être partagé. **Règles** : (1) n'y mettre que ce que `anon` peut lire avec le même résultat que pour un connecté ;
   jamais de permissions, de profil, de liste d'admin ; (2) une erreur est **levée** dans la fonction en cache puis
   convertie en `Result` à l'extérieur (une erreur ne doit pas être mise en cache) ; (3) toute écriture appelle
   `updateTag('announcements' | 'events')` dans sa Server Action (l'auteur voit son changement tout de suite, les autres
-  au plus 30 s plus tard) ; (4) appeler `await connection()` **avant** une lecture en cache indépendante de la requête,
+  au plus 2 min plus tard, ou tout de suite avec le bouton « Actualiser ») ; (4) appeler `await connection()` **avant** une lecture en cache indépendante de la requête,
   sinon Next.js l'exécute pendant le build : annonces figées dans la page, et build en échec si la base est
   injoignable (c'est ce qu'a révélé la CI avec une URL Supabase factice).
 - **Événements imminents** : la fenêtre est ancrée au début de la minute courante, donc tous les visiteurs d'une même
@@ -42,9 +42,9 @@ compte plus que raccourcir une requête SQL.
 
 - **Fraîcheur sans sondage** : `RefreshOnReturn` (`src/components/refresh-on-return.tsx`, monté dans
   `(app)/layout.tsx`) appelle `router.refresh()` quand l'utilisateur **revient** sur l'app (onglet ou PWA de nouveau
-  visible, page restaurée du cache avant/arrière, réseau retrouvé), **au plus une fois toutes les 30 s**. Aucune
+  visible, page restaurée du cache avant/arrière, réseau retrouvé), après **≥ 2 min d'absence** (voir le lot 1). Aucune
   minuterie réseau : une app que personne ne regarde ne coûte rien. Les données rafraîchies viennent du cache partagé
-  (≤ 30 s), donc le rafraîchissement ne multiplie pas les lectures en base. **Pas de Realtime** (quota gratuit de ~200
+  (≤ 2 min), donc le rafraîchissement ne multiplie pas les lectures en base. **Pas de Realtime** (quota gratuit de ~200
   connexions = notre pic) et **pas de polling** (1000 utilisateurs × une requête toutes les 3 min dépasseraient le quota
   de requêtes edge).
 - **Cache du routeur client** : `experimental.staleTimes.dynamic = 30` (`next.config.ts`) : revenir sur une page vue
@@ -53,11 +53,12 @@ compte plus que raccourcir une requête SQL.
 - **Encart « événement imminent »** : le serveur envoie les événements ouverts des **3 prochaines heures**
   (`IMMINENT_FETCH_MINUTES`) et le navigateur ne montre que ceux de la fenêtre de 30 minutes (3 au maximum) : un
   événement devient imminent **sans rechargement**.
-- **Durée de vie du jeton : 15 min** (`jwt_expiry = 900`, voir `docs/runbook.md`) : rôles, permissions et
-  bannissements portés par le JWT se mettent à jour en ≤ 15 min au lieu de 1 h, **et immédiatement à la requête suivante**
-  grâce à `permission_epoch` (`docs/permissions.md` : au plus une lecture en base toutes les 10 s par instance, aucune
-  requête de plus pour le visiteur). Les actions sensibles vérifient de
-  toute façon en base (`fresh`).
+- **Durée de vie du jeton : 1 h** (`jwt_expiry = 3600`, voir `docs/runbook.md`) : un jeton de 15 min faisait renouveler
+  chaque utilisateur actif 4 fois plus souvent, tous depuis les adresses IP de Vercel (limite Supabase Auth ≈ 150
+  renouvellements par tranche de 5 min et par IP, un refus déconnecte). Rôles, permissions et sanctions sont pris en
+  compte **à la requête suivante** grâce à `permission_epoch` (`docs/permissions.md` : au plus une lecture en base toutes
+  les 10 s par instance, aucune requête de plus pour le visiteur) ; seule une sanction qui expire toute seule peut
+  rester visible jusqu'à 1 h. Les actions sensibles vérifient de toute façon en base (`fresh`).
 
 - **Annonces paginées** : 10 au départ, « Voir plus d'annonces » en ajoute 10 (`/?n=20`, …), plafond de **50** (une
   note l'indique). `n` est arrondi au multiple de 10 (peu de valeurs distinctes : le cache partagé reste petit) et
@@ -66,6 +67,68 @@ compte plus que raccourcir une requête SQL.
 - **Keep-alive** : `/api/keep-alive` (une lecture d'une ligne) appelé chaque jour à 6 h UTC par Vercel Cron
   (`vercel.json`) pour que le projet Supabase gratuit ne soit jamais mis en pause après 7 jours sans activité. Si
   `CRON_SECRET` est défini, tout autre appelant reçoit 401. Exclu du `proxy`.
+
+## Quotas Vercel Hobby et Supabase Free : lot 1 (PR « optimisation des quotas »)
+
+Audit fait avant l'ouverture au public (estimation à ~600 000 pages par mois ; **à confirmer dans Vercel → Usage et
+Supabase → Usage une semaine après l'ouverture**). Quotas à connaître (à revérifier) : Vercel Hobby = 1 M requêtes
+edge, 1 M invocations de fonctions, 4 h de CPU actif, 100 Go de transfert **et ~10 Go de transfert depuis le
+serveur (« Fast Origin Transfer »)**, 50 000 événements Web Analytics ; Supabase Free = 500 Mo de base, 5 Go d'egress,
+Auth limité par IP. Sur Hobby rien n'est facturé : un quota dépassé **met le projet en pause** (jusqu'à 30 jours).
+
+| Problème trouvé | Correction | Quota |
+|---|---|---|
+| `src/proxy.ts` est une fonction Node distincte, invoquée pour **chaque** requête : document, navigation, préchargement (`.rsc`), Server Action, et aussi pour les invités qui n'ont rien à rafraîchir | `matcher` à objets : seulement avec un cookie de session (`blocus-auth` ou `blocus-auth.0`, nom fixé dans `src/lib/supabase/cookie.ts` au lieu de `sb-<ref>-auth-token`), jamais pour un préchargement (en-têtes `next-router-prefetch` et `purpose: prefetch`), ni pour `robots.txt` et `sitemap.xml`. Un préchargement d'une coque statique est alors servi par le CDN sans fonction | Invocations (÷ 2 à 3 estimé) |
+| `<Analytics />` envoie un événement par vue (≈ 600 000 contre 50 000 inclus : collecte coupée après ~2,5 jours), chacun étant aussi une requête edge | `SampledAnalytics` : 5 % des navigateurs (tirage mémorisé), `ANALYTICS_SAMPLE_RATE` | Analytics, requêtes edge |
+| `RefreshOnReturn` relançait un rendu complet à chaque retour sur l'app après 30 s de vie de la page, même après 2 s d'absence | Rafraîchit seulement si l'app est restée **cachée ≥ 2 min** (`MIN_AWAY_MS`) ; une navigation remet l'âge de la page à zéro | Invocations, CPU, transfert |
+| Jeton de 15 min : renouvellements ×4 | 1 h (voir plus haut) | Auth, base |
+| `auth.audit_log_entries` : 2 lignes par renouvellement, jamais purgées (500 Mo atteints en 4 à 8 mois) | Réglage du tableau de bord (`docs/runbook.md`) | **Taille de la base** |
+| Fonctions Vercel à Washington, base en Irlande | `"regions": ["dub1"]` dans `vercel.json` | Durée des fonctions, latence |
+| `revalidatePath` en plus de `updateTag` : `updateTag` purge déjà le cache du routeur et rend la page de nouveau ; `revalidatePath` régénérait en plus une coque statique sans données | `updateTag` seul dans les actions annonces, calendrier et carte (admin : inchangé, ses données ne sont pas en cache partagé) | Invocations, écritures ISR |
+| Geist Mono préchargée sur toutes les pages (52 Ko) alors que quatre écrans l'utilisent ; deux logos de 168 Ko servis depuis `public/` | `preload: false` ; logos déplacés dans `design/` (sources des icônes) | Transfert |
+
+
+## Quotas Vercel Hobby et Supabase Free : lot 2 (poids des pages, cache, actualisation manuelle)
+
+**Mesures** (build de production, Pixel 7 émulé, faux serveur de données avec 60 annonces de ~600 caractères et 40
+événements, textes variés donc compressibles comme du vrai texte ; `curl`/CDP, octets réellement transférés, donc
+compressés) :
+
+| Mesure | Résultat |
+|---|---|
+| Document de l'accueil (10 annonces / 50 annonces, plafond) | **15 Ko** / 32 Ko (59 Ko / 160 Ko non compressés) |
+| Document du calendrier, de la carte, des réglages, de la connexion (statique, servie par le CDN) | 11 Ko, 9 Ko, 11 Ko, 4,6 Ko |
+| Coque statique de l'accueil servie par le CDN (`.next/server/app/index.html`) | 6,6 Ko brut, ≈ 2 Ko compressés : le reste du document (≈ 13 Ko) est la partie dynamique, envoyée par la fonction |
+| Les quatre préchargements des onglets au chargement | 4 requêtes, 7 Ko au total |
+| Fichiers JS et CSS au premier chargement (puis cache du navigateur, immuables) | 16 fichiers, 212 Ko |
+| Enchaînement d'onglets (accueil → calendrier → carte → réglages → accueil → calendrier → accueil) | **0 requête vers le serveur** pour les pages déjà préchargées, hors fichiers JS de la page (la carte : 296 Ko une fois) |
+
+Conclusion : **le chargement d'une page par navigation dans l'app est gratuit** (préchargement + cache du routeur) ;
+seuls comptent les ouvertures de l'app (document ≈ 11 à 15 Ko, dont ≈ 13 Ko viennent de la fonction). Même à
+600 000 documents par mois, cela fait ≈ 9 Go de transfert au total et au plus ≈ 8 Go depuis le serveur (Fast
+Origin Transfer, ~10 Go inclus), contre les 12 à 40 Go de l'estimation initiale, qui supposait un rendu serveur à
+chaque écran. Le plafond théorique tient donc, mais avec peu de marge : **à vérifier dans Vercel → Usage une semaine
+après l'ouverture**. **Aucune réduction de la charge utile n'est donc nécessaire** : l'idée « extrait dans la liste, texte
+complet au détail » est écartée (elle ajouterait un écran et des requêtes pour économiser quelques Ko).
+
+| Changement | Effet |
+|---|---|
+| Cache partagé `feed` : revalidation 30 s → **2 min** (expiration 5 → 10 min). La position de la carte garde 30 s (profil `live`) : elle doit rester fraîche pendant une manifestation | Lectures en base et sortie de données (egress) de Supabase divisées par ~4 : le cache est **par instance** Vercel, donc chaque instance chaude relisait chaque donnée toutes les 30 s |
+| **Bouton « Actualiser »** dans l'en-tête (`RefreshButton`, action `refreshPublicData`) : expire les étiquettes publiques (`PUBLIC_DATA_TAGS`) puis rend la page de nouveau, l'icône tourne pendant ce temps. Limité à **une expiration par 10 s et par instance** : plusieurs appuis rapprochés ne font que re-rendre la page | Contrepartie de la fraîcheur à 2 min : tout le monde peut avoir les dernières données tout de suite. Vérifié sur le build : appui 1 = 1 lecture des annonces et des événements, appui 2 (< 10 s) = 0 lecture, appui 3 (> 10 s) = 1 lecture |
+| `/login` **entièrement statique** : le message d'erreur est lu côté navigateur (`LoginError`, `useSearchParams`) au lieu de `searchParams` côté serveur | La page de connexion est servie par le CDN sans invocation (`○` dans le résumé du build, `x-nextjs-prerender: 1`) |
+
+**Choix non retenus** : (1) accueil des invités servi par le CDN (en-tête et fil dans la coque statique) : le public
+visé est connecté, un invité ne coûte qu'une invocation par ouverture, et le gain ne justifie pas un refactor de
+l'en-tête et du fil ; à reconsidérer si les mesures de production montrent beaucoup d'invités. (2) `staleTimes.dynamic`
+à 120 s : la carte doit rester vivante (position déclarée) et le cache de 30 s suffit puisque le préchargement rend
+déjà les changements d'onglet gratuits.
+
+## Quotas Vercel Hobby et Supabase Free : lot 3 (hygiène de la base)
+
+| Sujet | Décision |
+|---|---|
+| Journal d'audit de la carte : une ligne par position déclarée ou tracé enregistré, sans purge (50 à 80 Mo par an) | Migration `20261008230000_prune_map_audit.sql` : entrées `map.*` de plus de 90 jours supprimées par un trigger, 500 lignes au plus par insertion, **sans `pg_cron`** (voir `docs/database.md`). Toutes les tables de l'application ensemble restent sous 20 Mo par an : avec le journal d'audit d'Auth désactivé (lot 1), la base n'approche pas 500 Mo |
+| Bouton Discord : un appel à Supabase Auth par affichage de `/login` | **Laissé tel quel.** Une vue de `/login` coûte une invocation et un appel Auth ; au rythme d'environ une connexion par utilisateur et par mois, cela fait de l'ordre de 1 000 invocations sur 1 M (0,1 %), alors que résoudre l'adresse au toucher risque de casser l'ouverture directe de l'application Discord sur mobile (la navigation doit partir du geste de l'utilisateur) |
 
 ## Mesures (Supabase local, build de production, Pixel 7 émulé, 60 utilisateurs, 15 annonces, 20 événements)
 
@@ -140,7 +203,7 @@ page ne le télécharge, et le style, les tuiles, les polices et les pictogramme
 vers notre serveur ni notre base pour la carte de fond). Le worker (`maplibre-gl-worker.mjs`, 508 Ko non compressé)
 est un fichier statique mis en cache par le navigateur.
 
-Le tracé de la carte suit la règle des données publiques : lecture sans cookie mise en cache 30 s (une requête, au plus
+Le tracé de la carte suit la règle des données publiques : lecture sans cookie mise en cache 2 min (une requête, au plus
 500 points, soit quelques dizaines de Ko dans le pire cas), invalidée par `updateTag('map-route')` à chaque sauvegarde.
 
 ## Page calendrier (PR 6)

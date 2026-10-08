@@ -18,7 +18,7 @@ export const EVENTS_PER_VIEW = 500;
 
 const message = (cause: unknown) => (cause instanceof Error ? cause.message : "unknown error");
 
-// Events are public (RLS lets `anon` read them), so every read below is cached once for everybody for 30 s
+// Events are public (RLS lets `anon` read them), so every read below is cached once for everybody for 2 min
 // ("feed" profile). Creating, editing, finishing or deleting an event calls `updateTag("events")`. Failures
 // are thrown inside the cached functions, never returned: an error must not be cached.
 

@@ -23,11 +23,11 @@ export const POSITIONS_SHOWN = 20;
 const message = (cause: unknown) => (cause instanceof Error ? cause.message : "unknown error");
 
 // Declared positions are public (RLS lets `anon` read them), so the read is cached once for everybody for 30 s
-// ("feed" profile) and invalidated by `updateTag("map-positions")` on every declaration. Failures are thrown
+// ("live" profile: the position of a demonstration must stay fresh) and invalidated by `updateTag("map-positions")` on every declaration. Failures are thrown
 // inside the cached function, never returned: an error must not be cached.
 async function fetchPositions(): Promise<StoredMapPosition[]> {
   "use cache";
-  cacheLife("feed");
+  cacheLife("live");
   cacheTag("map-positions");
 
   const { data, error } = await createPublicClient()
