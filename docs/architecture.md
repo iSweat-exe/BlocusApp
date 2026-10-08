@@ -114,7 +114,7 @@ plus dans l'en-tête : elle se trouve sur `/profil`.** Les icônes sont des SVG 
 ## Fenêtre plein écran
 
 `src/components/full-screen-dialog.tsx` : un bouton qui ouvre une **feuille** (style modale native) couvrant l'écran
-sous la barre d'état : coins supérieurs arrondis, poignée, fond assombri, animation de montée, **fermeture en la
+sous la barre d'état : coins supérieurs arrondis, poignée, fond assombri, animation de montée **fluide** (Web Animations API lancée explicitement à l'ouverture, contenu monté avant que la feuille soit visible ; pas d'animation CSS dépendante du `display` du `<dialog>`, que Safari iOS saute quand la première frame est chargée) et animation de descente à la fermeture (bouton, zone assombrie, Échap, geste « retour » ; désactivées si `prefers-reduced-motion`), **fermeture en la
 glissant vers le bas** (depuis l'en-tête, ou depuis le contenu défilé tout en haut : `use-sheet-swipe.ts`, le même que
 la feuille du `Select`) ou en touchant la zone assombrie. `<dialog>` natif : piège du focus, Échap et geste « retour »
 Android pour fermer, focus restitué (le contenu reçoit le focus à l'ouverture, pas le bouton de fermeture) ;
