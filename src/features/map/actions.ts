@@ -129,3 +129,59 @@ export async function declareMapPosition(
   revalidatePath("/map");
   return { status: "success" };
 }
+
+/** Result of removing a declared position. */
+export type RemovePositionState =
+  | { status: "success" }
+  | {
+      status: "error";
+      code: "invalid" | "forbidden" | "unauthenticated" | "unknown" | "failed";
+      message: string;
+    };
+
+/**
+ * Removes a declared position that is no longer current. Allowed to the person who declared it (still holding
+ * `map.position.declare`) and to holders of `map.position.remove`: the database decides which, this action only
+ * checks that somebody is signed in and may act on the map at all.
+ */
+export async function removeMapPosition(id: unknown): Promise<RemovePositionState> {
+  const declare = await requirePermission("map.position.declare", { fresh: true });
+  if (!declare.ok) {
+    if (declare.error === "unauthenticated") {
+      return { status: "error", code: "unauthenticated", message: "Connecte-toi pour continuer." };
+    }
+    const remove = await requirePermission("map.position.remove", { fresh: true });
+    if (!remove.ok) {
+      return {
+        status: "error",
+        code: "forbidden",
+        message: "Tu n'as pas le droit de retirer cette position.",
+      };
+    }
+  }
+
+  if (typeof id !== "string" || !UUID.test(id)) {
+    return { status: "error", code: "invalid", message: "Position invalide." };
+  }
+
+  const supabase = createClient(await cookies());
+  const { error } = await supabase.rpc("remove_map_position", { p_id: id });
+  if (error) {
+    if (error.message === "forbidden") {
+      return {
+        status: "error",
+        code: "forbidden",
+        message:
+          "Seule la personne qui a déclaré cette position (ou un administrateur) peut la retirer.",
+      };
+    }
+    if (error.message === "unknown_position") {
+      return { status: "error", code: "unknown", message: "Cette position n'existe plus." };
+    }
+    return { status: "error", code: "failed", message: "Le retrait a échoué. Réessaie." };
+  }
+
+  updateTag("map-positions");
+  revalidatePath("/map");
+  return { status: "success" };
+}

@@ -142,6 +142,16 @@ les coordonnées, **refuse `rate_limited` (54000) si le même gérant a déjà d
 (anti-rafale), élague l'historique et journalise `map.position_declared` (libellé et coordonnées arrondies). Test :
 `supabase/tests/database/map_positions.test.sql`.
 
+### Retrait d'une position (`remove_map_position`)
+
+Migration `20261008220000_map_position_removal.sql` : colonnes `removed_at` / `removed_by` (**retrait logique** : la ligne
+reste dans l'historique, marquée « Retirée »). **La déclaration la plus récente décide** : si elle est retirée, la carte
+n'affiche aucune position, une ancienne déclaration ne « revient » jamais. `remove_map_position(p_id)` (SECURITY
+DEFINER, `authenticated`) est accepté pour **l'auteur** de la position (qui doit encore pouvoir en déclarer) ou pour un
+titulaire de la nouvelle permission **`map.position.remove`** (administrateurs et super-administrateurs : garde-fou si
+l'auteur est absent) ; sinon `forbidden`. Idempotent (un second retrait n'ajoute pas d'entrée d'audit), journalisé
+`map.position_removed`. Test : `supabase/tests/database/map_position_removal.test.sql`.
+
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 
 Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées

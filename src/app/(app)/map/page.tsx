@@ -14,14 +14,35 @@ async function MapContent() {
     getSessionPermissions(),
   ]);
   const current = route.ok ? route.value : null;
+  const stored = positions.ok ? positions.value : [];
+  const newest = stored[0];
+  const permissions = session?.permissions ?? [];
+  // The person who declared the current position may remove it, and so may holders of `map.position.remove`.
+  // Computed here (the cached list is shared by everybody), and the author id never reaches the browser.
+  const canRemovePosition =
+    !!newest &&
+    !newest.removedAt &&
+    ((newest.authorId !== null &&
+      newest.authorId === session?.userId &&
+      permissions.includes("map.position.declare")) ||
+      permissions.includes("map.position.remove"));
 
   return (
     <MapLoader
       route={current ? { id: current.id, points: current.points } : null}
       // Display only: the Server Action and the database re-check the permission.
       canEditRoute={session?.permissions.includes("map.route.edit") ?? false}
-      positions={positions.ok ? positions.value : []}
-      canDeclarePosition={session?.permissions.includes("map.position.declare") ?? false}
+      // An explicit allowlist: the author id must never reach the browser.
+      positions={stored.map((position) => ({
+        id: position.id,
+        lng: position.lng,
+        lat: position.lat,
+        label: position.label,
+        declaredAt: position.declaredAt,
+        removedAt: position.removedAt,
+      }))}
+      canDeclarePosition={permissions.includes("map.position.declare")}
+      canRemovePosition={canRemovePosition}
     />
   );
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { declareMapPosition, saveMapRoute } from "./actions";
+import { declareMapPosition, removeMapPosition, saveMapRoute } from "./actions";
 
 const requirePermission = vi.fn();
 const rpc = vi.fn();
@@ -144,6 +144,59 @@ describe("declareMapPosition", () => {
     expect(await declareMapPosition(2.3, 48.8, "")).toMatchObject({ code: "rate_limited" });
     rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
     expect(await declareMapPosition(2.3, 48.8, "")).toMatchObject({ code: "failed" });
+    expect(updateTag).not.toHaveBeenCalled();
+  });
+});
+
+describe("removeMapPosition", () => {
+  const ID = "00000000-0000-0000-0000-00000000c001";
+
+  it("lets a declarer through, and calls the database, which decides whose position it is", async () => {
+    rpc.mockResolvedValue({ data: null, error: null });
+    expect(await removeMapPosition(ID)).toEqual({ status: "success" });
+    expect(requirePermission).toHaveBeenCalledWith("map.position.declare", { fresh: true });
+    expect(rpc).toHaveBeenCalledWith("remove_map_position", { p_id: ID });
+    expect(updateTag).toHaveBeenCalledWith("map-positions");
+    expect(revalidatePath).toHaveBeenCalledWith("/map");
+  });
+
+  it("refuses a Guest before touching the database", async () => {
+    requirePermission.mockResolvedValueOnce({ ok: false, error: "unauthenticated" });
+    expect(await removeMapPosition(ID)).toMatchObject({ code: "unauthenticated" });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("falls back to map.position.remove for someone who cannot declare, else refuses", async () => {
+    rpc.mockResolvedValue({ data: null, error: null });
+    requirePermission
+      .mockResolvedValueOnce({ ok: false, error: "forbidden" })
+      .mockResolvedValueOnce({ ok: true, value: { userId: "admin" } });
+    expect(await removeMapPosition(ID)).toEqual({ status: "success" });
+    expect(requirePermission).toHaveBeenLastCalledWith("map.position.remove", { fresh: true });
+
+    requirePermission
+      .mockResolvedValueOnce({ ok: false, error: "forbidden" })
+      .mockResolvedValueOnce({ ok: false, error: "forbidden" });
+    expect(await removeMapPosition(ID)).toMatchObject({ code: "forbidden" });
+  });
+
+  it("validates the id at the boundary", async () => {
+    for (const bad of [null, 42, "x", "not-a-uuid"]) {
+      expect(await removeMapPosition(bad)).toMatchObject({ code: "invalid" });
+    }
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("explains a refusal (someone else's position), an unknown position and any other failure", async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "forbidden" } });
+    expect(await removeMapPosition(ID)).toMatchObject({
+      code: "forbidden",
+      message: expect.stringContaining("la personne qui a déclaré"),
+    });
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "unknown_position" } });
+    expect(await removeMapPosition(ID)).toMatchObject({ code: "unknown" });
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
+    expect(await removeMapPosition(ID)).toMatchObject({ code: "failed" });
     expect(updateTag).not.toHaveBeenCalled();
   });
 });

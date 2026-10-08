@@ -135,6 +135,29 @@ describe("describeAuditEntry", () => {
     ).toBe("alice a déclaré la position de la manifestation.");
   });
 
+  it("describes a removed position, own or somebody else's", () => {
+    expect(
+      describeAuditEntry(
+        entry({
+          action: "map.position_removed",
+          target_id: null,
+          details: { label: "Place", own: true },
+        }),
+        NAMES,
+      ),
+    ).toBe("alice a retiré sa position de la manifestation (Place).");
+    expect(
+      describeAuditEntry(
+        entry({
+          action: "map.position_removed",
+          target_id: null,
+          details: { label: "", own: false },
+        }),
+        NAMES,
+      ),
+    ).toBe("alice a retiré une position de la manifestation.");
+  });
+
   it("copes with deleted accounts, missing details and unknown actions", () => {
     expect(describeAuditEntry(entry({ actor_id: "zzzzzzzzzz", details: null }), NAMES)).toContain(
       "compte supprimé (zzzzzzzz)",

@@ -146,6 +146,8 @@ export type Database = {
           label: string;
           lat: number;
           lng: number;
+          removed_at: string | null;
+          removed_by: string | null;
         };
         ComputedFields: never;
         Insert: {
@@ -155,6 +157,8 @@ export type Database = {
           label?: string;
           lat: number;
           lng: number;
+          removed_at?: string | null;
+          removed_by?: string | null;
         };
         Update: {
           author_id?: string | null;
@@ -163,6 +167,8 @@ export type Database = {
           label?: string;
           lat?: number;
           lng?: number;
+          removed_at?: string | null;
+          removed_by?: string | null;
         };
         Relationships: [];
       };
@@ -390,6 +396,7 @@ export type Database = {
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       is_valid_route: { Args: { p_points: Json }; Returns: boolean };
       is_banned: { Args: { p_user_id: string }; Returns: boolean };
+      remove_map_position: { Args: { p_id: string }; Returns: undefined };
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };
       save_map_route: { Args: { p_base?: string; p_points: Json }; Returns: string };

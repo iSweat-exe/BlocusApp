@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MAP_STYLES } from "./map-config";
@@ -70,8 +70,13 @@ const { maps, markers, FakeMap, FakeMarker } = vi.hoisted(() => {
     setLngLat = vi.fn(() => this);
     addTo = vi.fn(() => this);
     remove = vi.fn();
-    constructor() {
+    element: HTMLElement;
+    constructor(options?: { element?: HTMLElement }) {
+      this.element = options?.element ?? document.createElement("div");
       markers.push(this);
+    }
+    getElement() {
+      return this.element;
     }
   }
   return { maps, markers, FakeMap, FakeMarker };
@@ -88,9 +93,11 @@ const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 const saveMapRoute = vi.fn();
 const declareMapPosition = vi.fn();
+const removeMapPosition = vi.fn();
 vi.mock("./actions", () => ({
   saveMapRoute: (...args: unknown[]) => saveMapRoute(...args),
   declareMapPosition: (...args: unknown[]) => declareMapPosition(...args),
+  removeMapPosition: (...args: unknown[]) => removeMapPosition(...args),
 }));
 vi.mock("@/components/full-screen-dialog", () => ({
   FullScreenDialog: ({
@@ -116,7 +123,7 @@ const ROUTE = {
     [2.4, 48.9],
   ] as [number, number][],
 };
-const BASE = { positions: [], canDeclarePosition: false };
+const BASE = { positions: [], canDeclarePosition: false, canRemovePosition: false };
 const NO_ROUTE = { route: null, canEditRoute: false, ...BASE };
 
 function mockSystemTheme(dark: boolean) {
@@ -420,9 +427,27 @@ const POSITIONS = [
     lat: 48.86,
     label: "Place de la République",
     declaredAt: "2026-10-08T11:55:00Z",
+    removedAt: null,
   },
-  { id: "p1", lng: 2.3, lat: 48.85, label: "", declaredAt: "2026-10-08T10:00:00Z" },
+  {
+    id: "p1",
+    lng: 2.3,
+    lat: 48.85,
+    label: "",
+    declaredAt: "2026-10-08T10:00:00Z",
+    removedAt: null,
+  },
 ];
+const positionProps = (over: Partial<React.ComponentProps<typeof MapView>> = {}) => ({
+  route: null,
+  canEditRoute: false,
+  positions: POSITIONS,
+  canDeclarePosition: false,
+  canRemovePosition: false,
+  ...over,
+});
+/** The marker of the declared position (the "me" dot is a marker too). */
+const positionMarker = () => markers.find((m) => m.element.className === "map-position-marker");
 
 describe("MapView position", () => {
   beforeEach(() => {
@@ -431,45 +456,104 @@ describe("MapView position", () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it("shows the declared position: a marker on the map and a card with the label and the age", () => {
-    render(
-      <MapView
-        route={null}
-        canEditRoute={false}
-        positions={POSITIONS}
-        canDeclarePosition={false}
-      />,
-    );
-    act(() => maps[0]?.fire("style.load"));
-    expect(maps[0]?.layers).toEqual(expect.arrayContaining(["position-halo", "position-dot"]));
+  it("shows a visible marker for the declared position, with an accessible name", () => {
+    render(<MapView {...positionProps()} />);
     loaded();
+    expect(positionMarker()).toBeDefined();
+    expect(positionMarker()?.setLngLat).toHaveBeenCalledWith([2.35, 48.86]);
+    expect(positionMarker()?.element.getAttribute("aria-label")).toContain(
+      "Place de la République",
+    );
+  });
+
+  it("opens on the position when there is no route, so it is visible at once", () => {
+    render(<MapView {...positionProps()} />);
+    expect(maps[0]?.options.bounds).toEqual([
+      [2.35, 48.86],
+      [2.35, 48.86],
+    ]);
+  });
+
+  it("shows the information to everybody when the marker is tapped", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<MapView {...positionProps()} />);
+    loaded();
+    await user.click(positionMarker()!.element);
     const card = screen.getByRole("region", { name: "Position de la manifestation" });
     expect(card).toHaveTextContent("Place de la République");
-    expect(card).toHaveTextContent("il y a 5 min");
-  });
-
-  it("flies to the position on demand and lists the history", async () => {
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    render(
-      <MapView
-        route={null}
-        canEditRoute={false}
-        positions={POSITIONS}
-        canDeclarePosition={false}
-      />,
+    expect(card).toHaveTextContent("Déclarée il y a 5 min");
+    expect(card).toHaveTextContent("48.86000, 2.35000");
+    expect(within(card).getByRole("link", { name: "Voir le plan" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("mlat=48.86&mlon=2.35"),
     );
-    loaded();
-    await user.click(screen.getByRole("button", { name: "Voir" }));
-    expect(maps[0]?.flyTo).toHaveBeenCalledWith({ center: [2.35, 48.86], zoom: 15 });
-    expect(screen.getByRole("button", { name: "Historique" })).toBeInTheDocument();
-    expect(screen.getByText("Actuelle")).toBeInTheDocument();
-    expect(screen.getByText("Position déclarée")).toBeInTheDocument(); // the one without a label
+    // Guests and ordinary users cannot remove it.
+    expect(within(card).queryByRole("button", { name: "Retirer la position" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Fermer les informations" }));
+    expect(screen.queryByRole("region", { name: "Position de la manifestation" })).toBeNull();
   });
 
-  it("shows nothing when no position was ever declared", () => {
-    render(<MapView {...NO_ROUTE} />);
+  it("lists the history, flagging the removed declarations", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const positions = [POSITIONS[0]!, { ...POSITIONS[1]!, removedAt: "2026-10-08T10:30:00Z" }];
+    render(<MapView {...positionProps({ positions })} />);
     loaded();
-    expect(screen.queryByRole("region", { name: "Position de la manifestation" })).toBeNull();
+    await user.click(positionMarker()!.element);
+    expect(screen.getByText("Actuelle")).toBeInTheDocument();
+    expect(screen.getByText("Retirée")).toBeInTheDocument();
+  });
+
+  it("shows no marker when no position was declared, or when the newest one was removed", () => {
+    const { unmount } = render(<MapView {...positionProps({ positions: [] })} />);
+    loaded();
+    expect(positionMarker()).toBeUndefined();
+    unmount();
+    maps.length = 0;
+    markers.length = 0;
+    // The newest was removed: the older one must NOT come back.
+    const removedNewest = [{ ...POSITIONS[0]!, removedAt: "2026-10-08T11:58:00Z" }, POSITIONS[1]!];
+    render(<MapView {...positionProps({ positions: removedNewest })} />);
+    loaded();
+    expect(positionMarker()).toBeUndefined();
+  });
+
+  it("lets the author remove the position after a confirmation, then closes the card", async () => {
+    removeMapPosition.mockResolvedValue({ status: "success" });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<MapView {...positionProps({ canRemovePosition: true })} />);
+    loaded();
+    await user.click(positionMarker()!.element);
+    await user.click(screen.getByRole("button", { name: "Retirer la position" }));
+    // Nothing is removed before the confirmation.
+    expect(removeMapPosition).not.toHaveBeenCalled();
+    expect(screen.getByRole("alertdialog")).toHaveTextContent("ne sera plus affichée");
+    await user.click(screen.getByRole("button", { name: "Annuler" }));
+    expect(removeMapPosition).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Retirer la position" }));
+    await user.click(screen.getByRole("button", { name: "Retirer" }));
+    expect(removeMapPosition).toHaveBeenCalledWith("p2");
+    await waitFor(() =>
+      expect(screen.queryByRole("region", { name: "Position de la manifestation" })).toBeNull(),
+    );
+  });
+
+  it("shows why a removal was refused and keeps the card open", async () => {
+    removeMapPosition.mockResolvedValue({
+      status: "error",
+      code: "forbidden",
+      message: "Seule la personne qui a déclaré cette position peut la retirer.",
+    });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<MapView {...positionProps({ canRemovePosition: true })} />);
+    loaded();
+    await user.click(positionMarker()!.element);
+    await user.click(screen.getByRole("button", { name: "Retirer la position" }));
+    await user.click(screen.getByRole("button", { name: "Retirer" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Seule la personne");
+    expect(
+      screen.getByRole("region", { name: "Position de la manifestation" }),
+    ).toBeInTheDocument();
   });
 
   it("offers the declaration only to those who may, never to Guests", () => {
@@ -478,15 +562,24 @@ describe("MapView position", () => {
     expect(screen.queryByRole("button", { name: "Déclarer la position" })).toBeNull();
     unmount();
     maps.length = 0;
-    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    render(<MapView {...positionProps({ positions: [], canDeclarePosition: true })} />);
     loaded();
     expect(screen.getByRole("button", { name: "Déclarer la position" })).toBeInTheDocument();
+  });
+
+  it("ignores taps on the marker while a declaration is in progress", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<MapView {...positionProps({ canDeclarePosition: true })} />);
+    loaded();
+    await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
+    await user.click(positionMarker()!.element);
+    expect(screen.queryByRole("region", { name: "Position de la manifestation" })).toBeNull();
   });
 
   it("declares at the centre of the map with the label, then goes back to the map", async () => {
     declareMapPosition.mockResolvedValue({ status: "success" });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    render(<MapView {...positionProps({ positions: [], canDeclarePosition: true })} />);
     loaded();
     await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
     await user.type(screen.getByLabelText(/Lieu/), "Gare de l'Est");
@@ -502,7 +595,7 @@ describe("MapView position", () => {
       message: "Patiente quelques secondes avant de déclarer une nouvelle position.",
     });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    render(<MapView {...positionProps({ positions: [], canDeclarePosition: true })} />);
     loaded();
     await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
     await user.click(screen.getByRole("button", { name: "Déclarer ici" }));
@@ -518,7 +611,7 @@ describe("MapView position", () => {
     };
     Object.defineProperty(navigator, "geolocation", { value: geolocation, configurable: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    render(<MapView {...positionProps({ positions: [], canDeclarePosition: true })} />);
     loaded();
     await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
     await user.click(screen.getByRole("button", { name: "Ma position" }));
@@ -528,7 +621,7 @@ describe("MapView position", () => {
 
   it("closes the declaration without sending anything", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    render(<MapView {...positionProps({ positions: [], canDeclarePosition: true })} />);
     loaded();
     await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
     await user.click(screen.getByRole("button", { name: "Fermer la déclaration" }));

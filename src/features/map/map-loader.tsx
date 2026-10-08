@@ -27,6 +27,7 @@ export function MapLoader(props: {
   canEditRoute: boolean;
   positions: MapPosition[];
   canDeclarePosition: boolean;
+  canRemovePosition: boolean;
 }) {
   return <MapView {...props} />;
 }

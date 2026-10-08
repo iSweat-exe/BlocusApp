@@ -37,6 +37,7 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
 | `announcement.delete`  |  -   |    -    |    ✅     |  ✅   |     ✅      |
 | `map.route.edit`       |  -   |   ✅    |     -     |  ✅   |     ✅      |
 | `map.position.declare` |  -   |   ✅    |     -     |  ✅   |     ✅      |
+| `map.position.remove`  |  -   |    -    |     -     |  ✅   |     ✅      |
 | `user.mute`            |  -   |    -    |    ✅     |  ✅   |     ✅      |
 | `user.ban`             |  -   |    -    |     -     |  ✅   |     ✅      |
 | `role.assign`          |  -   |    -    |     -     |  ✅   |     ✅      |

@@ -7,10 +7,10 @@ import { useEffect, useMemo, useReducer, useRef, useState, useTransition } from 
 import { PencilIcon, PinIcon } from "@/components/icons";
 import type { MapPosition } from "@/lib/data/map-positions";
 import { routeBounds, routeToGeoJSON, type LngLat } from "@/lib/map-route";
-import { declareMapPosition, saveMapRoute } from "./actions";
+import { declareMapPosition, removeMapPosition, saveMapRoute } from "./actions";
 import { DEFAULT_VIEW, LOCATE_ZOOM, MAP_STYLES } from "./map-config";
-import { addPositionLayers, positionToGeoJSON, setPositionData } from "./position-layer";
-import { PositionPanel } from "./position-panel";
+import { PositionInfo } from "./position-info";
+import { createPositionMarker, setPositionMarkerLabel } from "./position-marker";
 import { PositionToolbar } from "./position-toolbar";
 import { canSave, editorReducer, initEditor, isDirty } from "./route-editor-state";
 import { addRouteLayers, setRouteData, setRouteEditing } from "./route-layers";
@@ -56,6 +56,8 @@ type Props = {
   positions: MapPosition[];
   /** Holds `map.position.declare` (display only: the Server Action and the database re-check it). */
   canDeclarePosition: boolean;
+  /** May remove the current position: its author, or an administrator (the database re-checks). */
+  canRemovePosition: boolean;
 };
 
 /** What the map is doing: showing, editing the route, or declaring the position. */
@@ -66,7 +68,13 @@ type Mode = "view" | "route" | "position";
  * loaded on demand by `MapLoader`. "Me localiser" shows the user's own position **on this device only**: it is
  * never sent anywhere (A-127).
  */
-export default function MapView({ route, canEditRoute, positions, canDeclarePosition }: Props) {
+export default function MapView({
+  route,
+  canEditRoute,
+  positions,
+  canDeclarePosition,
+  canRemovePosition,
+}: Props) {
   const router = useRouter();
   const theme = useMapTheme();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -98,7 +106,15 @@ export default function MapView({ route, canEditRoute, positions, canDeclarePosi
   const [positionLabel, setPositionLabel] = useState("");
   const [positionError, setPositionError] = useState<string | null>(null);
   const [declaringNow, startDeclaring] = useTransition();
-  const current = positions[0] ?? null;
+  // The newest declaration decides: if it was removed there is no current position (an older one never comes back).
+  const newest = positions[0] ?? null;
+  const current = newest && !newest.removedAt ? newest : null;
+  const [initialPosition] = useState(current);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [confirmingRemoval, setConfirmingRemoval] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+  const [removing, startRemoving] = useTransition();
+  const markerRef = useRef<Marker | null>(null);
 
   // Route editing.
   const [editor, dispatch] = useReducer(editorReducer, route?.points ?? [], initEditor);
@@ -112,23 +128,18 @@ export default function MapView({ route, canEditRoute, positions, canDeclarePosi
     [editing, editor.points, route],
   );
   const shownSelected = editing ? editor.selected : null;
-  const latest = useRef({
-    data: routeToGeoJSON(shownPoints, shownSelected),
-    position: positionToGeoJSON(current),
-    editing,
-  });
+  const latest = useRef({ data: routeToGeoJSON(shownPoints, shownSelected), editing });
   useEffect(() => {
-    latest.current = {
-      data: routeToGeoJSON(shownPoints, shownSelected),
-      position: positionToGeoJSON(current),
-      editing,
-    };
-  }, [shownPoints, shownSelected, current, editing]);
+    latest.current = { data: routeToGeoJSON(shownPoints, shownSelected), editing };
+  }, [shownPoints, shownSelected, editing]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container || !supported) return;
-    const bounds = routeBounds(initialRoute?.points ?? []);
+    const bounds = routeBounds([
+      ...(initialRoute?.points ?? []),
+      ...(initialPosition ? [[initialPosition.lng, initialPosition.lat] as LngLat] : []),
+    ]);
     const created = new MapLibreMap({
       container,
       style: MAP_STYLES[initialTheme],
@@ -144,10 +155,9 @@ export default function MapView({ route, canEditRoute, positions, canDeclarePosi
     mapRef.current = created;
     created.touchZoomRotate.disableRotation();
     // Every style load (the first one, and after a theme switch) needs the route layers again.
-    created.on("style.load", () => {
-      addRouteLayers(created, latest.current.data, latest.current.editing);
-      addPositionLayers(created, latest.current.position);
-    });
+    created.on("style.load", () =>
+      addRouteLayers(created, latest.current.data, latest.current.editing),
+    );
     created.on("load", () => setMap(created));
     // A style that cannot be fetched (provider down, offline) leaves an empty map: say so.
     created.on("error", () => {
@@ -160,7 +170,7 @@ export default function MapView({ route, canEditRoute, positions, canDeclarePosi
       mapRef.current = null;
       setMap(null);
     };
-  }, [supported, initialTheme, initialRoute]);
+  }, [supported, initialTheme, initialRoute, initialPosition]);
 
   // Follow the app theme without recreating the map (keeps the position and zoom).
   const appliedTheme = useRef(initialTheme);
@@ -179,9 +189,40 @@ export default function MapView({ route, canEditRoute, positions, canDeclarePosi
   useEffect(() => {
     if (map) setRouteEditing(map, editing);
   }, [map, editing]);
+  // The position marker is a DOM button: it survives style changes and keeps its colour in the dark theme.
   useEffect(() => {
-    if (map) setPositionData(map, positionToGeoJSON(current));
+    if (!map) return;
+    if (!current) {
+      markerRef.current?.remove();
+      markerRef.current = null;
+      return;
+    }
+    if (!markerRef.current) {
+      const element = createPositionMarker(current.label);
+      markerRef.current = new Marker({ element }).setLngLat([current.lng, current.lat]).addTo(map);
+    } else {
+      markerRef.current.setLngLat([current.lng, current.lat]);
+      setPositionMarkerLabel(markerRef.current.getElement() as HTMLButtonElement, current.label);
+    }
   }, [map, current]);
+  // Taps on the marker open the information card (only while just looking at the map).
+  useEffect(() => {
+    const element = markerRef.current?.getElement();
+    if (!element) return;
+    const open = (event: Event) => {
+      event.stopPropagation();
+      if (mode === "view") setInfoOpen(true);
+    };
+    element.addEventListener("click", open);
+    return () => element.removeEventListener("click", open);
+  }, [map, current, mode]);
+  useEffect(
+    () => () => {
+      markerRef.current?.remove();
+      markerRef.current = null;
+    },
+    [],
+  );
 
   useRouteEditing(map, editing, dispatch);
 
@@ -233,10 +274,18 @@ export default function MapView({ route, canEditRoute, positions, canDeclarePosi
       else setPositionError(result.message);
     });
   };
-  const showPosition = () => {
-    if (current && map) {
-      map.flyTo({ center: [current.lng, current.lat], zoom: Math.max(map.getZoom(), 15) });
-    }
+  const removePosition = () => {
+    if (!current) return;
+    setRemoveError(null);
+    startRemoving(async () => {
+      const result = await removeMapPosition(current.id);
+      if (result.status === "success") {
+        setInfoOpen(false);
+        setConfirmingRemoval(false);
+      } else {
+        setRemoveError(result.message);
+      }
+    });
   };
 
   const locateMe = () => {
@@ -353,6 +402,25 @@ export default function MapView({ route, canEditRoute, positions, canDeclarePosi
         />
       )}
 
+      {mode === "view" && infoOpen && current && (
+        <PositionInfo
+          position={current}
+          history={positions}
+          now={now}
+          canRemove={canRemovePosition}
+          confirmingRemoval={confirmingRemoval}
+          removing={removing}
+          error={removeError}
+          onAskRemove={setConfirmingRemoval}
+          onRemove={removePosition}
+          onClose={() => {
+            setInfoOpen(false);
+            setConfirmingRemoval(false);
+            setRemoveError(null);
+          }}
+        />
+      )}
+
       {declaring && (
         <PositionToolbar
           label={positionLabel}
@@ -374,7 +442,6 @@ export default function MapView({ route, canEditRoute, positions, canDeclarePosi
           editing ? "bottom-60" : declaring ? "hidden" : "bottom-8"
         }`}
       >
-        {mode === "view" && <PositionPanel positions={positions} now={now} onShow={showPosition} />}
         <div className="ml-auto flex flex-col items-end gap-2">
           {mode === "view" && (locate === "denied" || locate === "unavailable") && (
             <p role="status" className="alert alert-error pointer-events-auto max-w-xs text-xs">
