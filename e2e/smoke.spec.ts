@@ -16,6 +16,15 @@ test.describe("app shell", () => {
     }
   });
 
+  test("the map page shows that it is under development", async ({ page }) => {
+    await page.goto("/map");
+    await expect(page.getByRole("heading", { level: 1, name: "Carte" })).toBeVisible();
+    await expect(page.getByRole("status")).toHaveText("En développement");
+    await expect(
+      page.getByRole("listitem").filter({ hasText: "Tracé des déplacements" }),
+    ).toBeVisible();
+  });
+
   test("home shows the announcements section without crashing when the data is unreachable", async ({
     page,
   }) => {

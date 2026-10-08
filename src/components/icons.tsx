@@ -96,3 +96,12 @@ export function SettingsIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** Wrench: work in progress. */
+export function WrenchIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M14.7 6.3a4 4 0 0 0-5.4 5.1L4 16.7a1.9 1.9 0 0 0 2.7 2.7l5.3-5.3a4 4 0 0 0 5.1-5.4l-2.4 2.4-2.4-.6-.6-2.4 2.4-2.4Z" />
+    </Icon>
+  );
+}
