@@ -71,8 +71,40 @@ bannissement soit visible dans l'interface (les actions sensibles vérifient de 
 
 1. Lier le dépôt GitHub à Vercel (une seule fois).
 2. Production Branch = `main` ; chaque PR = preview.
-3. Appliquer les migrations Supabase **avant** de fusionner du code qui en dépend.
+3. Les migrations Supabase sont appliquées **automatiquement** après la fusion sur `main` (section ci-dessous) : ne
+   plus les passer à la main.
 4. Vérifier les quotas (Supabase + Vercel) après chaque release.
+
+## Migrations automatiques (workflow `.github/workflows/supabase.yml`)
+
+- **Sur une PR** touchant `supabase/**` : job « Database tests » : `supabase start` (base jetable en local, toutes
+  les migrations rejouées depuis zéro) puis `supabase test db` (pgTAP, dont les tests RLS). Une migration cassée ou
+  un test SQL rouge fait échouer la PR. Aucun secret n'est exposé aux PR.
+- **Après fusion sur `main`** d'une PR qui ajoute une migration : job « Apply migrations to production » (après les
+  tests) : `supabase link`, `supabase db push --dry-run` (liste ce qui va être appliqué, visible dans le journal)
+  puis `supabase db push`. Une seule exécution à la fois (`concurrency`), jamais annulée en cours de route, chaque
+  migration est transactionnelle (en cas d'erreur, la migration fautive n'est pas appliquée).
+- **À configurer une seule fois (réglages GitHub, par un mainteneur)** :
+  1. Settings → Environments → **New environment** `production` ; ajouter **Required reviewers** (toi) : chaque
+     exécution attend ton approbation (depuis l'application GitHub mobile) avant de toucher à la production.
+     Restreindre aussi « Deployment branches » à `main`.
+  2. Dans cet environnement, ajouter les **secrets** : `SUPABASE_ACCESS_TOKEN` (Supabase → Account → Access
+     Tokens), `SUPABASE_DB_PASSWORD` (mot de passe de la base du projet) et `SUPABASE_PROJECT_ID` (la « reference ID »
+     du projet, Project Settings → General). Le job échoue avec un message clair s'il en manque un.
+- **Base de référence (une seule fois si des migrations ont déjà été passées à la main)** : `db push` applique tout
+  ce qui n'est pas dans l'historique `supabase_migrations` du projet. Si les migrations existantes ont été exécutées
+  dans l'éditeur SQL, déclarer leurs versions comme déjà appliquées : Actions → **Supabase** → *Run workflow* sur
+  `main`, champ `mark_applied` = les versions séparées par des espaces (noms des fichiers de `supabase/migrations/`
+  sans `_description.sql`, par exemple `20261007120000 20261007130000 …`). Ne mettre **que** celles réellement
+  présentes en production ; les autres seront appliquées par ce même run. Si les migrations ont toujours été
+  appliquées avec `supabase db push`, rien à faire.
+- **Règle de compatibilité** : le code se déploie sur Vercel dès la fusion, en parallèle de la migration (et la
+  migration peut attendre une approbation). Écrire les migrations de façon **additive** (nouvelle colonne, nouvelle
+  fonction, nouvelle table) et ne retirer l'ancien (colonne, fonction) qu'une PR plus tard, quand plus aucun code ne
+  s'en sert. Le code doit tolérer l'absence d'un ajout récent (comme `get_permission_epoch` : l'application l'ignore
+  tant que la migration n'est pas passée).
+- Un échec laisse la production inchangée pour la migration fautive : lire le journal, corriger par une **nouvelle**
+  migration (jamais en éditant une migration déjà fusionnée), puis relancer le workflow (*Re-run jobs*).
 
 ## Création d'un `super_admin`
 
