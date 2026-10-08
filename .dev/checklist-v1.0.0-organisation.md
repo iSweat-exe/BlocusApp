@@ -77,6 +77,8 @@
 - [x] **O-071** En-têtes de sécurité (CSP, HSTS, X-Frame-Options…) dans `next.config` 🔒 — _vérifié avec un scanner_ (vérifié par test E2E ; scanner externe à passer après le premier déploiement)
 - [~] **O-072** Monitoring minimal des erreurs (Sentry free tier ou logs Vercel) 🆕 — _erreur de test remontée_ (error boundaries en place ; décision Sentry : voir ADR-0003)
 - [~] **O-073** Procédure de backup/restauration (le free tier n'a pas de backup auto fiable → export régulier) 🆕 🔒 — _testée une fois_ (procédure écrite dans `docs/runbook.md` ; test de restauration à faire après la 1ère migration)
+- [ ] **O-074** Variables Vercel de la surveillance : `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID` (+ `VERCEL_TEAM_ID`) — _carte « Vercel » de `/admin/health` renseignée_ (**à faire à la main**, voir `docs/runbook.md`)
+- [ ] **O-075** Moniteur externe gratuit sur `/api/health` avec alerte e-mail 🆕 — _alerte reçue lors d'une coupure simulée_ (**à faire à la main**)
 
 ---
 

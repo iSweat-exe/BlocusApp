@@ -66,6 +66,10 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-058** Protection anti-lockout : impossible de retirer le dernier `super_admin` 🆕 — _contrainte en BDD_
 - [~] **A-059** Les super_admins sont créés uniquement via migration/SQL manuel, jamais via l'UI publique 🔒 — _documenté dans `runbook.md`_
 - [ ] **A-060** 2FA (TOTP) obligatoire pour les rôles admin 🆕 🔒 — _non contournable_
+- [~] **A-061** Permission `monitoring.view` (admin, super_admin) + fonctions SQL `can_monitor()` / `health_stats()` + RLS et tests pgTAP 🆕 🔒 — _matrice testée_ (fait, ADR 0006)
+- [~] **A-062** Page `/admin/health` : score global (0-100), base de données, Auth, déploiement Vercel, stockage face au quota, utilisateurs inscrits et actifs (≈ 15 min), onglet « Santé » de l'administration 🆕 — _accès sans permission = 404_ (fait, à valider en production)
+- [~] **A-063** Historique `health_snapshots` sur 30 jours (un instantané par visite, ≤ 1 / 10 min, et un par jour via le cron de `/api/keep-alive`), purge sans `pg_cron`, graphique du score 🆕 ⚡ — _purge testée_ (fait ; l'historique du cron demande `SUPABASE_SERVICE_ROLE_KEY`)
+- [~] **A-064** `GET /api/health` public (statut seul, 503 si la base ou Auth est en panne, réponse gardée 10 s) pour un moniteur externe 🆕 🔒 — _aucune donnée sensible exposée_ (fait)
 
 ## Étape 1.5 — Compression des données avant envoi à la BDD ⚡
 > ⚠️ La compression rend un champ **illisible/non filtrable par SQL**. À réserver aux gros champs non requêtés (contenu long, payload JSON, historique). Les colonnes filtrées/triées/protégées par RLS restent en clair.
@@ -179,4 +183,5 @@ L'application sert à **gérer une manifestation dans une ville X** :
 
 ## Backlog (hors v1.0.0)
 - **Messagerie** (messages privés + groupes, permissions `message.*`) : reportée, la communication passe par Instagram pour l'instant ; la page `/messages` ne doit pas exister publiquement.
+- **Utilisateurs « en direct » exacts** (présence Supabase Realtime) : écartés tant que le pic visé consomme toute la limite gratuite de ~200 connexions ; « actifs » est approché par les sessions renouvelées (ADR 0006).
 - _(y noter toute autre idée qui déborde)_

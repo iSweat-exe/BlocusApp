@@ -4,6 +4,10 @@ import { GET } from "./route";
 const limit = vi.fn();
 const select = vi.fn();
 const from = vi.fn();
+const recordCronSnapshot = vi.fn();
+vi.mock("@/features/health/cron-snapshot", () => ({
+  recordCronSnapshot: () => recordCronSnapshot(),
+}));
 vi.mock("@/lib/supabase/public", () => ({ createPublicClient: () => ({ from }) }));
 
 const request = (headers: Record<string, string> = {}) =>
@@ -28,11 +32,17 @@ describe("GET /api/keep-alive", () => {
     expect(limit).toHaveBeenCalledWith(1);
   });
 
+  it("also records a health snapshot once the database answered", async () => {
+    await GET(request());
+    expect(recordCronSnapshot).toHaveBeenCalledOnce();
+  });
+
   it("answers 503 when the database cannot be reached", async () => {
     limit.mockResolvedValue({ data: null, error: { message: "boom" } });
     expect((await GET(request())).status).toBe(503);
     limit.mockRejectedValue(new Error("network"));
     expect((await GET(request())).status).toBe(503);
+    expect(recordCronSnapshot).not.toHaveBeenCalled();
   });
 
   it("requires the cron secret when one is configured, and does not touch the database without it", async () => {

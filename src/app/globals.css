@@ -20,6 +20,7 @@
   --accent-ink: #ffffff; /* text on the accent color */
   --danger: #dc2626; /* error text and destructive actions */
   --success: #16a34a;
+  --warning: #d97706; /* degraded state */
   --google: #4285f4;
   --discord: #5865f2;
   --discord-strong: #4752c4;
@@ -34,6 +35,7 @@
     --accent-strong: #e02530;
     --danger: #f87171;
     --success: #4ade80;
+    --warning: #fbbf24;
   }
 }
 
@@ -45,6 +47,7 @@
   --accent-strong: #e02530;
   --danger: #f87171;
   --success: #4ade80;
+  --warning: #fbbf24;
 }
 
 /* 2. Theme: tokens exposed as Tailwind utilities (bg-accent, text-muted, rounded-card, min-h-control…). */
@@ -56,6 +59,7 @@
   --color-accent-ink: var(--accent-ink);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-discord: var(--discord);
   --color-discord-strong: var(--discord-strong);
   /* Neutral surfaces and text, derived from the foreground so they follow light and dark. */
