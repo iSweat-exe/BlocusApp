@@ -44,6 +44,15 @@ repère local sur l'écran de l'utilisateur seul. Le gérant qui utilise « Ma p
 validé : le bouton déplace seulement la carte. L'accès à la géolocalisation de l'appareil est limité à notre origine
 (`Permissions-Policy: geolocation=(self)`) et n'est demandé qu'au toucher d'un de ces boutons.
 
+## Clé `service_role` et surveillance (A-061 à A-064)
+
+Le code serveur lit `SUPABASE_SERVICE_ROLE_KEY` à un seul endroit : `src/lib/supabase/service.ts`, utilisé par
+`src/features/health/cron-snapshot.ts` (cron quotidien, sans utilisateur). Les fonctions SQL appelées
+(`health_stats`, `record_health_snapshot`) revérifient le rôle (`can_monitor()`). La page `/admin/health` n'utilise
+pas cette clé : elle passe par la session de l'administrateur (`monitoring.view`, RLS). `/api/health` est public et
+ne renvoie que le statut (jamais de mesure, de compteur ni de configuration) ; son résultat est gardé 10 s. Le jeton
+Vercel (`VERCEL_API_TOKEN`) reste côté serveur.
+
 ## Signalement d'une vulnérabilité
 
 Ne pas ouvrir d'issue publique : contacter directement les mainteneurs.

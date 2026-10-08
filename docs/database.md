@@ -118,6 +118,21 @@ Migration `20261007210000_event_finish.sql` : colonnes `finished_at` / `finished
 modifiées seulement par `set_event_finished(id, finished)` qui exige `event.finish`), et la policy de modification
 exclut les événements terminés.
 
+## Surveillance (`health_snapshots`, `health_stats()`)
+
+Migration `20261009100000_health_monitoring.sql` : permission `monitoring.view` (admin ; super_admin via
+`has_permission`), `can_monitor()` (permission **ou** rôle `service_role`), `health_stats()` (inscrits, actifs =
+sessions `auth.sessions` renouvelées il y a moins de 15 min, taille de la base ; `SECURITY DEFINER`),
+`record_health_snapshot(...)` (au plus un instantané par 10 min, purge des lignes de plus de 30 jours à l'insertion,
+sans `pg_cron`) et la table `health_snapshots` (`score` 0-100, latences, taille, compteurs, état Vercel, `source`
+`page` | `cron`). RLS : lecture avec `monitoring.view`, aucune écriture directe. Migration
+`20261009110000_health_monitoring_details.sql` : `health_trends()` (instantanés des 7 derniers jours, disponibilité =
+score ≥ 60, p95 de la latence, dernier passage du cron), `health_tables()` (5 plus grosses tables de `public`),
+`health_connections()` (connexions ouvertes et `max_connections`) ; la limite de 10 min de
+`record_health_snapshot()` s'applique désormais **par source**, sinon une visite juste avant le cron effacerait
+son instantané. Fonctions exécutables par
+`authenticated` (contrôle interne) et `service_role` seulement.
+
 ## Époque des permissions (`permission_epoch`)
 
 Table à **une seule ligne** (`singleton`, `changed_at`), RLS activée sans policy (aucun accès client direct). Des

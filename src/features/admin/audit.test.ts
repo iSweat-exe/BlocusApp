@@ -181,4 +181,11 @@ describe("adminLinksFor", () => {
       "/admin/journal",
     ]);
   });
+
+  it("adds the health section for monitoring.view", () => {
+    expect(adminLinksFor(["monitoring.view"]).map((link) => link.href)).toEqual([
+      "/admin",
+      "/admin/health",
+    ]);
+  });
 });
