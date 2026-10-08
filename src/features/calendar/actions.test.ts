@@ -14,7 +14,6 @@ const rpc = vi.fn();
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
 const updateTag = vi.fn();
 vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn(),
   updateTag: (...args: unknown[]) => updateTag(...args),
 }));
 vi.mock("next/navigation", () => ({

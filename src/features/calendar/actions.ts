@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { revalidatePath, updateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/require-permission";
@@ -70,8 +70,6 @@ export async function createEvent(
   if (error) return { status: "error", message: databaseMessage(error.message) };
 
   updateTag("events");
-  revalidatePath("/calendar");
-  revalidatePath("/");
   return { status: "success", message: "Événement créé." };
 }
 
@@ -120,10 +118,7 @@ export async function updateEvent(
     };
   }
 
-  revalidatePath(`/calendar/${id}`);
   updateTag("events");
-  revalidatePath("/calendar");
-  revalidatePath("/");
   return { status: "success", message: "Événement modifié." };
 }
 
@@ -146,8 +141,6 @@ export async function deleteEvent(formData: FormData): Promise<void> {
   }
 
   updateTag("events");
-  revalidatePath("/calendar");
-  revalidatePath("/");
   redirect("/calendar");
 }
 
@@ -191,10 +184,7 @@ export async function setEventFinished(
     };
   }
 
-  revalidatePath(`/calendar/${id}`);
   updateTag("events");
-  revalidatePath("/calendar");
-  revalidatePath("/");
   return {
     status: "success",
     message: finished === "true" ? "Événement terminé." : "Événement rouvert.",

@@ -59,8 +59,8 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   token `app_role` (le claim `role` est réservé par PostgREST) et `permissions` (tableau de clés). Seul
   `supabase_auth_admin` peut l'exécuter. Ils servent de chemin rapide côté serveur, la RLS (`has_permission`) reste
   l'autorité.
-- **Prise en compte immédiate des changements** : un token n'est normalement renouvelé qu'à son expiration (15 min en
-  local, **1 h par défaut sur un projet hébergé**), donc un ami promu administrateur, une permission accordée à un
+- **Prise en compte immédiate des changements** : un token n'est normalement renouvelé qu'à son expiration (**1 h**,
+  valeur par défaut de Supabase), donc un ami promu administrateur, une permission accordée à un
   utilisateur ou à un rôle, un déni ou un bannissement restaient invisibles tout ce temps (bouton « Créer un post »
   absent, action refusée). La table à une ligne `permission_epoch` (migration `20261008100000_permission_epoch.sql`)
   est mise à jour par des triggers à chaque changement de `role_permissions`, `permission_overrides`, `permissions`,

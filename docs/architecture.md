@@ -54,7 +54,9 @@ priorité après l'authentification (A-135).
 
 ## Authentification (OAuth Discord)
 
-`src/proxy.ts` rafraîchit les cookies de session (`updateSession`) sans jamais rediriger (le Guest lit).
+`src/proxy.ts` rafraîchit les cookies de session (`updateSession`) sans jamais rediriger (le Guest lit). Il ne s'exécute
+que pour les requêtes qui portent un cookie de session (`blocus-auth`, `src/lib/supabase/cookie.ts`) et ni pour les
+préchargements ni pour les fichiers statiques : voir `docs/performance.md` (« Quotas Vercel Hobby »).
 `/login` → lien `<a href="/auth/login/discord">` → Route Handler GET (`src/app/auth/login/discord/route.ts`,
 posé du verifier PKCE puis redirection vers Supabase → Discord ; un simple lien fonctionne sans JavaScript, avant
 l'hydratation et dans une PWA installée) → Discord → Supabase →

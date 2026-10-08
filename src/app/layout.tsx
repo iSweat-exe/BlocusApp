@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/next";
 import { ACCENT_BOOT_SCRIPT } from "@/features/settings/accent-script";
 import { THEME_BOOT_SCRIPT } from "@/features/settings/theme-script";
 import { NoZoom } from "@/components/no-zoom";
+import { SampledAnalytics } from "@/components/sampled-analytics";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const geistSans = Geist({
@@ -15,6 +15,8 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  // Only used by a few screens (profile, admin, settings, map): no need to preload it on every page.
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -58,7 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <NoZoom />
         <ServiceWorkerRegister />
-        <Analytics />
+        <SampledAnalytics />
       </body>
     </html>
   );

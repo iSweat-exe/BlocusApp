@@ -9,7 +9,7 @@ import { check, sleep } from "k6";
 
 const BASE_URL = __ENV.BASE_URL || "http://host.docker.internal:3200";
 const VUS = Number(__ENV.VUS || 200);
-// Optional session cookie value of a signed-in user (`sb-<ref>-auth-token`), used by one VU out of five.
+// Optional session cookie value of a signed-in user (`blocus-auth`), used by one VU out of five.
 const AUTH_COOKIE_NAME = __ENV.AUTH_COOKIE_NAME || "";
 const AUTH_COOKIE_VALUE = __ENV.AUTH_COOKIE_VALUE || "";
 

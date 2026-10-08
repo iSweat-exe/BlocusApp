@@ -36,7 +36,7 @@ select p.id, 'Événement '||g, 'Lieu '||g, date_trunc('month', now()) + ((g * 1
 from generate_series(1, 40) g, (select id from public.profiles where pseudo='boss') p
 where date_trunc('month', now()) + ((g * 18) || ' hours')::interval > now();" >/dev/null 2>&1
 
-# Session cookie of the admin (the app reads `sb-<project ref>-auth-token`; the ref of a local URL is "127").
+# Session cookie of the admin (the app reads the fixed cookie `blocus-auth`, see src/lib/supabase/cookie.ts).
 SESSION=$(curl -s -X POST "$API_URL/auth/v1/token?grant_type=password" -H "apikey: $ANON_KEY" \
   -H "Content-Type: application/json" -d '{"email":"boss@seed.test","password":"Local-Test-1234!"}')
 COOKIE=$(python -c "
@@ -57,7 +57,7 @@ docker exec supabase_db_BlocusApp psql -U postgres -tAc "select pg_stat_statemen
 cpu() { powershell -NoProfile -Command "(Get-Process -Id $PID).CPU" | tr -d '\r' | tr ',' '.'; }
 CPU_BEFORE=$(cpu)
 
-docker run --rm -i -e HOLD="$HOLD" -e AUTH_COOKIE_NAME="sb-127-auth-token" -e AUTH_COOKIE_VALUE="$COOKIE" \
+docker run --rm -i -e HOLD="$HOLD" -e AUTH_COOKIE_NAME="blocus-auth" -e AUTH_COOKIE_VALUE="$COOKIE" \
   grafana/k6 run --quiet - <load/k6-200-users.js | tee load/last-run.txt
 K6_EXIT=${PIPESTATUS[0]}
 
