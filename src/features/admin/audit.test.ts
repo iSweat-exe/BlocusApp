@@ -120,6 +120,21 @@ describe("describeAuditEntry", () => {
     expect(AUDIT_ACTIONS["map.route_saved"]).toBeDefined();
   });
 
+  it("describes a declared position, with or without a label", () => {
+    expect(
+      describeAuditEntry(
+        entry({ action: "map.position_declared", target_id: null, details: { label: "Place" } }),
+        NAMES,
+      ),
+    ).toBe("alice a déclaré la position de la manifestation : Place.");
+    expect(
+      describeAuditEntry(
+        entry({ action: "map.position_declared", target_id: null, details: { label: "" } }),
+        NAMES,
+      ),
+    ).toBe("alice a déclaré la position de la manifestation.");
+  });
+
   it("copes with deleted accounts, missing details and unknown actions", () => {
     expect(describeAuditEntry(entry({ actor_id: "zzzzzzzzzz", details: null }), NAMES)).toContain(
       "compte supprimé (zzzzzzzz)",

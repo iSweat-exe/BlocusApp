@@ -63,3 +63,69 @@ export async function saveMapRoute(
   revalidatePath("/map");
   return { status: "success", versionId: data };
 }
+
+/** Result of declaring the position of the demonstration. */
+export type DeclarePositionState =
+  | { status: "success" }
+  | {
+      status: "error";
+      code: "invalid" | "forbidden" | "unauthenticated" | "rate_limited" | "failed";
+      message: string;
+    };
+
+/**
+ * Declares the current position of the demonstration. Requires `map.position.declare` (checked in the
+ * database, which also validates the coordinates and refuses a declaration within 5 seconds of the previous
+ * one). Only this declared position is ever stored: the position of ordinary users never leaves their device.
+ */
+export async function declareMapPosition(
+  lng: unknown,
+  lat: unknown,
+  label: unknown,
+): Promise<DeclarePositionState> {
+  const permission = await requirePermission("map.position.declare", { fresh: true });
+  if (!permission.ok) {
+    return permission.error === "unauthenticated"
+      ? { status: "error", code: "unauthenticated", message: "Connecte-toi pour continuer." }
+      : {
+          status: "error",
+          code: "forbidden",
+          message: "Tu n'as pas le droit de déclarer la position.",
+        };
+  }
+
+  const text = typeof label === "string" ? label.trim() : "";
+  if (
+    typeof lng !== "number" ||
+    typeof lat !== "number" ||
+    !Number.isFinite(lng) ||
+    !Number.isFinite(lat) ||
+    Math.abs(lng) > 180 ||
+    Math.abs(lat) > 90 ||
+    (label !== undefined && label !== null && typeof label !== "string") ||
+    text.length > 80
+  ) {
+    return { status: "error", code: "invalid", message: "La position n'est pas valide." };
+  }
+
+  const supabase = createClient(await cookies());
+  const { error } = await supabase.rpc("declare_map_position", {
+    p_lng: lng,
+    p_lat: lat,
+    p_label: text,
+  });
+  if (error) {
+    if (error.message === "rate_limited") {
+      return {
+        status: "error",
+        code: "rate_limited",
+        message: "Patiente quelques secondes avant de déclarer une nouvelle position.",
+      };
+    }
+    return { status: "error", code: "failed", message: "La déclaration a échoué. Réessaie." };
+  }
+
+  updateTag("map-positions");
+  revalidatePath("/map");
+  return { status: "success" };
+}

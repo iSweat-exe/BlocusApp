@@ -130,6 +130,18 @@ enregistrée depuis `p_base` (l'éditeur ne l'écrase jamais en silence ; verrou
 simultanées), élague les vieilles versions et journalise `map.route_saved`. Test :
 `supabase/tests/database/map_route.test.sql`.
 
+## Positions déclarées (`map_positions`)
+
+Migration `20261008210000_map_positions.sql`. Un gérant déclare où se trouve la manifestation (un point et une heure) ;
+la plus récente est la **position courante**, les **200 dernières** sont gardées (historique). Colonnes : `id`,
+`author_id` (`set null` si le compte est supprimé), `lng` / `lat` (bornes vérifiées par `CHECK`), `label` (≤ 80
+caractères, facultatif), `declared_at`. **Seules les positions déclarées existent ici : la position des utilisateurs
+n'est jamais stockée** (A-127). RLS : lecture pour `anon` et `authenticated` ; **aucune écriture directe**.
+`declare_map_position(p_lng, p_lat, p_label)` (SECURITY DEFINER, `authenticated`) exige `map.position.declare`, valide
+les coordonnées, **refuse `rate_limited` (54000) si le même gérant a déjà déclaré dans les 5 dernières secondes**
+(anti-rafale), élague l'historique et journalise `map.position_declared` (libellé et coordonnées arrondies). Test :
+`supabase/tests/database/map_positions.test.sql`.
+
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 
 Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées

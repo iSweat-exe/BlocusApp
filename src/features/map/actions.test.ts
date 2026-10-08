@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { saveMapRoute } from "./actions";
+import { declareMapPosition, saveMapRoute } from "./actions";
 
 const requirePermission = vi.fn();
 const rpc = vi.fn();
@@ -88,6 +88,62 @@ describe("saveMapRoute", () => {
     expect(await saveMapRoute(POINTS, BASE)).toMatchObject({ code: "stale" });
     rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
     expect(await saveMapRoute(POINTS, BASE)).toMatchObject({ code: "failed" });
+    expect(updateTag).not.toHaveBeenCalled();
+  });
+});
+
+describe("declareMapPosition", () => {
+  it("checks map.position.declare against the database, not the token", async () => {
+    await declareMapPosition(2.3, 48.8, "");
+    expect(requirePermission).toHaveBeenCalledWith("map.position.declare", { fresh: true });
+  });
+
+  it("refuses a Guest and a user without the permission, before touching the database", async () => {
+    requirePermission.mockResolvedValueOnce({ ok: false, error: "unauthenticated" });
+    expect(await declareMapPosition(2.3, 48.8, "")).toMatchObject({ code: "unauthenticated" });
+    requirePermission.mockResolvedValueOnce({ ok: false, error: "forbidden" });
+    expect(await declareMapPosition(2.3, 48.8, "")).toMatchObject({ code: "forbidden" });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("validates the coordinates and the label at the boundary", async () => {
+    const bad: [unknown, unknown, unknown][] = [
+      ["2", 48, ""],
+      [2, null, ""],
+      [181, 48, ""],
+      [2, 91, ""],
+      [Number.NaN, 48, ""],
+      [2, 48, 42],
+      [2, 48, "a".repeat(81)],
+    ];
+    for (const [lng, lat, label] of bad) {
+      expect(await declareMapPosition(lng, lat, label)).toMatchObject({ code: "invalid" });
+    }
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("declares with a trimmed label and refreshes the shared cache", async () => {
+    rpc.mockResolvedValue({ data: "p1", error: null });
+    expect(await declareMapPosition(2.3, 48.8, "  Place  ")).toEqual({ status: "success" });
+    expect(rpc).toHaveBeenCalledWith("declare_map_position", {
+      p_lng: 2.3,
+      p_lat: 48.8,
+      p_label: "Place",
+    });
+    expect(updateTag).toHaveBeenCalledWith("map-positions");
+    expect(revalidatePath).toHaveBeenCalledWith("/map");
+  });
+
+  it("accepts a missing label", async () => {
+    rpc.mockResolvedValue({ data: "p1", error: null });
+    expect(await declareMapPosition(2.3, 48.8, undefined)).toEqual({ status: "success" });
+  });
+
+  it("tells the manager to wait on a rate limit, and reports any other failure", async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "rate_limited" } });
+    expect(await declareMapPosition(2.3, 48.8, "")).toMatchObject({ code: "rate_limited" });
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
+    expect(await declareMapPosition(2.3, 48.8, "")).toMatchObject({ code: "failed" });
     expect(updateTag).not.toHaveBeenCalled();
   });
 });

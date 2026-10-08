@@ -87,7 +87,25 @@ vi.mock("maplibre-gl/dist/maplibre-gl.css", () => ({}));
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 const saveMapRoute = vi.fn();
-vi.mock("./actions", () => ({ saveMapRoute: (...args: unknown[]) => saveMapRoute(...args) }));
+const declareMapPosition = vi.fn();
+vi.mock("./actions", () => ({
+  saveMapRoute: (...args: unknown[]) => saveMapRoute(...args),
+  declareMapPosition: (...args: unknown[]) => declareMapPosition(...args),
+}));
+vi.mock("@/components/full-screen-dialog", () => ({
+  FullScreenDialog: ({
+    triggerLabel,
+    children,
+  }: {
+    triggerLabel: string;
+    children: React.ReactNode;
+  }) => (
+    <div>
+      <button type="button">{triggerLabel}</button>
+      {children}
+    </div>
+  ),
+}));
 
 import MapView from "./map-view";
 
@@ -98,7 +116,8 @@ const ROUTE = {
     [2.4, 48.9],
   ] as [number, number][],
 };
-const NO_ROUTE = { route: null, canEditRoute: false };
+const BASE = { positions: [], canDeclarePosition: false };
+const NO_ROUTE = { route: null, canEditRoute: false, ...BASE };
 
 function mockSystemTheme(dark: boolean) {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
@@ -221,7 +240,7 @@ const pointCount = () => lastData()?.features.filter((f) => f.geometry.type === 
 
 async function openEditor() {
   const user = userEvent.setup();
-  render(<MapView route={ROUTE} canEditRoute />);
+  render(<MapView route={ROUTE} canEditRoute {...BASE} />);
   act(() => maps[0]?.fire("style.load"));
   loaded();
   await user.click(screen.getByRole("button", { name: /Modifier le tracé/ }));
@@ -230,7 +249,7 @@ async function openEditor() {
 
 describe("MapView route", () => {
   it("opens on the route and draws it once the style is loaded", () => {
-    render(<MapView route={ROUTE} canEditRoute={false} />);
+    render(<MapView route={ROUTE} canEditRoute={false} {...BASE} />);
     expect(maps[0]?.options.bounds).toEqual([
       [2.3, 48.8],
       [2.4, 48.9],
@@ -250,7 +269,7 @@ describe("MapView route", () => {
   });
 
   it("re-adds the route after the style changes (theme switch)", () => {
-    render(<MapView route={ROUTE} canEditRoute={false} />);
+    render(<MapView route={ROUTE} canEditRoute={false} {...BASE} />);
     act(() => maps[0]?.fire("style.load"));
     const first = maps[0]?.layers.length;
     maps[0]?.sources.clear(); // what setStyle() does to the old style
@@ -259,18 +278,18 @@ describe("MapView route", () => {
   });
 
   it("offers editing only to those who may edit, never to Guests", () => {
-    const { unmount } = render(<MapView route={ROUTE} canEditRoute={false} />);
+    const { unmount } = render(<MapView route={ROUTE} canEditRoute={false} {...BASE} />);
     loaded();
     expect(screen.queryByRole("button", { name: /Modifier le tracé/ })).toBeNull();
     unmount();
     maps.length = 0;
-    render(<MapView route={ROUTE} canEditRoute />);
+    render(<MapView route={ROUTE} canEditRoute {...BASE} />);
     loaded();
     expect(screen.getByRole("button", { name: /Modifier le tracé/ })).toBeInTheDocument();
   });
 
   it("says when there is no route yet", () => {
-    render(<MapView route={null} canEditRoute />);
+    render(<MapView route={null} canEditRoute {...BASE} />);
     loaded();
     expect(screen.getByText("Pas encore de tracé")).toBeInTheDocument();
   });
@@ -390,5 +409,130 @@ describe("MapView route editing", () => {
     expect(screen.getByRole("button", { name: "Déplacer ici" })).toBeInTheDocument();
     act(() => maps[0]?.fire("click", { point: { x: 1, y: 1 } }));
     expect(screen.queryByRole("button", { name: "Déplacer ici" })).toBeNull();
+  });
+});
+
+const NOW = Date.parse("2026-10-08T12:00:00Z");
+const POSITIONS = [
+  {
+    id: "p2",
+    lng: 2.35,
+    lat: 48.86,
+    label: "Place de la République",
+    declaredAt: "2026-10-08T11:55:00Z",
+  },
+  { id: "p1", lng: 2.3, lat: 48.85, label: "", declaredAt: "2026-10-08T10:00:00Z" },
+];
+
+describe("MapView position", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("shows the declared position: a marker on the map and a card with the label and the age", () => {
+    render(
+      <MapView
+        route={null}
+        canEditRoute={false}
+        positions={POSITIONS}
+        canDeclarePosition={false}
+      />,
+    );
+    act(() => maps[0]?.fire("style.load"));
+    expect(maps[0]?.layers).toEqual(expect.arrayContaining(["position-halo", "position-dot"]));
+    loaded();
+    const card = screen.getByRole("region", { name: "Position de la manifestation" });
+    expect(card).toHaveTextContent("Place de la République");
+    expect(card).toHaveTextContent("il y a 5 min");
+  });
+
+  it("flies to the position on demand and lists the history", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(
+      <MapView
+        route={null}
+        canEditRoute={false}
+        positions={POSITIONS}
+        canDeclarePosition={false}
+      />,
+    );
+    loaded();
+    await user.click(screen.getByRole("button", { name: "Voir" }));
+    expect(maps[0]?.flyTo).toHaveBeenCalledWith({ center: [2.35, 48.86], zoom: 15 });
+    expect(screen.getByRole("button", { name: "Historique" })).toBeInTheDocument();
+    expect(screen.getByText("Actuelle")).toBeInTheDocument();
+    expect(screen.getByText("Position déclarée")).toBeInTheDocument(); // the one without a label
+  });
+
+  it("shows nothing when no position was ever declared", () => {
+    render(<MapView {...NO_ROUTE} />);
+    loaded();
+    expect(screen.queryByRole("region", { name: "Position de la manifestation" })).toBeNull();
+  });
+
+  it("offers the declaration only to those who may, never to Guests", () => {
+    const { unmount } = render(<MapView {...NO_ROUTE} />);
+    loaded();
+    expect(screen.queryByRole("button", { name: "Déclarer la position" })).toBeNull();
+    unmount();
+    maps.length = 0;
+    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    loaded();
+    expect(screen.getByRole("button", { name: "Déclarer la position" })).toBeInTheDocument();
+  });
+
+  it("declares at the centre of the map with the label, then goes back to the map", async () => {
+    declareMapPosition.mockResolvedValue({ status: "success" });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    loaded();
+    await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
+    await user.type(screen.getByLabelText(/Lieu/), "Gare de l'Est");
+    await user.click(screen.getByRole("button", { name: "Déclarer ici" }));
+    expect(declareMapPosition).toHaveBeenCalledWith(2.5, 48.5, "Gare de l'Est");
+    expect(await screen.findByRole("button", { name: "Déclarer la position" })).toBeInTheDocument();
+  });
+
+  it("shows why a declaration was refused and stays in the declaration mode", async () => {
+    declareMapPosition.mockResolvedValue({
+      status: "error",
+      code: "rate_limited",
+      message: "Patiente quelques secondes avant de déclarer une nouvelle position.",
+    });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    loaded();
+    await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
+    await user.click(screen.getByRole("button", { name: "Déclarer ici" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Patiente quelques secondes");
+    expect(screen.getByRole("button", { name: "Déclarer ici" })).toBeInTheDocument();
+  });
+
+  it("the GPS shortcut only moves the map: nothing is declared until the manager confirms", async () => {
+    const geolocation = {
+      getCurrentPosition: vi.fn((ok: (p: unknown) => void) =>
+        ok({ coords: { longitude: 2.4, latitude: 48.9 } }),
+      ),
+    };
+    Object.defineProperty(navigator, "geolocation", { value: geolocation, configurable: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    loaded();
+    await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
+    await user.click(screen.getByRole("button", { name: "Ma position" }));
+    expect(maps[0]?.flyTo).toHaveBeenCalledWith({ center: [2.4, 48.9], zoom: 15 });
+    expect(declareMapPosition).not.toHaveBeenCalled();
+  });
+
+  it("closes the declaration without sending anything", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<MapView route={null} canEditRoute={false} positions={[]} canDeclarePosition />);
+    loaded();
+    await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
+    await user.click(screen.getByRole("button", { name: "Fermer la déclaration" }));
+    expect(screen.getByRole("button", { name: "Déclarer la position" })).toBeInTheDocument();
+    expect(declareMapPosition).not.toHaveBeenCalled();
   });
 });

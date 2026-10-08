@@ -16,9 +16,7 @@ test.describe("app shell", () => {
     }
   });
 
-  test("the map page loads the map, flags the page as under development and starts its worker", async ({
-    page,
-  }) => {
+  test("the map page loads the map and starts its worker", async ({ page }) => {
     // No network in the test: answer the style request with an empty one (a single background layer).
     await page.route("https://tiles.openfreemap.org/**", (route) =>
       route.fulfill({
@@ -40,7 +38,9 @@ test.describe("app shell", () => {
 
     await page.goto("/map");
     await expect(page.getByRole("heading", { level: 1, name: "Carte" })).toBeVisible();
-    await expect(page.getByRole("status")).toHaveText("En développement");
+    // Guests never get the editing controls.
+    await expect(page.getByRole("button", { name: "Modifier le tracé" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Déclarer la position" })).toHaveCount(0);
     await expect(page.getByRole("region", { name: "Carte" })).toBeVisible();
     expect((await worker).url()).toContain("/_next/static/media/maplibre-gl-worker");
     await expect(page.getByRole("button", { name: "Me localiser" })).toBeEnabled();

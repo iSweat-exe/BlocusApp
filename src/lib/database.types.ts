@@ -138,6 +138,34 @@ export type Database = {
           },
         ];
       };
+      map_positions: {
+        Row: {
+          author_id: string | null;
+          declared_at: string;
+          id: string;
+          label: string;
+          lat: number;
+          lng: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id?: string | null;
+          declared_at?: string;
+          id?: string;
+          label?: string;
+          lat: number;
+          lng: number;
+        };
+        Update: {
+          author_id?: string | null;
+          declared_at?: string;
+          id?: string;
+          label?: string;
+          lat?: number;
+          lng?: number;
+        };
+        Relationships: [];
+      };
       map_route_versions: {
         Row: {
           author_id: string | null;
@@ -353,6 +381,10 @@ export type Database = {
         Returns: string;
       };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
+      declare_map_position: {
+        Args: { p_label?: string; p_lat: number; p_lng: number };
+        Returns: string;
+      };
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
       get_permission_epoch: { Args: never; Returns: string };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };

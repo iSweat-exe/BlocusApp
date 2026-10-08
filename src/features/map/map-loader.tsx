@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { MapPosition } from "@/lib/data/map-positions";
 import type { LngLat } from "@/lib/map-route";
 
 /**
@@ -24,6 +25,8 @@ export function MapSkeleton() {
 export function MapLoader(props: {
   route: { id: string; points: LngLat[] } | null;
   canEditRoute: boolean;
+  positions: MapPosition[];
+  canDeclarePosition: boolean;
 }) {
   return <MapView {...props} />;
 }
