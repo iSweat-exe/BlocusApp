@@ -27,6 +27,37 @@ beforeEach(() => {
   rpc.mockResolvedValue({ error: null });
 });
 
+describe("changeRole database errors", () => {
+  it("logs an unexpected error and still shows the generic message", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    rpc.mockResolvedValue({ error: { code: "XX000", message: "something broke", hint: null } });
+
+    expect(await changeRole(IDLE, form({ target: TARGET, role: "manager" }))).toEqual({
+      status: "error",
+      message: "La modification a échoué. Réessaie.",
+    });
+    expect(log).toHaveBeenCalledWith(
+      "[changeRole] unexpected database error:",
+      "XX000",
+      "something broke",
+      "",
+    );
+    log.mockRestore();
+  });
+
+  it("does not log an expected error such as a hierarchy violation", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    rpc.mockResolvedValue({ error: { code: "42501", message: "hierarchy_violation" } });
+
+    expect(await changeRole(IDLE, form({ target: TARGET, role: "admin" }))).toMatchObject({
+      status: "error",
+      message: expect.stringContaining("au-dessus"),
+    });
+    expect(log).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+});
+
 describe("changeRole", () => {
   it("checks role.assign against the database", async () => {
     await changeRole(IDLE, form({ target: TARGET, role: "manager" }));
