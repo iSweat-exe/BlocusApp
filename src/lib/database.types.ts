@@ -28,7 +28,14 @@ export type Database = {
           author_id: string | null;
           body: string;
           created_at: string;
+          edited_at: string | null;
           id: string;
+          image_height: number | null;
+          image_path: string | null;
+          image_width: number | null;
+          published_at: string | null;
+          show_author: boolean;
+          status: string;
           title: string;
           updated_at: string;
         };
@@ -37,7 +44,14 @@ export type Database = {
           author_id?: string | null;
           body: string;
           created_at?: string;
+          edited_at?: string | null;
           id?: string;
+          image_height?: number | null;
+          image_path?: string | null;
+          image_width?: number | null;
+          published_at?: string | null;
+          show_author?: boolean;
+          status?: string;
           title: string;
           updated_at?: string;
         };
@@ -45,7 +59,14 @@ export type Database = {
           author_id?: string | null;
           body?: string;
           created_at?: string;
+          edited_at?: string | null;
           id?: string;
+          image_height?: number | null;
+          image_path?: string | null;
+          image_width?: number | null;
+          published_at?: string | null;
+          show_author?: boolean;
+          status?: string;
           title?: string;
           updated_at?: string;
         };
@@ -418,7 +439,22 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      announcement_feed: {
+        Row: {
+          author_avatar_url: string | null;
+          author_id: string | null;
+          author_pseudo: string | null;
+          body: string | null;
+          edited_at: string | null;
+          id: string | null;
+          image_height: number | null;
+          image_path: string | null;
+          image_width: number | null;
+          published_at: string | null;
+          title: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       assign_role: { Args: { p_role: string; p_target: string }; Returns: undefined };

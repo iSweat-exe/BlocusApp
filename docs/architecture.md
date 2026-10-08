@@ -88,6 +88,13 @@ revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en 
 colorée, d'ombre ni de pastille) : date lisible (« Aujourd'hui, 19:35 », « Hier, 15:11 », « 1 oct., 09:00 ») au-dessus du
 titre pleine largeur, puis le texte ; la suppression est un bouton discret en pied de carte (seulement si
 autorisé) qui demande une confirmation explicite (`delete-announcement-button.tsx`).
+Posts v2 (ADR 0007) : le fil public vient de la vue `announcement_feed` (cache partagé de 2 min). Les titulaires de
+`announcement.publish` ont en plus, hors cache, leurs brouillons et posts privés (section « Mes brouillons et posts
+privés ») et un bouton « Modifier » sur leurs posts (`updateAnnouncement`, formulaire prérempli dans la feuille plein
+écran). Le formulaire permet une photo (compressée dans le navigateur avant l'envoi, `compress-image.ts`), une
+visibilité (Brouillon / Privé / Public) et « Afficher l'auteur » (pseudo et avatar visibles de tous sur ce post).
+Un post modifié affiche « · modifié ». L'action vérifie la taille (300 Ko), le format réel et les dimensions de
+l'image, la range dans le dossier de l'auteur et efface l'ancienne.
 Pagination et cache (A-080+) : étape 1.6.
 
 ## Barre du bas et design mobile

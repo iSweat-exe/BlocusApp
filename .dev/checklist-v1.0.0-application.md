@@ -123,6 +123,10 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [ ] **A-122** Login / Register : formulaires, validation (Zod), erreurs par champ, états de chargement — _parcours E2E OK_
 - [~] **A-123a** Table `announcements` + RLS (lecture Guest, écriture `announcement.publish` / `announcement.delete`) + tests pgTAP — _fait, reste la PR de l'UI_
 - [~] **A-123b** **Accueil** : fil des **dernières actualités** (annonces…), plus récentes en premier ; publication réservée aux personnes autorisées (`announcement.publish`) ; lecture ouverte au Guest — _données issues du cache (1.6)_
+- [~] **A-123c** Posts : **modification** d'un post déjà écrit par son auteur (formulaire prérempli, « modifié » affiché, `edited_at`) — _fait, à valider en production_
+- [~] **A-123d** Posts : **photo** facultative (une par post), compressée dans le navigateur (≤ 1 600 px, WebP/JPEG, ~220 Ko) puis plafonnée à 300 Ko côté serveur et par le bucket `announcement-images`, effacée avec le post — _fait (ADR 0007) ; reste : contrôle de la taille du bucket (A-114)_ ⚡
+- [~] **A-123e** Posts : case **« Afficher l'auteur »** (pseudo et avatar visibles de tous, caché par défaut, y compris pour les invités) 🔒 — _fait : vue `announcement_feed`, table fermée à `anon`, pgTAP_
+- [~] **A-123f** Posts : états **Brouillon / Privé / Public** (brouillon et privé : l'auteur seul) 🔒 — _fait ; section « Mes brouillons et posts privés » ; la différence brouillon / privé reste une étiquette (à durcir si besoin)_
 - [~] **A-128** Retirer `/messages` : route supprimée (404) et onglet retiré de `src/components/app-nav.tsx` (+ test `app-nav.test.tsx`) — _`npm run build` sans `/messages`, 3 onglets_
 - [~] **A-129** Page `/profil` (lecture) : pseudo, photo, identifiant, rôle, e-mail, fournisseur, date d'inscription, permissions (refonte visuelle mobile faite) — _édition du pseudo/avatar : étape 1.7 (batching)_
 - [~] **A-129b** Composant « fenêtre plein écran » réutilisable ; « Créer un post » (annonces) et « Ajouter un événement » s'y ouvrent au lieu d'un formulaire affiché en permanence — _fait, à valider sur de vrais téléphones (iPhone et Android)_

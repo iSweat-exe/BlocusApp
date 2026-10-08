@@ -16,7 +16,7 @@ values ('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-0000000
 
 -- Guest (anon): read only.
 set local role anon;
-select is((select count(*)::int from public.announcements), 1, 'anon can read announcements');
+select is((select count(*)::int from public.announcement_feed), 1, 'anon can read the public feed');
 select throws_ok(
   $$insert into public.announcements (author_id, title, body) values (null, 't', 'b')$$,
   '42501', null, 'anon cannot publish');
@@ -28,7 +28,7 @@ select throws_ok(
   $$insert into public.announcements (author_id, title, body) values ('00000000-0000-0000-0000-0000000000a1', 't', 'b')$$,
   '42501', null, 'user without announcement.publish cannot publish');
 delete from public.announcements where id = '00000000-0000-0000-0000-00000000f001';
-select is((select count(*)::int from public.announcements where id = '00000000-0000-0000-0000-00000000f001'), 1,
+select is((select count(*)::int from public.announcement_feed where id = '00000000-0000-0000-0000-00000000f001'), 1,
   'user cannot delete an announcement');
 
 -- Manager: can publish as themselves only.
@@ -53,16 +53,16 @@ select throws_ok(
 -- Another manager cannot edit nor delete it.
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-0000000000a6", "role": "authenticated"}';
 update public.announcements set title = 'Piraté' where id = '00000000-0000-0000-0000-00000000f001';
-select is((select title from public.announcements where id = '00000000-0000-0000-0000-00000000f001'), 'Départ 15h',
+select is((select title from public.announcement_feed where id = '00000000-0000-0000-0000-00000000f001'), 'Départ 15h',
   'a manager cannot edit another one''s announcement');
 delete from public.announcements where id = '00000000-0000-0000-0000-00000000f001';
-select is((select count(*)::int from public.announcements where id = '00000000-0000-0000-0000-00000000f001'), 1,
+select is((select count(*)::int from public.announcement_feed where id = '00000000-0000-0000-0000-00000000f001'), 1,
   'a manager cannot delete another one''s announcement');
 
 -- Moderator can delete any announcement but not edit it.
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-0000000000a3", "role": "authenticated"}';
 delete from public.announcements where id = '00000000-0000-0000-0000-00000000f001';
-select is((select count(*)::int from public.announcements where id = '00000000-0000-0000-0000-00000000f001'), 0,
+select is((select count(*)::int from public.announcement_feed where id = '00000000-0000-0000-0000-00000000f001'), 0,
   'moderator can delete any announcement');
 
 select * from finish();
