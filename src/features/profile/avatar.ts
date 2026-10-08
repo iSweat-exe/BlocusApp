@@ -1,5 +1,5 @@
 /** Hosts allowed to serve avatars (must match `img-src` in `next.config.ts`). */
-const AVATAR_HOSTS = new Set(["cdn.discordapp.com"]);
+const AVATAR_HOSTS = new Set(["cdn.discordapp.com", "lh3.googleusercontent.com"]);
 
 /**
  * Returns the avatar URL only when it is an https URL on an allowed host, otherwise `null`.
