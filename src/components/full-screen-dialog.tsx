@@ -38,10 +38,12 @@ function runSheetAnimation(
 ): Promise<void> | null {
   if (typeof sheet.animate !== "function" || prefersReducedMotion()) return null;
   const opening = direction === "in";
-  const options = {
+  const options: KeyframeAnimationOptions = {
     duration: opening ? OPEN_MS : CLOSE_MS,
     easing: opening ? SHEET_EASING : "ease-in",
-    fill: "both" as const,
+    // Opening must not hold its end state, or it would keep overriding the inline transform of the swipe
+    // gesture; closing holds the off-screen state until the dialog is closed (then it is cancelled).
+    fill: opening ? "backwards" : "forwards",
   };
   try {
     dialog.animate(
@@ -115,15 +117,16 @@ export function FullScreenDialog({ triggerLabel, title, triggerClassName, childr
   const show = () => {
     const dialog = dialogRef.current;
     const sheet = sheetRef.current;
-    if (!dialog || !sheet) return;
+    if (!dialog || !sheet || dialog.open) return;
     closingRef.current = false;
     // Mount the content while the dialog is still hidden, so the (possibly heavy) form is already laid out
     // when the slide-up starts and the animation does not stutter.
     flushSync(() => setOpen(true));
     dialog.showModal();
-    void runSheetAnimation(dialog, sheet, "in");
-    // Start on the content, not on the close button (which would show a focus ring right away).
+    // Start on the content, not on the close button (which would show a focus ring right away). Focus moves
+    // before the sheet is pushed off-screen by the animation, so nothing needs scrolling into view.
     contentRef.current?.focus({ preventScroll: true });
+    void runSheetAnimation(dialog, sheet, "in");
   };
   // Slides the sheet away, then closes the dialog. Stable identity: forms call `close` from an effect and
   // must not re-run it on every render.
@@ -182,7 +185,14 @@ export function FullScreenDialog({ triggerLabel, title, triggerClassName, childr
         onClick={(event) => {
           if (event.target === event.currentTarget) close();
         }}
-        className="fixed inset-0 m-0 h-dvh max-h-none w-dvw max-w-none overflow-hidden bg-transparent p-0 text-foreground backdrop:bg-black/50"
+        // `overflow-clip`, not `overflow-hidden`: a hidden overflow is still a scroll container, and iOS
+        // scrolls it to bring the focused control into view while the sheet is still below the screen,
+        // which made the sheet jump up then snap back. A clipped box cannot scroll at all.
+        onScroll={(event) => {
+          // Fallback for browsers without `overflow: clip` (iOS < 16).
+          event.currentTarget.scrollTop = 0;
+        }}
+        className="fixed inset-0 m-0 h-dvh max-h-none w-dvw max-w-none overflow-clip overscroll-none bg-transparent p-0 text-foreground backdrop:bg-black/50"
       >
         <DialogContext.Provider value={contextValue}>
           <div

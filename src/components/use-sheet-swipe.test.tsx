@@ -38,6 +38,19 @@ describe("useSheetSwipe", () => {
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
+  it("stops a running opening animation as soon as the finger drags the sheet", () => {
+    const { getByTestId } = render(<Harness onDismiss={vi.fn()} />);
+    const sheet = getByTestId("sheet");
+    const cancel = vi.fn();
+    Object.defineProperty(sheet, "getAnimations", { value: () => [{ cancel }] });
+    const handle = getByTestId("handle");
+    fireEvent.touchStart(handle, touch(100));
+    fireEvent.touchMove(handle, touch(120));
+    fireEvent.touchMove(handle, touch(140));
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(sheet.style.transform).toBe("translateY(40px)");
+  });
+
   it("springs back after a short slow swipe", () => {
     const onDismiss = vi.fn();
     const { getByTestId } = render(<Harness onDismiss={onDismiss} />);

@@ -85,6 +85,8 @@ describe("FullScreenDialog", () => {
         { transform: "translateY(100%)" },
         { transform: "translateY(0)" },
       ]);
+      // The opening must not hold its end state: it would override the swipe gesture's inline transform.
+      expect(sheetCall?.[1]).toMatchObject({ fill: "backwards" });
 
       await user.click(screen.getByRole("button", { name: "Fermer" }));
       await act(async () => {
@@ -94,6 +96,18 @@ describe("FullScreenDialog", () => {
     } finally {
       Reflect.deleteProperty(HTMLElement.prototype, "animate");
     }
+  });
+
+  it("never scrolls the dialog box itself (iOS would make the sliding sheet jump)", async () => {
+    const user = userEvent.setup();
+    renderDialog();
+    await user.click(screen.getByRole("button", { name: "Créer un post" }));
+    const dialog = document.querySelector("dialog");
+    if (!dialog) throw new Error("no dialog");
+    expect(dialog).toHaveClass("overflow-clip");
+    dialog.scrollTop = 120;
+    fireEvent.scroll(dialog);
+    expect(dialog.scrollTop).toBe(0);
   });
 
   it("useDialogClose is a harmless no-op outside a dialog", async () => {
