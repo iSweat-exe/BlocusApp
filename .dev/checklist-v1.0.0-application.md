@@ -105,7 +105,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 ## Étape 1.8 — Ralentissement contrôlé / anti-surcharge (messages) ⚡
 > Pas de messagerie en v1.0.0 : ces règles s'appliquent aux écritures (annonces, positions déclarées) et aux envois de notifications push. Les items « messages » ci-dessous se lisent en ce sens.
 
-- [ ] **A-100** Rate limit **par utilisateur** (ex. N msgs / fenêtre glissante) appliqué côté serveur ET en BDD — _contournement client impossible_
+- [~] **A-100** Rate limit **par utilisateur** (ex. N msgs / fenêtre glissante) appliqué côté serveur ET en BDD — _contournement client impossible_ (fait pour les écritures actuelles : posts, événements, administration, carte, dans la base ; les Server Actions affichent le message ; reste à cocher avec le lien de la PR)
 - [ ] **A-101** Rate limit **par IP** pour les non-authentifiés (Vercel Firewall rules / Upstash Ratelimit) — _429 + `Retry-After`_
 - [ ] **A-102** Ralentissement progressif (throttle/backpressure) plutôt que blocage brutal : file d'envoi côté client avec cadence adaptative — _l'UI informe « envoi ralenti »_
 - [ ] **A-103** Limite globale de débit alignée sur les quotas Realtime Supabase ; au-dessus : mise en file + dégradation (ex. messages groupés) — _test de charge ≥ 200 users simulés_
@@ -188,4 +188,5 @@ L'application sert à **gérer une manifestation dans une ville X** :
 ## Backlog (hors v1.0.0)
 - **Messagerie** (messages privés + groupes, permissions `message.*`) : reportée, la communication passe par Instagram pour l'instant ; la page `/messages` ne doit pas exister publiquement.
 - **Utilisateurs « en direct » exacts** (présence Supabase Realtime) : écartés tant que le pic visé consomme toute la limite gratuite de ~200 connexions ; « actifs » est approché par les sessions renouvelées (ADR 0006).
+- **Rate limit** : compter l'envoi des images de posts avant la création du post, compter les suppressions, passer à une fenêtre glissante si la fenêtre fixe se révèle trop permissive.
 - _(y noter toute autre idée qui déborde)_

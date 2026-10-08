@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { updateTag } from "next/cache";
 import { parseRoutePoints } from "@/lib/map-route";
 import { createClient } from "@/lib/supabase/server";
+import { isRateLimited, RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { requirePermission } from "@/server/require-permission";
 
 /** Result of saving the route. `stale` = somebody else saved in the meantime. */
@@ -11,7 +12,7 @@ export type SaveRouteState =
   | { status: "success"; versionId: string }
   | {
       status: "error";
-      code: "invalid" | "forbidden" | "unauthenticated" | "stale" | "failed";
+      code: "invalid" | "forbidden" | "unauthenticated" | "stale" | "rate_limited" | "failed";
       message: string;
     };
 
@@ -49,6 +50,9 @@ export async function saveMapRoute(
     p_base: baseVersionId as string,
   });
   if (error) {
+    if (isRateLimited(error)) {
+      return { status: "error", code: "rate_limited", message: RATE_LIMITED_MESSAGE };
+    }
     if (error.message === "stale_route") {
       return {
         status: "error",
@@ -133,7 +137,7 @@ export type RemovePositionState =
   | { status: "success" }
   | {
       status: "error";
-      code: "invalid" | "forbidden" | "unauthenticated" | "unknown" | "failed";
+      code: "invalid" | "forbidden" | "unauthenticated" | "unknown" | "rate_limited" | "failed";
       message: string;
     };
 
@@ -172,6 +176,9 @@ export async function removeMapPosition(id: unknown): Promise<RemovePositionStat
         message:
           "Seule la personne qui a déclaré cette position (ou un administrateur) peut la retirer.",
       };
+    }
+    if (isRateLimited(error)) {
+      return { status: "error", code: "rate_limited", message: RATE_LIMITED_MESSAGE };
     }
     if (error.message === "unknown_position") {
       return { status: "error", code: "unknown", message: "Cette position n'existe plus." };

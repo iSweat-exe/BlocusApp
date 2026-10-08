@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { updateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logActionError } from "@/server/log-action-error";
+import { isRateLimited, RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { requirePermission } from "@/server/require-permission";
 import { detectImageType, IMAGE_MAX_BYTES, IMAGE_MAX_DIMENSION, type ImageType } from "./image";
 import { type AnnouncementFieldErrors, type PostStatus, validateAnnouncementInput } from "./schema";
@@ -134,6 +135,7 @@ export async function publishAnnouncement(
   });
   if (error) {
     await removeImage(supabase, imagePath);
+    if (isRateLimited(error)) return { status: "error", message: RATE_LIMITED_MESSAGE };
     return { status: "error", message: "La publication a échoué. Réessaie." };
   }
 
@@ -210,6 +212,7 @@ export async function updateAnnouncement(
     .select("id");
   if (error || !data || data.length === 0) {
     await removeImage(supabase, newPath);
+    if (error && isRateLimited(error)) return { status: "error", message: RATE_LIMITED_MESSAGE };
     return { status: "error", message: "La modification a échoué. Réessaie." };
   }
 

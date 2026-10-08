@@ -8,11 +8,27 @@
 2. `SUPABASE_SERVICE_ROLE_KEY` uniquement côté serveur, jamais préfixée `NEXT_PUBLIC_`.
 3. Aucun secret dans le dépôt (scan `gitleaks` en CI). Les `.env*` sont ignorés, sauf `.env.example`.
 4. Validation de toutes les entrées côté serveur (schéma) ; limites de taille avant et après décompression.
-5. Rate limiting sur l'authentification et l'envoi de messages.
+5. Rate limiting par utilisateur sur toutes les écritures (voir « Limites de débit »). L'authentification passe par
+   Discord et Google, dont les limites s'appliquent ; la limite par IP des visiteurs non connectés reste à faire (A-101).
 6. Sessions Supabase en cookies httpOnly (`@supabase/ssr`), jamais en `localStorage`. Le cookie a un nom fixe, `blocus-auth`
    (`src/lib/supabase/cookie.ts`), commun à tous les clients Supabase ; le `matcher` du `proxy` en dépend.
 7. Le cache ne contient jamais de réponse authentifiée partagée entre utilisateurs ; le service worker ne
    met pas en cache les réponses authentifiées.
+
+## Limites de débit (A-100)
+
+Chaque utilisateur est limité **dans la base de données** (table `rate_limits`, voir [`database.md`](./database.md)) :
+10 créations ou modifications de posts par 10 minutes, 30 événements par 10 minutes, 60 actions d'administration par
+minute, 30 actions de carte par minute. C'est la base qui décide, pas les Server Actions : un client qui appelle
+PostgREST directement avec son jeton est limité de la même façon. Les Server Actions ne font que traduire l'erreur
+`rate_limited` en message (`src/server/rate-limit.ts`). Limites connues :
+
+- fenêtre fixe : un utilisateur peut enchaîner jusqu'à deux fois la limite à cheval sur deux fenêtres ;
+- les suppressions ne sont pas comptées ;
+- l'envoi d'une image de post (bucket `announcement-images`) n'est pas compté avant la création du post : seuls les
+  titulaires de `announcement.publish` peuvent écrire, chaque fichier est plafonné à 300 Ko et le serveur supprime le
+  fichier si la création est refusée ;
+- les visiteurs non connectés n'écrivent rien (RLS) ; leur limite par IP relève de A-101.
 
 ## Bans
 
