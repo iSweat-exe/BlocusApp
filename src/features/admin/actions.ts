@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logActionError } from "@/server/log-action-error";
 import { requirePermission } from "@/server/require-permission";
 
 /** State returned to the role form. */
@@ -52,10 +53,9 @@ export async function changeRole(
   const supabase = createClient(await cookies());
   const { error } = await supabase.rpc("assign_role", { p_target: target, p_role: role });
   if (error) {
-    return {
-      status: "error",
-      message: DATABASE_ERRORS[error.message] ?? "La modification a échoué. Réessaie.",
-    };
+    const known = DATABASE_ERRORS[error.message];
+    if (!known) logActionError("changeRole", error);
+    return { status: "error", message: known ?? "La modification a échoué. Réessaie." };
   }
 
   revalidatePath("/admin");
