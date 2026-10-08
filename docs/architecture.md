@@ -47,6 +47,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/admin/users/[id]` | Fiche utilisateur : sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/roles` | Matrice rôle × permission (édition)       | Permission `permission.manage` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/journal` | Journal d'audit (lecture, filtre, pagination) | Permission `audit.read` (sinon 404 ; Guest → `/login`) |
+| `(app)`  | `/settings`   | Réglages : couleur de l'application (préréglages + couleur libre), raccourci profil/connexion | Public (réglages stockés sur l'appareil) |
 | `(app)`  | `/profil`     | Profil (lecture) : carte identité, compte, permissions, déconnexion| Connecté (Guest → `/login`)                |
 
 `/messages` n'existe pas (route supprimée, A-128) : la communication passe par Instagram. Messagerie = Backlog.
@@ -88,7 +89,7 @@ Pagination et cache (A-080+) : étape 1.6.
 
 ## Barre du bas et design mobile
 
-`src/components/app-nav.tsx` : trois onglets (Accueil, Calendrier, Carte), chacun avec une **icône** (SVG en
+`src/components/app-nav.tsx` : quatre onglets (Accueil, Calendrier, Carte, Réglages), chacun avec une **icône** (SVG en
 ligne, `src/components/icons.tsx`) au-dessus de son libellé, **64 px de haut** (Android demande 48 px, iOS 44 px),
 une pastille d'accent derrière l'icône active, un fond flouté et `pb-[env(safe-area-inset-bottom)]` pour ne pas
 passer sous l'indicateur d'accueil de l'iPhone (`viewport-fit=cover` est déjà activé). Les survols ne s'appliquent
@@ -116,6 +117,8 @@ plus dans l'en-tête : elle se trouve sur `/profil`.** Les icônes sont des SVG 
 fenêtre ouverte (formulaire vierge à chaque ouverture). Un formulaire passé en `children` depuis un Server
 Component la ferme après un succès avec le hook `useDialogClose()` (pas de fonction en prop). Utilisée pour
 « Créer un post » (`announcement-feed.tsx`) et « Ajouter un événement » (`calendar-view.tsx`).
+
+**Couleur d'accent personnalisable.** `/settings` (`src/features/settings/`) : l'utilisateur choisit un préréglage ou une couleur libre ; elle est stockée dans `localStorage` (`blocus.accent`, `#rrggbb` validé par `normalizeHex`) et posée en variables CSS `--accent`, `--accent-strong`, `--accent-ink` sur `<html>`. Un script inline dans `<head>` (`accent-script.ts`, autorisé par la CSP actuelle `'unsafe-inline'`) l'applique avant le premier rendu, sans flash rouge. Réglage local à l'appareil, sans base de données (synchro entre appareils = hors périmètre).
 
 **Design system.** Tokens et classes partagées dans `src/app/globals.css` (couleurs, arrondis, espacements, polices), cf. `docs/conventions.md` et ADR 0004. `src/components/avatar.tsx` affiche la photo de profil (URL contrôlée par `safeAvatarUrl`) ou les initiales.
 

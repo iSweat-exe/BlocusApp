@@ -12,7 +12,7 @@ test.describe("app shell", () => {
       await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
       await expect(
         page.getByRole("navigation", { name: "Navigation principale" }).getByRole("link"),
-      ).toHaveCount(3);
+      ).toHaveCount(4);
     }
   });
 
@@ -22,6 +22,21 @@ test.describe("app shell", () => {
     await page.goto("/");
     await expect(page.getByRole("region", { name: "Actualités" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Publier" })).toHaveCount(0);
+  });
+
+  test("the settings page changes the accent color and keeps it after a reload", async ({
+    page,
+  }) => {
+    await page.goto("/settings");
+    await expect(page.getByRole("heading", { level: 1, name: "Réglages" })).toBeVisible();
+    await page.getByRole("radio", { name: "Bleu" }).click();
+    const accent = () =>
+      page.evaluate(() => document.documentElement.style.getPropertyValue("--accent"));
+    expect(await accent()).toBe("#3b82f6");
+    await page.reload();
+    // Applied before paint by the boot script, with no flash of the default red.
+    expect(await accent()).toBe("#3b82f6");
+    await expect(page.getByRole("radio", { name: "Bleu" })).toBeChecked();
   });
 
   test("does not expose a public messages page", async ({ page }) => {
