@@ -109,6 +109,14 @@ Migration `20261007210000_event_finish.sql` : colonnes `finished_at` / `finished
 modifiées seulement par `set_event_finished(id, finished)` qui exige `event.finish`), et la policy de modification
 exclut les événements terminés.
 
+## Époque des permissions (`permission_epoch`)
+
+Table à **une seule ligne** (`singleton`, `changed_at`), RLS activée sans policy (aucun accès client direct). Des
+triggers par instruction la mettent à jour après tout changement de `role_permissions`, `permission_overrides`,
+`permissions`, `profiles.role` ou `moderation_actions` (les entrées du JWT). `get_permission_epoch()` (SECURITY
+DEFINER, exécutable par `anon` et `authenticated`) renvoie la date : aucune donnée utilisateur. Sert à réémettre les
+tokens périmés, voir `docs/permissions.md`. Test : `supabase/tests/database/permission_epoch.test.sql`.
+
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 
 Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées

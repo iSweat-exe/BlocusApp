@@ -40,7 +40,10 @@ En local le hook est activé par `supabase/config.toml`. **Sur un projet héberg
 Supabase → Authentication → Hooks → Custom Access Token → type « Postgres », fonction
 `public.custom_access_token_hook`. Sans cela, `requirePermission()` refuse tout (claims absents) ; la RLS
 continue de fonctionner. Après l'activation, les utilisateurs déjà connectés reçoivent les claims au
-prochain refresh du token (≤ 1 h) ou après reconnexion.
+prochaine requête de page : l'application réémet elle-même les tokens plus anciens que le dernier changement de
+permissions (`permission_epoch`, voir `docs/permissions.md`). **Appliquer la migration `20261008100000_permission_epoch.sql`
+sur le projet hébergé** avant de déployer ce code : sans elle `get_permission_epoch` n'existe pas, l'application
+l'ignore sans erreur et retombe sur le délai d'expiration du token.
 
 ## Keep-alive contre la mise en pause (Supabase gratuit)
 

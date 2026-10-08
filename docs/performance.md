@@ -54,7 +54,9 @@ compte plus que raccourcir une requête SQL.
   (`IMMINENT_FETCH_MINUTES`) et le navigateur ne montre que ceux de la fenêtre de 30 minutes (3 au maximum) : un
   événement devient imminent **sans rechargement**.
 - **Durée de vie du jeton : 15 min** (`jwt_expiry = 900`, voir `docs/runbook.md`) : rôles, permissions et
-  bannissements portés par le JWT se mettent à jour en ≤ 15 min au lieu de 1 h. Les actions sensibles vérifient de
+  bannissements portés par le JWT se mettent à jour en ≤ 15 min au lieu de 1 h, **et immédiatement à la requête suivante**
+  grâce à `permission_epoch` (`docs/permissions.md` : au plus une lecture en base toutes les 10 s par instance, aucune
+  requête de plus pour le visiteur). Les actions sensibles vérifient de
   toute façon en base (`fresh`).
 
 - **Annonces paginées** : 10 au départ, « Voir plus d'annonces » en ajoute 10 (`/?n=20`, …), plafond de **50** (une

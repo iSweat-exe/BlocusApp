@@ -56,8 +56,19 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   client (l'édition depuis le panneau admin viendra avec A-035).
 - **Claims JWT (A-034)** : le hook `custom_access_token_hook` (migration `20261007140000_...`) ajoute au
   token `app_role` (le claim `role` est réservé par PostgREST) et `permissions` (tableau de clés). Seul
-  `supabase_auth_admin` peut l'exécuter. Les claims ne sont rafraîchis qu'avec le token (≤ 1 h) : ils servent
-  de chemin rapide côté serveur, la RLS (`has_permission`) reste l'autorité.
+  `supabase_auth_admin` peut l'exécuter. Ils servent de chemin rapide côté serveur, la RLS (`has_permission`) reste
+  l'autorité.
+- **Prise en compte immédiate des changements** : un token n'est normalement renouvelé qu'à son expiration (15 min en
+  local, **1 h par défaut sur un projet hébergé**), donc un ami promu administrateur, une permission accordée à un
+  utilisateur ou à un rôle, un déni ou un bannissement restaient invisibles tout ce temps (bouton « Créer un post »
+  absent, action refusée). La table à une ligne `permission_epoch` (migration `20261008100000_permission_epoch.sql`)
+  est mise à jour par des triggers à chaque changement de `role_permissions`, `permission_overrides`, `permissions`,
+  `profiles.role` et `moderation_actions` ; `get_permission_epoch()` la rend lisible. `src/lib/supabase/middleware.ts`
+  compare cette date à l'`iat` du token à chaque requête de page et, si le token est plus ancien, le **réémet**
+  (`refreshSession()`), donc la page et les Server Actions de cette même requête voient les nouveaux droits. Lecture
+  mémorisée 10 s par instance (au plus une lecture en base toutes les 10 s), jamais bloquante en cas d'erreur, et
+  jamais deux renouvellements pour le même changement. Limite : une page déjà ouverte se met à jour à la prochaine
+  navigation ou au retour sur l'app (`RefreshOnReturn`, ≤ 30 s), pas en poussé.
 - **`requirePermission(permission, { fresh? })` (A-038)** : `src/server/require-permission.ts`, à appeler en
   premier dans chaque Server Action / Route Handler. Retourne `Result<{ userId }, "unauthenticated" |
 "forbidden">`. Par défaut lit les claims ; `fresh: true` interroge la base (actions sensibles : `user.ban`,

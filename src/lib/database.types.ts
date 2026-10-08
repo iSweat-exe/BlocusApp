@@ -329,6 +329,7 @@ export type Database = {
       };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
+      get_permission_epoch: { Args: never; Returns: string };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       is_banned: { Args: { p_user_id: string }; Returns: boolean };
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
