@@ -4,6 +4,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { ACCENT_BOOT_SCRIPT } from "@/features/settings/accent-script";
 import { THEME_BOOT_SCRIPT } from "@/features/settings/theme-script";
+import { NoZoom } from "@/components/no-zoom";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const geistSans = Geist({
@@ -32,6 +33,13 @@ export const viewport: Viewport = {
   ],
   // Required for env(safe-area-inset-*) on iPhones with a notch.
   viewportFit: "cover",
+  // The app is laid out as a native-style mobile app at 100 %: no pinch or double-tap zoom. Android honours
+  // these; iOS ignores them, so `NoZoom` and `touch-action` in globals.css cover it (see docs/architecture.md).
+  width: "device-width",
+  initialScale: 1,
+  minimumScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -48,6 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col">
         {children}
+        <NoZoom />
         <ServiceWorkerRegister />
         <Analytics />
       </body>

@@ -262,6 +262,31 @@ test.describe("PWA and SEO files", () => {
 });
 
 test.describe("security headers", () => {
+  test("the page stays at 100 %: no pinch or double-tap zoom, fields never trigger the iOS zoom", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    const viewport = await page.locator('meta[name="viewport"]').getAttribute("content");
+    expect(viewport).toContain("width=device-width");
+    expect(viewport).toContain("maximum-scale=1");
+    expect(viewport).toContain("minimum-scale=1");
+    expect(viewport).toContain("user-scalable=no");
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).touchAction)).toBe(
+      "pan-x pan-y",
+    );
+  });
+
+  test("on a touch screen text fields stay at 16 px, so iOS never zooms in on focus", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "touch screens only");
+    await page.goto("/settings");
+    const size = await page
+      .locator("#accent-hex")
+      .evaluate((input) => getComputedStyle(input).fontSize);
+    expect(size).toBe("16px");
+  });
+
   test("sends the baseline security headers", async ({ request }) => {
     const headers = (await request.get("/login")).headers();
     expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");

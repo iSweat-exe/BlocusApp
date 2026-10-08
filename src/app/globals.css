@@ -199,6 +199,9 @@ body {
 html {
   /* Stop iOS from inflating text after a rotation. */
   -webkit-text-size-adjust: 100%;
+  /* The app stays at 100 %: scrolling is allowed, pinch and double-tap zoom are not (iOS Safari ignores
+     `user-scalable=no`, this is what it respects). The map's own pinch is handled by MapLibre in JavaScript. */
+  touch-action: pan-x pan-y;
 }
 
 body {
@@ -216,6 +219,16 @@ textarea,
 label {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS zooms the page when a field under 16 px takes the focus: keep fields at 16 px on touch screens, whatever
+   size the component asks for (this unlayered rule beats the utility classes). */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
 
 /* A visible keyboard focus everywhere (never for mouse/touch). */
