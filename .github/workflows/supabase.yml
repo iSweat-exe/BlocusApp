@@ -1,0 +1,83 @@
+name: Supabase
+
+# Pull requests: the migrations are replayed on a throwaway local database and the SQL tests (pgTAP) run.
+# Merge on main: the new migrations are applied to the production project (after the tests, and after the
+# approval of the `production` GitHub environment when it requires one). No secret is exposed to pull requests.
+on:
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/supabase.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+  workflow_dispatch:
+    inputs:
+      mark_applied:
+        description: >-
+          One-time baseline: migration versions (space separated, e.g. "20261007120000 20261007130000") that
+          already exist in production because they were applied by hand. They are recorded as applied, not run.
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  db-tests:
+    name: Database tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      # `latest` follows the CLI used to develop locally; pin a version here if a release ever breaks the CI.
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # Starts the local stack (Docker is available on GitHub runners) and replays every migration from scratch.
+      - run: supabase start
+      - run: supabase test db
+
+  migrate:
+    name: Apply migrations to production
+    # Never from a pull request, and only from main (the production secrets must not be reachable elsewhere).
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: db-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Create this environment in Settings > Environments and add "Required reviewers" to approve each run.
+    environment: production
+    # Two runs must never migrate at the same time, and a run in progress is never cancelled halfway.
+    concurrency:
+      group: supabase-production-migrations
+      cancel-in-progress: false
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+      MARK_APPLIED: ${{ inputs.mark_applied }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Check the production secrets are set
+        run: |
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_ID; do
+            if [ -z "${!name}" ]; then echo "::error::Missing secret $name (see docs/runbook.md)"; exit 1; fi
+          done
+      - run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+      - name: Record migrations already applied by hand (one-time baseline)
+        if: env.MARK_APPLIED != ''
+        run: |
+          # Only digits and spaces: the value comes from a manual run input.
+          if ! printf '%s' "$MARK_APPLIED" | grep -Eq '^[0-9 ]+$'; then
+            echo "::error::mark_applied must contain only migration versions separated by spaces"; exit 1
+          fi
+          # shellcheck disable=SC2086
+          supabase migration repair --status applied $MARK_APPLIED
+      - name: Pending migrations
+        run: supabase db push --dry-run
+      - name: Apply
+        run: supabase db push

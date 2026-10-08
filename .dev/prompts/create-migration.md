@@ -19,6 +19,9 @@ Règles :
   (et docs/permissions.md si une permission change).
 - Commentaires SQL et noms en anglais.
 
+Contrainte de déploiement : après la fusion sur main, la migration est appliquée en production par le workflow
+`supabase.yml` (après approbation). Écris-la de façon additive et fais tolérer son absence au code (voir
+docs/runbook.md).
 Livrable : branche feat/<sujet>, PR petite (< 400 lignes), commits Conventional Commits en anglais.
 Ne touche à aucun autre fichier. Si une information manque, demande-la.
 ```
