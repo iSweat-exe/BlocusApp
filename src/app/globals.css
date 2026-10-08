@@ -79,6 +79,10 @@
   --spacing-control: 3rem; /* 48 px: buttons and inputs */
   --spacing-control-sm: 2.5rem; /* 40 px: compact controls inside rows */
   --spacing-gutter: 1rem; /* page side padding */
+  /* Bottom padding of anything pinned to the bottom edge (tab bar, sheets). iPhones report the home indicator
+     through env(); Android browsers and PWAs often report 0 while the gesture / navigation bar still sits on
+     the screen edge, so keep a minimum clearance of 1 rem. */
+  --spacing-safe-bottom: max(env(safe-area-inset-bottom), 1rem);
   --spacing-section: 1.5rem; /* gap between page sections */
 
   /* Motion. */
@@ -133,7 +137,7 @@
   }
   /* Primary actions of a sheet form: pinned to the bottom of the sheet while the form scrolls. */
   .form-actions {
-    @apply sticky bottom-0 -mx-4 mt-auto border-t border-line bg-background/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur;
+    @apply sticky bottom-0 -mx-4 mt-auto border-t border-line bg-background/90 px-4 pt-3 pb-safe-bottom backdrop-blur;
   }
   .field-label {
     @apply flex min-w-0 flex-col gap-1.5 text-sm font-medium;

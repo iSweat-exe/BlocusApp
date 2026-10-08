@@ -29,8 +29,9 @@ describe("AppNav", () => {
       expect(link.querySelector("svg")).not.toBeNull();
       expect(link.className).toContain("min-h-16");
     }
+    // Clears the iPhone home indicator and the Android gesture bar (which often reports no safe area).
     expect(screen.getByRole("navigation", { name: "Navigation principale" }).className).toContain(
-      "safe-area-inset-bottom",
+      "pb-safe-bottom",
     );
   });
 

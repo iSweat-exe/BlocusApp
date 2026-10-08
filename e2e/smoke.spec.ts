@@ -25,6 +25,17 @@ test.describe("app shell", () => {
     ).toBeVisible();
   });
 
+  test("the tab bar keeps a clearance above the bottom edge even without a safe area", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    // Browsers without a safe area (Android) report 0 for env(safe-area-inset-bottom): the token enforces 1 rem.
+    const padding = await page
+      .getByRole("navigation", { name: "Navigation principale" })
+      .evaluate((nav) => getComputedStyle(nav).paddingBottom);
+    expect(padding).toBe("16px");
+  });
+
   test("home shows the announcements section without crashing when the data is unreachable", async ({
     page,
   }) => {
