@@ -12,9 +12,12 @@ vi.mock("next/link", () => ({
 }));
 
 describe("GoogleButton", () => {
-  it("is rendered but disabled until Google sign-in exists", () => {
+  it("links to the route that starts the Google sign-in", () => {
     render(<GoogleButton />);
-    expect(screen.getByRole("button", { name: /Continuer avec Google/ })).toBeDisabled();
+    expect(screen.getByRole("link", { name: /Continuer avec Google/ })).toHaveAttribute(
+      "href",
+      "/auth/login/google",
+    );
   });
 });
 

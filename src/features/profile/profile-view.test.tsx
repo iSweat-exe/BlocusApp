@@ -22,7 +22,7 @@ const session: SessionPermissions = {
   role: "member",
   permissions: [],
   email: "a@b.fr",
-  provider: "discord",
+  providers: ["discord", "google"],
   avatarUrl: null,
 };
 
@@ -45,7 +45,7 @@ describe("ProfileView", () => {
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Membre")).toBeInTheDocument();
     expect(screen.getByText("a@b.fr")).toBeInTheDocument();
-    expect(screen.getByText("Discord")).toBeInTheDocument();
+    expect(screen.getByText("Discord, Google")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Déconnexion" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Administration/ })).toBeNull();
   });

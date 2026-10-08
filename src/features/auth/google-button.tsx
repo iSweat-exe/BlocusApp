@@ -1,14 +1,10 @@
 /**
- * "Continue with Google" button. Disabled for now: Google sign-in is not wired yet (A-021). A real
- * `<button disabled>` (not a dead link) so it is skipped by keyboard and announced as unavailable.
+ * "Continue with Google" link. A plain `<a>` (not `next/link`, which would prefetch it) to the Route
+ * Handler that starts the OAuth flow: it works without JavaScript and in installed PWAs.
  */
 export function GoogleButton() {
   return (
-    <button
-      type="button"
-      disabled
-      className="btn btn-outline w-full cursor-not-allowed gap-3 opacity-50"
-    >
+    <a href="/auth/login/google" className="btn btn-outline w-full gap-3">
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
         <path
           fill="#4285F4"
@@ -28,7 +24,6 @@ export function GoogleButton() {
         />
       </svg>
       Continuer avec Google
-      <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-normal">Bientôt</span>
-    </button>
+    </a>
   );
 }

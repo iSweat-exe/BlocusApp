@@ -5,7 +5,7 @@ import { GoogleButton } from "@/features/auth/google-button";
 import { GuestLink } from "@/features/auth/guest-link";
 
 const ERRORS: Record<string, string> = {
-  oauth_start: "Impossible de démarrer la connexion Discord. Réessaie.",
+  oauth_start: "Impossible de démarrer la connexion. Réessaie.",
   oauth_callback: "La connexion a échoué. Réessaie.",
 };
 

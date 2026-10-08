@@ -52,16 +52,16 @@ priorité après l'authentification (A-135).
 
 `/messages` n'existe pas (route supprimée, A-128) : la communication passe par Instagram. Messagerie = Backlog.
 
-## Authentification (OAuth Discord)
+## Authentification (OAuth Discord et Google)
 
 `src/proxy.ts` rafraîchit les cookies de session (`updateSession`) sans jamais rediriger (le Guest lit).
 `/login` → lien `<a href="/auth/login/discord">` → Route Handler GET (`src/app/auth/login/discord/route.ts`,
 posé du verifier PKCE puis redirection vers Supabase → Discord ; un simple lien fonctionne sans JavaScript, avant
 l'hydratation et dans une PWA installée) → Discord → Supabase →
 `/auth/callback` (Route Handler : échange PKCE `code` → session en cookies httpOnly, `next` validé par
-`safeRedirectPath`) → retour à l'app. `signOut` termine la session. Google = même flux, autre `provider`.
+`safeRedirectPath`) → retour à l'app. `signOut` termine la session. Google = même flux (`src/app/auth/login/google/route.ts`), sans l'étape mobile propre à Discord.
 
-**Page `/login`.** Logo + titre, bouton Discord, bouton Google (`GoogleButton`, `disabled` : pas encore branché), séparateur « ou » puis
+**Page `/login`.** Logo + titre, bouton Discord, bouton Google (`GoogleButton`, lien `/auth/login/google`), séparateur « ou » puis
 `GuestLink` (« Continuer en tant qu'invité » → `/`, lecture seule : le Guest est simplement une visite sans session).
 
 **Connexion Discord sur mobile / PWA.** Une fois la page hydratée, le lien est remplacé par l'URL
