@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { useDialogClose } from "@/components/full-screen-dialog";
+import { CalendarIcon } from "@/components/icons";
+import { useDialogClose, useInDialog } from "@/components/full-screen-dialog";
 import { createEvent, updateEvent, type EventFormState } from "./actions";
 import { DESCRIPTION_MAX, LOCATION_MAX, TITLE_MAX } from "./schema";
 import { formatDayKeyLong } from "./time";
@@ -31,6 +32,7 @@ export function EventForm(props: Props) {
   );
   const formRef = useRef<HTMLFormElement>(null);
   const closeDialog = useDialogClose();
+  const inDialog = useInDialog();
 
   useEffect(() => {
     if (state.status === "success" && props.mode === "create") {
@@ -42,82 +44,107 @@ export function EventForm(props: Props) {
   const errors = state.fieldErrors;
 
   return (
-    <form ref={formRef} action={action} className="flex flex-col gap-4 p-4">
+    <form ref={formRef} action={action} className={`flex flex-col gap-5 ${inDialog ? "" : "p-4"}`}>
       {edit && <input type="hidden" name="id" value={edit.id} />}
 
-      {props.mode === "create" ? (
-        <>
-          <input type="hidden" name="date" value={props.day} />
-          <p className="text-sm first-letter:uppercase text-muted">{formatDayKeyLong(props.day)}</p>
-        </>
-      ) : (
+      <section aria-labelledby="when-title" className="flex flex-col gap-3">
+        <h3 id="when-title" className="section-title">
+          Horaire
+        </h3>
+        {props.mode === "create" ? (
+          <>
+            <input type="hidden" name="date" value={props.day} />
+            <p className="card flex min-h-control items-center gap-3 px-4 text-sm font-medium">
+              <CalendarIcon className="h-5 w-5 shrink-0 text-accent" />
+              <span className="block first-letter:uppercase">{formatDayKeyLong(props.day)}</span>
+            </p>
+          </>
+        ) : (
+          <label className="field-label">
+            Date
+            <input
+              type="date"
+              name="date"
+              required
+              defaultValue={edit?.date}
+              className={inputClass}
+            />
+            {errors?.date && <span className="field-error">{errors.date}</span>}
+          </label>
+        )}
+
+        <div className="grid grid-cols-2 gap-3">
+          <label className="field-label">
+            Début
+            <input
+              type="time"
+              name="time"
+              required
+              defaultValue={edit?.time}
+              className={inputClass}
+            />
+            {errors?.time && <span className="field-error">{errors.time}</span>}
+          </label>
+          <label className="field-label">
+            <span>
+              Fin <span className="font-normal text-faint">(facultatif)</span>
+            </span>
+            <input
+              type="time"
+              name="end_time"
+              defaultValue={edit?.endTime}
+              className={inputClass}
+            />
+            {errors?.endTime && <span className="field-error">{errors.endTime}</span>}
+          </label>
+        </div>
+      </section>
+
+      <section aria-labelledby="details-title" className="flex flex-col gap-3">
+        <h3 id="details-title" className="section-title">
+          Détails
+        </h3>
         <label className="field-label">
-          Date
+          Titre
           <input
-            type="date"
-            name="date"
+            name="title"
             required
-            defaultValue={edit?.date}
+            maxLength={TITLE_MAX}
+            defaultValue={edit?.title}
+            placeholder="Ex. Rassemblement"
+            aria-invalid={errors?.title ? true : undefined}
             className={inputClass}
           />
-          {errors?.date && <span className="field-error">{errors.date}</span>}
+          {errors?.title && <span className="field-error">{errors.title}</span>}
         </label>
-      )}
 
-      <div className="grid grid-cols-2 gap-3">
         <label className="field-label">
-          Heure
-          <input
-            type="time"
-            name="time"
-            required
-            defaultValue={edit?.time}
+          Texte
+          <textarea
+            name="description"
+            rows={4}
+            maxLength={DESCRIPTION_MAX}
+            defaultValue={edit?.description}
+            placeholder="Informations utiles pour les participants"
             className={inputClass}
           />
-          {errors?.time && <span className="field-error">{errors.time}</span>}
+          {errors?.description && <span className="field-error">{errors.description}</span>}
         </label>
+
         <label className="field-label">
-          Fin (facultatif)
-          <input type="time" name="end_time" defaultValue={edit?.endTime} className={inputClass} />
-          {errors?.endTime && <span className="field-error">{errors.endTime}</span>}
+          <span>
+            Lieu <span className="font-normal text-faint">(facultatif)</span>
+          </span>
+          <input
+            name="location"
+            maxLength={LOCATION_MAX}
+            defaultValue={edit?.location}
+            placeholder="Ex. Salle B"
+            className={inputClass}
+          />
+          {errors?.location && <span className="field-error">{errors.location}</span>}
         </label>
-      </div>
-
-      <label className="field-label">
-        Titre
-        <input
-          name="title"
-          required
-          maxLength={TITLE_MAX}
-          defaultValue={edit?.title}
-          aria-invalid={errors?.title ? true : undefined}
-          className={inputClass}
-        />
-        {errors?.title && <span className="field-error">{errors.title}</span>}
-      </label>
-
-      <label className="field-label">
-        Texte
-        <textarea
-          name="description"
-          rows={4}
-          maxLength={DESCRIPTION_MAX}
-          defaultValue={edit?.description}
-          className={inputClass}
-        />
-        {errors?.description && <span className="field-error">{errors.description}</span>}
-      </label>
-
-      <label className="field-label">
-        Lieu (facultatif)
-        <input
-          name="location"
-          maxLength={LOCATION_MAX}
-          defaultValue={edit?.location}
-          className={inputClass}
-        />
-        {errors?.location && <span className="field-error">{errors.location}</span>}
-      </label>
+      </section>
 
       {state.message && (
         <p
@@ -128,13 +155,15 @@ export function EventForm(props: Props) {
         </p>
       )}
 
-      <button type="submit" disabled={pending} className="btn btn-primary">
-        {pending
-          ? "Enregistrement…"
-          : props.mode === "create"
-            ? "Créer l'événement"
-            : "Enregistrer"}
-      </button>
+      <div className={inDialog ? "form-actions" : undefined}>
+        <button type="submit" disabled={pending} className="btn btn-primary w-full">
+          {pending
+            ? "Enregistrement…"
+            : props.mode === "create"
+              ? "Créer l'événement"
+              : "Enregistrer"}
+        </button>
+      </div>
     </form>
   );
 }
