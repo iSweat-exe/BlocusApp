@@ -17,6 +17,7 @@
 | Supabase projet | mise en pause après ~1 semaine d'inactivité | Prévoir un ping/cron (attention au quota Vercel Cron). |
 | Supabase Auth | e-mails SMTP par défaut très limités | Configurer un SMTP custom (Resend, Brevo…) avant toute ouverture publique. |
 | Vercel Hobby | **usage non commercial uniquement** | Si l'app est commerciale / monétisée → plan Pro obligatoire (CGU). |
+| Vercel Hobby | ~100 déploiements par jour | Seul `main` est déployé (`vercel.json`) : pas de preview par branche ni par PR. |
 | Vercel Hobby | durée de fonction, bande passante, invocations plafonnées | Cache + batch pour limiter les invocations. |
 | Vercel Hobby | ~1 M requêtes edge, ~1 M invocations (le `proxy` en compte une par requête qu'il intercepte), ~4 h de CPU actif | Le `proxy` ne s'exécute que pour les connectés, jamais pour un préchargement ; garder peu de requêtes par écran. |
 | Vercel Hobby | **~10 Go de transfert depuis le serveur** (Fast Origin Transfer) : au-delà, projet mis en pause | Servir un maximum depuis le CDN (coques statiques), alléger les pages rendues par le serveur (≈ 66 Ko chacune). |
