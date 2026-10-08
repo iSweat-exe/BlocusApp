@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { deleteAnnouncement, publishAnnouncement, updateAnnouncement } from "./actions";
 
 const requirePermission = vi.fn();
@@ -210,6 +211,16 @@ describe("publishAnnouncement", () => {
       status: "error",
     });
   });
+
+  it("tells the user to slow down when the database rate limit is hit, and removes the file", async () => {
+    insert.mockResolvedValue({ error: { message: "rate_limited" } });
+    const state = await publishAnnouncement(
+      IDLE,
+      form({ title: "t", body: "b", image: webpFile(), image_width: "10", image_height: "10" }),
+    );
+    expect(state).toEqual({ status: "error", message: RATE_LIMITED_MESSAGE });
+    expect(remove).toHaveBeenCalledWith([upload.mock.calls[0]![0]]);
+  });
 });
 
 describe("updateAnnouncement", () => {
@@ -277,6 +288,14 @@ describe("updateAnnouncement", () => {
     expect(remove).toHaveBeenCalledTimes(1);
     expect(remove).toHaveBeenCalledWith([upload.mock.calls[0]![0]]);
     expect(remove).not.toHaveBeenCalledWith([OLD_PATH]);
+  });
+
+  it("tells the user to slow down when the database rate limit is hit", async () => {
+    updateResult = { data: null, error: { message: "rate_limited" } };
+    expect(await updateAnnouncement(IDLE, edit({}))).toEqual({
+      status: "error",
+      message: RATE_LIMITED_MESSAGE,
+    });
   });
 });
 

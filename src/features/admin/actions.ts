@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logActionError } from "@/server/log-action-error";
+import { RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { requirePermission } from "@/server/require-permission";
 
 /** State returned to the role form. */
@@ -18,6 +19,7 @@ const DATABASE_ERRORS: Record<string, string> = {
   hierarchy_violation: "Ce rôle est au-dessus ou au niveau du tien : action refusée.",
   unknown_role: "Ce rôle n'existe pas.",
   unknown_user: "Cet utilisateur n'existe pas.",
+  rate_limited: RATE_LIMITED_MESSAGE,
 };
 
 /**

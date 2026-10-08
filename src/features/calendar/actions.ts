@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isRateLimited, RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { requirePermission } from "@/server/require-permission";
 import { type EventFieldErrors, parseEventInput } from "./schema";
 
@@ -34,6 +35,7 @@ function readForm(formData: FormData) {
 }
 
 function databaseMessage(message: string): string {
+  if (isRateLimited({ message })) return RATE_LIMITED_MESSAGE;
   return message === "event_in_the_past"
     ? "L'événement ne peut pas commencer dans le passé."
     : "L'enregistrement a échoué. Réessaie.";
@@ -177,8 +179,9 @@ export async function setEventFinished(
   if (error) {
     return {
       status: "error",
-      message:
-        error.message === "unknown_event"
+      message: isRateLimited(error)
+        ? RATE_LIMITED_MESSAGE
+        : error.message === "unknown_event"
           ? "Cet événement n'existe plus."
           : "La modification a échoué. Réessaie.",
     };

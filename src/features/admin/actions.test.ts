@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { changeRole } from "./actions";
 
 const requirePermission = vi.fn();
@@ -52,6 +53,18 @@ describe("changeRole database errors", () => {
     expect(await changeRole(IDLE, form({ target: TARGET, role: "admin" }))).toMatchObject({
       status: "error",
       message: expect.stringContaining("au-dessus"),
+    });
+    expect(log).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  it("tells the user to slow down on a rate limit, without logging it as unexpected", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    rpc.mockResolvedValue({ error: { code: "54000", message: "rate_limited" } });
+
+    expect(await changeRole(IDLE, form({ target: TARGET, role: "manager" }))).toEqual({
+      status: "error",
+      message: RATE_LIMITED_MESSAGE,
     });
     expect(log).not.toHaveBeenCalled();
     log.mockRestore();

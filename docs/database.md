@@ -188,6 +188,30 @@ titulaire de la nouvelle permission **`map.position.remove`** (administrateurs e
 l'auteur est absent) ; sinon `forbidden`. Idempotent (un second retrait n'ajoute pas d'entrée d'audit), journalisé
 `map.position_removed`. Test : `supabase/tests/database/map_position_removal.test.sql`.
 
+## Limites de débit (`rate_limits`, `consume_rate_limit()`)
+
+Migration `20261009140000_rate_limits.sql` (A-100). Un client peut appeler PostgREST avec son propre jeton sans passer
+par une Server Action : la limite est donc **dans la base**, sur les chemins d'écriture eux-mêmes. Table `rate_limits`
+(`user_id` FK `profiles` `on delete cascade`, `bucket`, `window_start`, `hits`, PK `(user_id, bucket)`) : une ligne par
+utilisateur et par compteur, jamais plus, donc rien à purger. RLS activée, **aucune politique ni droit** : seule la
+fonction y accède. `consume_rate_limit(p_bucket, p_limit, p_window)` (SECURITY DEFINER, **exécution retirée à tous les
+rôles**, sinon un client choisirait des noms de compteur et remplirait la table) compte une action de l'utilisateur
+courant dans une **fenêtre fixe** et lève `rate_limited` (54000) au-delà. Le refus annule l'instruction : l'action
+refusée n'est pas appliquée et son essai n'est pas compté. Sans utilisateur connecté (service role, scripts) : aucune
+limite.
+
+| Compteur             | Déclenché par                                                         | Limite             |
+| -------------------- | --------------------------------------------------------------------- | ------------------ |
+| `announcement.write` | trigger `announcements_rate_limit` (création ou modification d'un post) | 10 / 10 minutes    |
+| `event.write`        | trigger `events_rate_limit` (création, modification, « terminé »)     | 30 / 10 minutes    |
+| `admin.write`        | trigger `audit_logs_rate_limit` : rôles, permissions, sanctions        | 60 / minute        |
+| `map.write`          | même trigger, entrées `map.*` (tracé, retrait ; la déclaration garde sa règle des 5 s) | 30 / minute |
+
+Toute action d'administration passe par `write_audit()` : limiter l'insertion dans `audit_logs` couvre d'un coup toutes
+les fonctions présentes et futures (les entrées `event.*` sont ignorées, le trigger des événements les compte déjà).
+**Les suppressions ne sont pas comptées.** Test : `supabase/tests/database/rate_limits.test.sql`. La table n'est pas
+dans `database.types.ts` : le client ne la lit jamais.
+
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 
 Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées

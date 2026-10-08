@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logActionError } from "@/server/log-action-error";
+import { RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { requirePermission } from "@/server/require-permission";
 
 /** State returned to the permission forms. */
@@ -23,6 +24,7 @@ const DATABASE_ERRORS: Record<string, string> = {
   unknown_permission: "Cette permission n'existe pas.",
   unknown_user: "Cet utilisateur n'existe pas.",
   invalid_effect: "Action invalide.",
+  rate_limited: RATE_LIMITED_MESSAGE,
 };
 
 async function guard(): Promise<PermissionState | null> {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { banUser, liftSanction } from "./sanction-actions";
 
 const requirePermission = vi.fn();
@@ -78,6 +79,11 @@ describe("banUser", () => {
     expect(await banUser(IDLE, form(VALID))).toMatchObject({
       status: "error",
       message: expect.stringContaining("Réessaie"),
+    });
+    rpc.mockResolvedValue({ error: { message: "rate_limited" } });
+    expect(await banUser(IDLE, form(VALID))).toEqual({
+      status: "error",
+      message: RATE_LIMITED_MESSAGE,
     });
   });
 });

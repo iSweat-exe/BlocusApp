@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logActionError } from "@/server/log-action-error";
+import { RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { requirePermission } from "@/server/require-permission";
 import { type BanFieldErrors, parseBanInput } from "./sanctions";
 
@@ -26,6 +27,7 @@ const DATABASE_ERRORS: Record<string, string> = {
   already_banned: "Cet utilisateur est déjà banni.",
   unknown_sanction: "Cette sanction n'existe pas.",
   not_active: "Cette sanction n'est plus active.",
+  rate_limited: RATE_LIMITED_MESSAGE,
 };
 
 /** Bans a user. Requires `user.ban`, checked against the database; the hierarchy is enforced there too. */

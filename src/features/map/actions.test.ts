@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { declareMapPosition, removeMapPosition, saveMapRoute } from "./actions";
 
 const requirePermission = vi.fn();
@@ -87,6 +88,16 @@ describe("saveMapRoute", () => {
     expect(await saveMapRoute(POINTS, BASE)).toMatchObject({ code: "failed" });
     expect(updateTag).not.toHaveBeenCalled();
   });
+
+  it("tells the editor to slow down when the database rate limit is hit", async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "rate_limited" } });
+    expect(await saveMapRoute(POINTS, BASE)).toEqual({
+      status: "error",
+      code: "rate_limited",
+      message: RATE_LIMITED_MESSAGE,
+    });
+    expect(updateTag).not.toHaveBeenCalled();
+  });
 });
 
 describe("declareMapPosition", () => {
@@ -153,6 +164,16 @@ describe("removeMapPosition", () => {
     expect(requirePermission).toHaveBeenCalledWith("map.position.declare", { fresh: true });
     expect(rpc).toHaveBeenCalledWith("remove_map_position", { p_id: ID });
     expect(updateTag).toHaveBeenCalledWith("map-positions");
+  });
+
+  it("tells the user to slow down when the database rate limit is hit", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "rate_limited" } });
+    expect(await removeMapPosition(ID)).toEqual({
+      status: "error",
+      code: "rate_limited",
+      message: RATE_LIMITED_MESSAGE,
+    });
+    expect(updateTag).not.toHaveBeenCalled();
   });
 
   it("refuses a Guest before touching the database", async () => {
