@@ -46,7 +46,7 @@ docs/ · .dev/                      Documentation et pilotage
 
 ## Design system (UI)
 
-Source unique : `src/app/globals.css` (voir ADR 0004). Ne jamais coder en dur une couleur, un arrondi ou une
+Source unique : `src/app/globals.css` (voir ADR 0004). Les valeurs sombres y sont écrites deux fois (système et `data-theme="dark"`) : les modifier dans les deux blocs. Ne jamais coder en dur une couleur, un arrondi ou une
 hauteur de bouton : utiliser les tokens et classes partagées.
 
 | Besoin                | À utiliser                                                                    |

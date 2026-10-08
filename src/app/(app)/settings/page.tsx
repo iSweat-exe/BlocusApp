@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { AccentPicker } from "@/features/settings/accent-picker";
+import { ThemePicker } from "@/features/settings/theme-picker";
 import { AccountSection } from "@/features/settings/account-section";
 
 export default function SettingsPage() {
@@ -7,9 +8,16 @@ export default function SettingsPage() {
     <div className="flex flex-col gap-section">
       <h1 className="page-title">Réglages</h1>
 
+      <section aria-labelledby="theme-title" className="flex flex-col gap-2">
+        <h2 id="theme-title" className="section-title">
+          Thème
+        </h2>
+        <ThemePicker />
+      </section>
+
       <section aria-labelledby="appearance-title" className="flex flex-col gap-2">
         <h2 id="appearance-title" className="section-title">
-          Apparence
+          Couleur
         </h2>
         <p className="px-1 text-sm text-muted">
           Choisis la couleur de l&apos;application : un thème prêt à l&apos;emploi ou la tienne.
