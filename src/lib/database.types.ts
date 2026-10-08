@@ -28,7 +28,14 @@ export type Database = {
           author_id: string | null;
           body: string;
           created_at: string;
+          edited_at: string | null;
           id: string;
+          image_height: number | null;
+          image_path: string | null;
+          image_width: number | null;
+          published_at: string | null;
+          show_author: boolean;
+          status: string;
           title: string;
           updated_at: string;
         };
@@ -37,7 +44,14 @@ export type Database = {
           author_id?: string | null;
           body: string;
           created_at?: string;
+          edited_at?: string | null;
           id?: string;
+          image_height?: number | null;
+          image_path?: string | null;
+          image_width?: number | null;
+          published_at?: string | null;
+          show_author?: boolean;
+          status?: string;
           title: string;
           updated_at?: string;
         };
@@ -45,7 +59,14 @@ export type Database = {
           author_id?: string | null;
           body?: string;
           created_at?: string;
+          edited_at?: string | null;
           id?: string;
+          image_height?: number | null;
+          image_path?: string | null;
+          image_width?: number | null;
+          published_at?: string | null;
+          show_author?: boolean;
+          status?: string;
           title?: string;
           updated_at?: string;
         };
@@ -137,6 +158,46 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      health_snapshots: {
+        Row: {
+          auth_ms: number | null;
+          created_at: string;
+          db_ms: number | null;
+          db_size_bytes: number | null;
+          id: number;
+          score: number;
+          source: string;
+          users_active: number | null;
+          users_total: number | null;
+          vercel_state: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          auth_ms?: number | null;
+          created_at?: string;
+          db_ms?: number | null;
+          db_size_bytes?: number | null;
+          id?: never;
+          score: number;
+          source?: string;
+          users_active?: number | null;
+          users_total?: number | null;
+          vercel_state?: string | null;
+        };
+        Update: {
+          auth_ms?: number | null;
+          created_at?: string;
+          db_ms?: number | null;
+          db_size_bytes?: number | null;
+          id?: never;
+          score?: number;
+          source?: string;
+          users_active?: number | null;
+          users_total?: number | null;
+          vercel_state?: string | null;
+        };
+        Relationships: [];
       };
       map_positions: {
         Row: {
@@ -378,7 +439,22 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      announcement_feed: {
+        Row: {
+          author_avatar_url: string | null;
+          author_id: string | null;
+          author_pseudo: string | null;
+          body: string | null;
+          edited_at: string | null;
+          id: string | null;
+          image_height: number | null;
+          image_path: string | null;
+          image_width: number | null;
+          published_at: string | null;
+          title: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       assign_role: { Args: { p_role: string; p_target: string }; Returns: undefined };
@@ -386,6 +462,7 @@ export type Database = {
         Args: { p_expires_at?: string; p_reason: string; p_target: string };
         Returns: string;
       };
+      can_monitor: { Args: never; Returns: boolean };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
       declare_map_position: {
         Args: { p_label?: string; p_lat: number; p_lng: number };
@@ -393,9 +470,42 @@ export type Database = {
       };
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
       get_permission_epoch: { Args: never; Returns: string };
+      health_connections: {
+        Args: never;
+        Returns: { max_connections: number; open_connections: number }[];
+      };
+      health_stats: {
+        Args: never;
+        Returns: { db_size_bytes: number; users_active: number; users_total: number }[];
+      };
+      health_tables: { Args: never; Returns: { size_bytes: number; table_name: string }[] };
+      health_trends: {
+        Args: never;
+        Returns: {
+          last_cron_at: string | null;
+          min_score_7d: number | null;
+          p95_db_ms_24h: number | null;
+          p95_db_ms_7d: number | null;
+          snapshots_7d: number;
+          up_7d: number;
+        }[];
+      };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       is_valid_route: { Args: { p_points: Json }; Returns: boolean };
       is_banned: { Args: { p_user_id: string }; Returns: boolean };
+      record_health_snapshot: {
+        Args: {
+          p_auth_ms?: number;
+          p_db_ms?: number;
+          p_db_size_bytes?: number;
+          p_score: number;
+          p_source?: string;
+          p_users_active?: number;
+          p_users_total?: number;
+          p_vercel_state?: string;
+        };
+        Returns: number;
+      };
       remove_map_position: { Args: { p_id: string }; Returns: undefined };
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };

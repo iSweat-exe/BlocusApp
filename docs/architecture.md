@@ -44,6 +44,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/calendar/[id]` | Détail d'un événement                 | Lecture : Guest                            |
 | `(app)`  | `/map`        | Carte : fond OpenFreeMap (MapLibre, ADR 0005), tracé (lecture et édition au doigt), « Me localiser » et position déclarée | Lecture : Guest ; tracé : `map.route.edit` ; position : `map.position.declare` |
 | `(app)`  | `/admin`      | Administration (utilisateurs, rôles)      | Une permission d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`) ; sinon 404, Guest → `/login` |
+| `(app)`  | `/admin/health` | Santé de l'application : score global, base, Auth, Vercel, stockage, utilisateurs, historique | `monitoring.view` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/users/[id]` | Fiche utilisateur : sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/roles` | Matrice rôle × permission (édition)       | Permission `permission.manage` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/journal` | Journal d'audit (lecture, filtre, pagination) | Permission `audit.read` (sinon 404 ; Guest → `/login`) |
@@ -87,6 +88,13 @@ revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en 
 colorée, d'ombre ni de pastille) : date lisible (« Aujourd'hui, 19:35 », « Hier, 15:11 », « 1 oct., 09:00 ») au-dessus du
 titre pleine largeur, puis le texte ; la suppression est un bouton discret en pied de carte (seulement si
 autorisé) qui demande une confirmation explicite (`delete-announcement-button.tsx`).
+Posts v2 (ADR 0007) : le fil public vient de la vue `announcement_feed` (cache partagé de 2 min). Les titulaires de
+`announcement.publish` ont en plus, hors cache, leurs brouillons et posts privés (section « Mes brouillons et posts
+privés ») et un bouton « Modifier » sur leurs posts (`updateAnnouncement`, formulaire prérempli dans la feuille plein
+écran). Le formulaire permet une photo (compressée dans le navigateur avant l'envoi, `compress-image.ts`), une
+visibilité (Brouillon / Privé / Public) et « Afficher l'auteur » (pseudo et avatar visibles de tous sur ce post).
+Un post modifié affiche « · modifié ». L'action vérifie la taille (300 Ko), le format réel et les dimensions de
+l'image, la range dans le dossier de l'auteur et efface l'ancienne.
 Pagination et cache (A-080+) : étape 1.6.
 
 ## Barre du bas et design mobile
@@ -137,6 +145,20 @@ d'action en bas avec la classe `.form-actions` quand `useInDialog()` est vrai. U
 **Design system.** Tokens et classes partagées dans `src/app/globals.css` (couleurs, arrondis, espacements, polices), cf. `docs/conventions.md` et ADR 0004. `src/components/avatar.tsx` affiche la photo de profil (URL contrôlée par `safeAvatarUrl`) ou les initiales.
 
 **Liste déroulante réutilisable.** `src/components/select.tsx` (`<Select label options name? defaultValue? value? onChange? size?>`) : feuille en bas d'écran sur mobile (fermable en la glissant vers le bas, `use-sheet-swipe.ts`), popover dès `sm`, motif ARIA listbox (flèches, Début/Fin, Entrée/Espace, Échap). Dans un formulaire, la valeur part par un `<input type="hidden" name>` : utilisable avec les Server Actions et les formulaires GET. Remplace les `<select>` natifs de l'administration (rôle, durée de ban, filtre du journal).
+
+## Santé de l'application (`/admin/health`, ADR 0006)
+
+`HealthView` (`src/features/health/health-view.tsx`) mesure à chaque visite : latence de la base (lecture publique
+minimale) et d'Auth (`/auth/v1/health`), compteurs SQL `health_stats()` (inscrits, actifs sur 15 min, taille de la
+base), dernier déploiement de production via l'API Vercel (`vercel.ts`, « non configuré » sans jeton), les détails SQL
+(`health_trends()`, `health_tables()`, `health_connections()` : disponibilité et p95 sur 7 jours, âge du dernier
+passage du cron, tables les plus lourdes, connexions), la configuration d'environnement (`config.ts`, présence
+seulement), puis calcule le score (`score.ts`, 7 facteurs, pondérations dans sa TSDoc). Elle enregistre un instantané (`record_health_snapshot()`, au plus
+un toutes les 10 min) et dessine l'historique des 30 jours. La page est dynamique (`connection()`), derrière
+`monitoring.view` (404 sinon) ; les fonctions SQL revérifient la permission. Le cron quotidien de `/api/keep-alive`
+enregistre aussi un instantané avec la clé `service_role` (`cron-snapshot.ts`, sans effet si la clé manque).
+`GET /api/health` (public, statut seul, 503 si la base ou Auth ne répond pas, réponse gardée 10 s) sert à un
+moniteur externe.
 
 ## Calendrier
 

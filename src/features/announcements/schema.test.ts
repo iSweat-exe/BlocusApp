@@ -7,7 +7,26 @@ describe("validateAnnouncementInput", () => {
       validateAnnouncementInput({ title: "  Départ 14h ", body: " Place centrale. " }),
     ).toEqual({
       ok: true,
-      value: { title: "Départ 14h", body: "Place centrale." },
+      value: { title: "Départ 14h", body: "Place centrale.", status: "public", show_author: false },
+    });
+  });
+
+  it("reads the visibility and the show-author checkbox", () => {
+    expect(
+      validateAnnouncementInput({ title: "t", body: "b", status: "draft", showAuthor: "on" }),
+    ).toEqual({
+      ok: true,
+      value: { title: "t", body: "b", status: "draft", show_author: true },
+    });
+    expect(
+      validateAnnouncementInput({ title: "t", body: "b", status: "private", showAuthor: null }),
+    ).toMatchObject({ ok: true, value: { status: "private", show_author: false } });
+  });
+
+  it.each(["secret", "", 3])("rejects an unknown visibility (%j)", (status) => {
+    expect(validateAnnouncementInput({ title: "t", body: "b", status })).toMatchObject({
+      ok: false,
+      fieldErrors: { status: expect.any(String) },
     });
   });
 

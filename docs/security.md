@@ -30,6 +30,16 @@ mettre une donnée qui varie selon l'utilisateur (permissions, profil, administr
 monde. Si une règle RLS de lecture de ces tables est un jour restreinte (par exemple « membres seulement »), il faut
 retirer la lecture du cache partagé au même moment.
 
+## Posts : visibilité, auteur et images (A-123c à A-123f)
+
+Les brouillons et posts privés ne sont lisibles que par leur auteur (RLS) ; la table `announcements` n'est plus lisible
+par `anon`. Le fil public passe par la vue `announcement_feed`, qui s'exécute avec les droits de son propriétaire (choix
+volontaire, `anon` n'a pas accès à `profiles`) et décide de ce qui sort : seulement les posts publics, et l'auteur
+(id, pseudo, avatar) seulement si `show_author` est coché. Les modérateurs (`announcement.delete`) lisent la table pour
+les posts publics et voient donc leur auteur. Images : bucket public plafonné à 300 Ko et à WebP/JPEG, écriture limitée
+aux titulaires de `announcement.publish` dans leur propre dossier ; le serveur revérifie la taille, le format réel et
+les dimensions. Une image est une donnée publique : ne pas y mettre de donnée sensible.
+
 ## En-têtes HTTP
 
 Définis dans `next.config.ts` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`,
@@ -43,6 +53,15 @@ lecture publique). La position d'un utilisateur ordinaire n'est **jamais** envoy
 repère local sur l'écran de l'utilisateur seul. Le gérant qui utilise « Ma position » ne déclare rien tant qu'il n'a pas
 validé : le bouton déplace seulement la carte. L'accès à la géolocalisation de l'appareil est limité à notre origine
 (`Permissions-Policy: geolocation=(self)`) et n'est demandé qu'au toucher d'un de ces boutons.
+
+## Clé `service_role` et surveillance (A-061 à A-064)
+
+Le code serveur lit `SUPABASE_SERVICE_ROLE_KEY` à un seul endroit : `src/lib/supabase/service.ts`, utilisé par
+`src/features/health/cron-snapshot.ts` (cron quotidien, sans utilisateur). Les fonctions SQL appelées
+(`health_stats`, `record_health_snapshot`) revérifient le rôle (`can_monitor()`). La page `/admin/health` n'utilise
+pas cette clé : elle passe par la session de l'administrateur (`monitoring.view`, RLS). `/api/health` est public et
+ne renvoie que le statut (jamais de mesure, de compteur ni de configuration) ; son résultat est gardé 10 s. Le jeton
+Vercel (`VERCEL_API_TOKEN`) reste côté serveur.
 
 ## Signalement d'une vulnérabilité
 

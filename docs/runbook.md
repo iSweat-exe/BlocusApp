@@ -46,6 +46,30 @@ Actions manuelles (une fois par environnement) :
 4. Écran de consentement en mode « Testing » : seuls les comptes de test fonctionnent ; passer en « In production »
    avant le lancement.
 
+## Surveillance de la santé (`/admin/health`, A-061 à A-064, O-074, O-075)
+
+La page fonctionne sans configuration (base, Auth, stockage, utilisateurs). Trois variables d'environnement
+(Vercel → Project Settings → Environment Variables, environnement **Production**, jamais préfixées
+`NEXT_PUBLIC_`) ajoutent le reste :
+
+1. `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API) : permet au cron quotidien d'enregistrer un
+   instantané sans utilisateur. Sans elle, l'historique ne se remplit que lors des visites de la page.
+2. `VERCEL_API_TOKEN` : Vercel → avatar → **Settings → Tokens → Create Token**, nom `blocus-health`, portée = l'équipe
+   (ou le compte) du projet, expiration à ton choix (ex. 1 an, à renouveler). Il sert à lire les déploiements.
+3. `VERCEL_PROJECT_ID` : Vercel → le projet → Settings → General → **Project ID** (`prj_…`). Ajouter `VERCEL_TEAM_ID`
+   (`team_…`, Settings de l'équipe → General) si le projet appartient à une équipe.
+
+Redéployer après l'ajout. Sans le jeton, la carte « Vercel » affiche « Non configuré » et le score l'ignore.
+Rotation : créer un nouveau jeton, le mettre dans Vercel, redéployer, supprimer l'ancien.
+
+**Moniteur externe (gratuit)** : créer une sonde HTTP (UptimeRobot, Better Stack…) sur `https://<prod>/api/health`
+toutes les 5 min, alerte si le code n'est pas 200. La réponse ne contient que `{"status":"ok|degraded|down"}`.
+
+Lire le score : ≥ 90 opérationnel, ≥ 60 dégradé, sinon critique. « Tâche quotidienne » = dernier passage du
+cron (en retard après 36 h : vérifier Vercel → Settings → Cron Jobs, `CRON_SECRET` et `SUPABASE_SERVICE_ROLE_KEY`).
+La carte « Configuration » signale les variables manquantes. « Actifs » = sessions renouvelées ces 15 dernières
+minutes (approximation, invités exclus).
+
 ## Claims JWT de permissions (A-034)
 
 En local le hook est activé par `supabase/config.toml`. **Sur un projet hébergé**, activer à la main :

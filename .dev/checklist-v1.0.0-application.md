@@ -66,6 +66,10 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-058** Protection anti-lockout : impossible de retirer le dernier `super_admin` 🆕 — _contrainte en BDD_
 - [~] **A-059** Les super_admins sont créés uniquement via migration/SQL manuel, jamais via l'UI publique 🔒 — _documenté dans `runbook.md`_
 - [ ] **A-060** 2FA (TOTP) obligatoire pour les rôles admin 🆕 🔒 — _non contournable_
+- [~] **A-061** Permission `monitoring.view` (admin, super_admin) + fonctions SQL `can_monitor()` / `health_stats()` + RLS et tests pgTAP 🆕 🔒 — _matrice testée_ (fait, ADR 0006)
+- [~] **A-062** Page `/admin/health` : score global (0-100), base de données, Auth, déploiement Vercel, stockage face au quota, utilisateurs inscrits et actifs (≈ 15 min), fraîcheur du cron, connexions à la base, tables les plus lourdes, configuration d'environnement, onglet « Santé » de l'administration 🆕 — _accès sans permission = 404_ (fait, à valider en production)
+- [~] **A-063** Historique `health_snapshots` sur 30 jours (un instantané par visite, ≤ 1 / 10 min, et un par jour via le cron de `/api/keep-alive`), purge sans `pg_cron`, graphique du score, disponibilité et p95 sur 7 jours 🆕 ⚡ — _purge testée_ (fait ; l'historique du cron demande `SUPABASE_SERVICE_ROLE_KEY`)
+- [~] **A-064** `GET /api/health` public (statut seul, 503 si la base ou Auth est en panne, réponse gardée 10 s) pour un moniteur externe 🆕 🔒 — _aucune donnée sensible exposée_ (fait)
 
 ## Étape 1.5 — Compression des données avant envoi à la BDD ⚡
 > ⚠️ La compression rend un champ **illisible/non filtrable par SQL**. À réserver aux gros champs non requêtés (contenu long, payload JSON, historique). Les colonnes filtrées/triées/protégées par RLS restent en clair.
@@ -119,6 +123,10 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [ ] **A-122** Login / Register : formulaires, validation (Zod), erreurs par champ, états de chargement — _parcours E2E OK_
 - [~] **A-123a** Table `announcements` + RLS (lecture Guest, écriture `announcement.publish` / `announcement.delete`) + tests pgTAP — _fait, reste la PR de l'UI_
 - [~] **A-123b** **Accueil** : fil des **dernières actualités** (annonces…), plus récentes en premier ; publication réservée aux personnes autorisées (`announcement.publish`) ; lecture ouverte au Guest — _données issues du cache (1.6)_
+- [~] **A-123c** Posts : **modification** d'un post déjà écrit par son auteur (formulaire prérempli, « modifié » affiché, `edited_at`) — _fait, à valider en production_
+- [~] **A-123d** Posts : **photo** facultative (une par post), compressée dans le navigateur (≤ 1 600 px, WebP/JPEG, ~220 Ko) puis plafonnée à 300 Ko côté serveur et par le bucket `announcement-images`, effacée avec le post — _fait (ADR 0007) ; reste : contrôle de la taille du bucket (A-114)_ ⚡
+- [~] **A-123e** Posts : case **« Afficher l'auteur »** (pseudo et avatar visibles de tous, caché par défaut, y compris pour les invités) 🔒 — _fait : vue `announcement_feed`, table fermée à `anon`, pgTAP_
+- [~] **A-123f** Posts : états **Brouillon / Privé / Public** (brouillon et privé : l'auteur seul) 🔒 — _fait ; section « Mes brouillons et posts privés » ; la différence brouillon / privé reste une étiquette (à durcir si besoin)_
 - [~] **A-128** Retirer `/messages` : route supprimée (404) et onglet retiré de `src/components/app-nav.tsx` (+ test `app-nav.test.tsx`) — _`npm run build` sans `/messages`, 3 onglets_
 - [~] **A-129** Page `/profil` (lecture) : pseudo, photo, identifiant, rôle, e-mail, fournisseur, date d'inscription, permissions (refonte visuelle mobile faite) — _édition du pseudo/avatar : étape 1.7 (batching)_
 - [~] **A-129b** Composant « fenêtre plein écran » réutilisable ; « Créer un post » (annonces) et « Ajouter un événement » s'y ouvrent au lieu d'un formulaire affiché en permanence — _fait, à valider sur de vrais téléphones (iPhone et Android)_
@@ -179,4 +187,5 @@ L'application sert à **gérer une manifestation dans une ville X** :
 
 ## Backlog (hors v1.0.0)
 - **Messagerie** (messages privés + groupes, permissions `message.*`) : reportée, la communication passe par Instagram pour l'instant ; la page `/messages` ne doit pas exister publiquement.
+- **Utilisateurs « en direct » exacts** (présence Supabase Realtime) : écartés tant que le pic visé consomme toute la limite gratuite de ~200 connexions ; « actifs » est approché par les sessions renouvelées (ADR 0006).
 - _(y noter toute autre idée qui déborde)_

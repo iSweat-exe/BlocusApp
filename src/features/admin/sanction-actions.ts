@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logActionError } from "@/server/log-action-error";
 import { requirePermission } from "@/server/require-permission";
 import { type BanFieldErrors, parseBanInput } from "./sanctions";
 
@@ -62,10 +63,9 @@ export async function banUser(_previous: BanState, formData: FormData): Promise<
     p_expires_at: parsed.value.expiresAt?.toISOString(),
   });
   if (error) {
-    return {
-      status: "error",
-      message: DATABASE_ERRORS[error.message] ?? "Le bannissement a échoué. Réessaie.",
-    };
+    const known = DATABASE_ERRORS[error.message];
+    if (!known) logActionError("banUser", error);
+    return { status: "error", message: known ?? "Le bannissement a échoué. Réessaie." };
   }
 
   revalidatePath(`/admin/users/${target}`);
@@ -89,6 +89,7 @@ export async function liftSanction(formData: FormData): Promise<void> {
   if (!permission.ok) return;
 
   const supabase = createClient(await cookies());
-  await supabase.rpc("revoke_sanction", { p_id: id });
+  const { error } = await supabase.rpc("revoke_sanction", { p_id: id });
+  if (error && !DATABASE_ERRORS[error.message]) logActionError("liftSanction", error);
   revalidatePath(`/admin/users/${target}`);
 }

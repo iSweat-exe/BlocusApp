@@ -1,6 +1,6 @@
 -- The epoch moves whenever an input of the JWT claims changes, and only then.
 begin;
-select plan(9);
+select plan(10);
 
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
 values
@@ -48,6 +48,13 @@ set local role anon;
 select isnt(public.get_permission_epoch(), null, 'anon can read the epoch');
 select throws_ok($$update public.permission_epoch set changed_at = now()$$, '42501', null,
   'anon cannot write the table');
+
+-- Supabase's pg-safeupdate rejects an UPDATE without WHERE, even inside a function, for requests that come
+-- through the API (a local database does not load it): the bump must keep its WHERE clause.
+select matches(
+  pg_get_functiondef('public.touch_permission_epoch()'::regprocedure),
+  'where\s+singleton',
+  'the epoch bump has a WHERE clause (pg-safeupdate)');
 
 select * from finish();
 rollback;

@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logActionError } from "@/server/log-action-error";
 import { requirePermission } from "@/server/require-permission";
 
 /** State returned to the permission forms. */
@@ -64,10 +65,9 @@ export async function toggleRolePermission(
     p_granted: granted === "true",
   });
   if (error) {
-    return {
-      status: "error",
-      message: DATABASE_ERRORS[error.message] ?? "La modification a échoué. Réessaie.",
-    };
+    const known = DATABASE_ERRORS[error.message];
+    if (!known) logActionError("toggleRolePermission", error);
+    return { status: "error", message: known ?? "La modification a échoué. Réessaie." };
   }
 
   revalidatePath("/admin/roles");
@@ -103,10 +103,9 @@ export async function setUserPermission(
     p_effect: (effect === "clear" ? null : effect) as string,
   });
   if (error) {
-    return {
-      status: "error",
-      message: DATABASE_ERRORS[error.message] ?? "La modification a échoué. Réessaie.",
-    };
+    const known = DATABASE_ERRORS[error.message];
+    if (!known) logActionError("setUserPermission", error);
+    return { status: "error", message: known ?? "La modification a échoué. Réessaie." };
   }
 
   revalidatePath(`/admin/users/${target}`);
