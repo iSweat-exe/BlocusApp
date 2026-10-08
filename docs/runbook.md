@@ -103,6 +103,30 @@ l'epoch ajoutait ~90 ms d'aller-retour transatlantique à la durée de la foncti
 provisionnée) et à la latence perçue. Si le projet Supabase est un jour recréé dans une autre région, changer cette
 valeur (une seule région est autorisée sur l'offre Hobby).
 
+## Contrôle des quotas (une semaine après l'ouverture, puis chaque mois) (A-114)
+
+Les chiffres de `docs/performance.md` sont des **estimations** (600 000 pages par mois). À comparer aux vrais :
+
+| Où | Quoi lire | Attendu (alerte si > 70 % du quota) |
+|---|---|---|
+| Vercel → Usage → Edge Requests, par chemin | requêtes par jour × 30 | < 1 M. Beaucoup de `/_vercel/insights` : revoir `ANALYTICS_SAMPLE_RATE` |
+| Vercel → Usage → Function Invocations, par fonction | `/_middleware` (le `proxy`) et les pages | < 1 M au total. Le `proxy` ne doit compter que les connectés |
+| Vercel → Usage → Fast Origin Transfer | Go du mois | < 10 Go (≈ 13 Ko par ouverture d'app) |
+| Vercel → Usage → Active CPU | heures du mois | < 4 h (≈ 14 ms par page rendue) |
+| Vercel → Analytics | événements | < 50 000 (5 % des navigateurs) |
+| Supabase → Reports / Usage | Database size, Egress, MAU | < 500 Mo (≈ 28 Mo au départ), < 5 Go, < 50 000 |
+| Supabase → Authentication → Logs | erreurs 429 | aucune : sinon revoir la durée du jeton |
+
+Mesure de la taille des tables après quelques semaines :
+
+```sql
+select schemaname, relname, pg_size_pretty(pg_total_relation_size(relid)) as size
+from pg_stat_user_tables order by pg_total_relation_size(relid) desc limit 10;
+```
+
+Si un quota approche : agir d'abord sur le plus gros consommateur de la liste ci-dessus (voir les leviers dans
+`docs/performance.md`) ; sur Hobby un dépassement **met le projet en pause** (jusqu'à 30 jours), il n'est pas facturé.
+
 ## Déploiement (O-035)
 
 1. Lier le dépôt GitHub à Vercel (une seule fois).
