@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
 import { createEvent, deleteEvent, setEventFinished, updateEvent } from "./actions";
 
 const requirePermission = vi.fn();
@@ -102,6 +103,14 @@ describe("createEvent", () => {
     insert.mockResolvedValue({ error: { message: "weird" } });
     expect(await createEvent(IDLE, form(VALID))).toMatchObject({
       message: expect.stringContaining("Réessaie"),
+    });
+  });
+
+  it("tells the user to slow down when the database rate limit is hit", async () => {
+    insert.mockResolvedValue({ error: { message: "rate_limited" } });
+    expect(await createEvent(IDLE, form(VALID))).toEqual({
+      status: "error",
+      message: RATE_LIMITED_MESSAGE,
     });
   });
 });
@@ -216,6 +225,10 @@ describe("setEventFinished", () => {
     rpc.mockResolvedValue({ error: { message: "weird" } });
     expect(await setEventFinished(IDLE, form({ id: ID, finished: "true" }))).toMatchObject({
       message: expect.stringContaining("Réessaie"),
+    });
+    rpc.mockResolvedValue({ error: { message: "rate_limited" } });
+    expect(await setEventFinished(IDLE, form({ id: ID, finished: "true" }))).toMatchObject({
+      message: RATE_LIMITED_MESSAGE,
     });
   });
 });
