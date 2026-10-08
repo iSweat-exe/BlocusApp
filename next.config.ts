@@ -19,8 +19,8 @@ const contentSecurityPolicy = [
   // used in development comes from va.vercel-scripts.com.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  // cdn.discordapp.com serves the Discord avatars shown on /profil; the tiles origin serves the map images.
-  `img-src 'self' data: blob: ${supabaseOrigin} https://cdn.discordapp.com ${TILES_ORIGIN}`,
+  // cdn.discordapp.com and lh3.googleusercontent.com serve the Discord / Google avatars (header, /profil); the tiles origin serves the map images.
+  `img-src 'self' data: blob: ${supabaseOrigin} https://cdn.discordapp.com https://lh3.googleusercontent.com ${TILES_ORIGIN}`,
   "font-src 'self' data:",
   // The map fetches its style, vector tiles, glyphs and sprites from the tiles origin.
   `connect-src 'self' ${supabaseOrigin} ${supabaseWs} ${TILES_ORIGIN}${isDev ? " ws://localhost:*" : ""}`,

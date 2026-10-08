@@ -3,6 +3,9 @@ import { initialsOf, safeAvatarUrl } from "./avatar";
 
 describe("safeAvatarUrl", () => {
   it("accepts https avatars from allowed hosts", () => {
+    expect(safeAvatarUrl("https://lh3.googleusercontent.com/a/abc=s96-c")).toBe(
+      "https://lh3.googleusercontent.com/a/abc=s96-c",
+    );
     expect(safeAvatarUrl("https://cdn.discordapp.com/avatars/1/abc.png")).toBe(
       "https://cdn.discordapp.com/avatars/1/abc.png",
     );

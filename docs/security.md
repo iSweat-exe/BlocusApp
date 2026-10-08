@@ -56,7 +56,7 @@ Checklist A-110 : RLS, secrets, en-têtes, dépendances (`npm audit`), Security 
 
 - `script-src` autorise `'unsafe-inline'` car Next.js injecte des scripts inline ; passer à des **nonces**
   rendrait toutes les pages dynamiques (perte du cache statique). À réévaluer avant la v1.0.0.
-- `img-src` autorise `https://cdn.discordapp.com` (avatars Discord de `/profil`). `profiles.avatar_url` étant modifiable par l'utilisateur, `safeAvatarUrl()` (`src/features/profile/avatar.ts`) n'affiche que du https sur un hôte autorisé.
+- `img-src` autorise `https://cdn.discordapp.com` et `https://lh3.googleusercontent.com` (avatars Discord / Google). `profiles.avatar_url` étant modifiable par l'utilisateur, `safeAvatarUrl()` (`src/features/profile/avatar.ts`) n'affiche que du https sur un hôte autorisé.
 - `tiles.openfreemap.org` (style, tuiles vectorielles, polices et pictogrammes de la carte, ADR 0005) est autorisé dans
   `img-src` et `connect-src` (`TILES_ORIGIN`, `src/features/map/map-config.ts`), et `worker-src` accepte `blob:` pour le
   worker de MapLibre. L'analytics et toute autre origine externe restent **bloqués par défaut** : les ajouter
