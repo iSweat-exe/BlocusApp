@@ -230,3 +230,18 @@ label {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Map: the dark theme inverts the light basemap (kept to the canvas: markers and controls stay as they are). */
+.map-dark .maplibregl-canvas {
+  filter: invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.95);
+}
+
+/* The user's own position (shown on this device only). */
+.map-me-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #3b82f6;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 6px rgb(59 130 246 / 0.25);
+}

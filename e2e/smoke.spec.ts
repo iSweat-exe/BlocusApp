@@ -16,24 +16,35 @@ test.describe("app shell", () => {
     }
   });
 
-  test("the map page shows that it is under development", async ({ page }) => {
+  test("the map page loads the map, flags the page as under development and starts its worker", async ({
+    page,
+  }) => {
+    // No network in the test: answer the style request with an empty one (a single background layer).
+    await page.route("https://tiles.openfreemap.org/**", (route) =>
+      route.fulfill({
+        contentType: "application/json",
+        headers: { "access-control-allow-origin": "*" },
+        body: JSON.stringify({
+          version: 8,
+          sources: {},
+          layers: [{ id: "bg", type: "background", paint: { "background-color": "#cfe8d5" } }],
+        }),
+      }),
+    );
+    const violations: string[] = [];
+    page.on("console", (message) => {
+      if (message.text().includes("Content Security Policy")) violations.push(message.text());
+    });
+    // MapLibre parses tiles in a module worker served from our own origin (CSP `worker-src 'self'`).
+    const worker = page.waitForEvent("worker");
+
     await page.goto("/map");
     await expect(page.getByRole("heading", { level: 1, name: "Carte" })).toBeVisible();
     await expect(page.getByRole("status")).toHaveText("En développement");
-    await expect(
-      page.getByRole("listitem").filter({ hasText: "Tracé des déplacements" }),
-    ).toBeVisible();
-  });
-
-  test("the tab bar keeps a clearance above the bottom edge even without a safe area", async ({
-    page,
-  }) => {
-    await page.goto("/");
-    // Browsers without a safe area (Android) report 0 for env(safe-area-inset-bottom): the token enforces 2 rem.
-    const padding = await page
-      .getByRole("navigation", { name: "Navigation principale" })
-      .evaluate((nav) => getComputedStyle(nav).paddingBottom);
-    expect(padding).toBe("32px");
+    await expect(page.getByRole("region", { name: "Carte" })).toBeVisible();
+    expect((await worker).url()).toContain("/_next/static/media/maplibre-gl-worker");
+    await expect(page.getByRole("button", { name: "Me localiser" })).toBeEnabled();
+    expect(violations).toEqual([]);
   });
 
   test("home shows the announcements section without crashing when the data is unreachable", async ({

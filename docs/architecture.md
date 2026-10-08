@@ -42,7 +42,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/`           | Accueil (actualités)                     | Lecture : Guest ; publication : autorisés  |
 | `(app)`  | `/calendar`   | Calendrier : grille de mois (`?month=AAAA-MM&day=AAAA-MM-JJ`) et événements du jour | Lecture : Guest ; écriture : autorisés (`event.create`) |
 | `(app)`  | `/calendar/[id]` | Détail d'un événement                 | Lecture : Guest                            |
-| `(app)`  | `/map`        | Carte (tracé, position de la manifestation) | Lecture : Guest ; édition : gérants (page « En développement » en attendant, `WorkInProgress`) |
+| `(app)`  | `/map`        | Carte : fond OpenFreeMap (MapLibre, ADR 0005), « Me localiser » ; tracé et position à venir | Lecture : Guest ; édition : gérants (à venir) |
 | `(app)`  | `/admin`      | Administration (utilisateurs, rôles)      | Une permission d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`) ; sinon 404, Guest → `/login` |
 | `(app)`  | `/admin/users/[id]` | Fiche utilisateur : sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/roles` | Matrice rôle × permission (édition)       | Permission `permission.manage` (sinon 404 ; Guest → `/login`) |
@@ -123,6 +123,8 @@ n'est monté que fenêtre ouverte (formulaire vierge à chaque ouverture). Un fo
 Server Component la ferme après un succès avec `useDialogClose()` (pas de fonction en prop) et épingle son bouton
 d'action en bas avec la classe `.form-actions` quand `useInDialog()` est vrai. Utilisée pour « Créer un post »
 (`announcement-feed.tsx`) et « Ajouter un événement » (`month-view.tsx`).
+
+**Carte.** `src/features/map/` : `MapLoader` (`next/dynamic`, sans SSR) charge `MapView` (MapLibre GL JS 6) seulement sur `/map`. Style OpenFreeMap (`liberty` clair, `positron` inversé en sombre via `.map-dark`, qui suit le thème forcé ou système avec `useMapTheme`), attribution OSM repliée, rotation au doigt désactivée, bouton « Me localiser » (position affichée **sur l'appareil uniquement**, jamais envoyée). Fournisseur, vue initiale (`DEFAULT_VIEW`, à remplacer par la ville X) et zoom dans `map-config.ts`. Le worker de MapLibre est un fichier émis par le bundler (`setWorkerUrl`), servi depuis notre origine. Sans WebGL ou si le style ne se charge pas : message d'erreur. CSP : voir `docs/security.md`.
 
 **Couleur d'accent personnalisable.** `/settings` (`src/features/settings/`) : l'utilisateur choisit un préréglage ou une couleur libre ; elle est stockée dans `localStorage` (`blocus.accent`, `#rrggbb` validé par `normalizeHex`) et posée en variables CSS `--accent`, `--accent-strong`, `--accent-ink` sur `<html>`. Un script inline dans `<head>` (`accent-script.ts`, autorisé par la CSP actuelle `'unsafe-inline'`) l'applique avant le premier rendu, sans flash rouge. Réglage local à l'appareil, sans base de données (synchro entre appareils = hors périmètre).
 

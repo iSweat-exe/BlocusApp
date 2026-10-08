@@ -48,7 +48,9 @@ Checklist A-110 : RLS, secrets, en-têtes, dépendances (`npm audit`), Security 
 - `script-src` autorise `'unsafe-inline'` car Next.js injecte des scripts inline ; passer à des **nonces**
   rendrait toutes les pages dynamiques (perte du cache statique). À réévaluer avant la v1.0.0.
 - `img-src` autorise `https://cdn.discordapp.com` (avatars Discord de `/profil`). `profiles.avatar_url` étant modifiable par l'utilisateur, `safeAvatarUrl()` (`src/features/profile/avatar.ts`) n'affiche que du https sur un hôte autorisé.
-- Les tuiles de carte, l'analytics et toute autre origine externe sont **bloqués par défaut** : les ajouter
+- `tiles.openfreemap.org` (style, tuiles vectorielles, polices et pictogrammes de la carte, ADR 0005) est autorisé dans
+  `img-src` et `connect-src` (`TILES_ORIGIN`, `src/features/map/map-config.ts`), et `worker-src` accepte `blob:` pour le
+  worker de MapLibre. L'analytics et toute autre origine externe restent **bloqués par défaut** : les ajouter
   explicitement dans `next.config.ts` (`img-src`, `connect-src`…) avec la PR qui les introduit.
 - Vercel Analytics (`<Analytics />` dans `layout.tsx`) fonctionne en production via `/_vercel/insights` (même origine, donc couvert par `'self'`) ; il doit être activé dans le dashboard Vercel (onglet Analytics). Pensez à l'indiquer dans la politique de confidentialité (RGPD, A-113).
 - Après le premier déploiement, passer l'URL de production dans un scanner d'en-têtes
