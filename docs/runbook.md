@@ -7,8 +7,10 @@
 | dev  | projet de DEV   | local (`npm run dev`)          |
 | prod | projet de PROD  | production depuis `main`       |
 
-Une **preview Vercel** est créée pour chaque pull request. Utiliser un projet Supabase **distinct** pour
-dev et prod ; ne jamais pointer une preview vers la base de production.
+Seule la branche `main` est déployée (`git.deploymentEnabled` dans `vercel.json`) : **aucune preview** n'est créée
+pour les branches ni les pull requests, afin de ne pas consommer le quota de déploiements Hobby. Tester en local
+(`npm run dev`) et via la CI. Utiliser un projet Supabase **distinct** pour dev et prod. Si les previews sont
+réactivées un jour, ne jamais en pointer une vers la base de production.
 
 ## Gestion des secrets (O-070)
 
@@ -166,7 +168,7 @@ Si un quota approche : agir d'abord sur le plus gros consommateur de la liste ci
 ## Déploiement (O-035)
 
 1. Lier le dépôt GitHub à Vercel (une seule fois).
-2. Production Branch = `main` ; chaque PR = preview.
+2. Production Branch = `main`. Les autres branches et les PR ne sont **pas** déployées (`vercel.json`, `git.deploymentEnabled`) ; pour une preview ponctuelle, lancer `vercel deploy` à la main.
 3. Les migrations Supabase sont appliquées **automatiquement** après la fusion sur `main` (section ci-dessous) : ne
    plus les passer à la main.
 4. Vérifier les quotas (Supabase + Vercel) après chaque release.

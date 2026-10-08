@@ -33,7 +33,7 @@
 - [x] **O-023** Stratégie de branches : `main` (protégée, = prod), `develop` optionnel, branches `feat/…`, `fix/…`, `docs/…`, `chore/…` — _nommage documenté_
 - [ ] **O-024** Protection de `main` : PR obligatoire, 1 review min, CI verte, pas de force-push, historique linéaire (squash merge) — _réglages GitHub appliqués_
 - [x] **O-025** Template de PR (`.github/pull_request_template.md`) : description, lien issue, checklist (tests, docs, migration, RLS) — _affiché à chaque PR_
-- [x] **O-026** Templates d'issues (bug, feature, tâche LLM) + labels standards — _créés sur GitHub_
+- [x] **O-026** Templates d'issues (bug, feature, tâche LLM) + labels standards — _créés sur GitHub_ ; labels versionnés (`.github/labels.yml`), synchronisés et posés automatiquement (type, area, size…), cf. `docs/git-workflow.md`
 - [x] **O-027** `CODEOWNERS` : les dossiers sensibles (`supabase/migrations`, auth, permissions) nécessitent un reviewer désigné 🔒 — _fichier actif_
 - [x] **O-028** Versionnage SemVer + `CHANGELOG.md` généré (ex. `release-please` / `changesets`) — _tag `v1.0.0` à la fin_ (workflow release-please ajouté : activer « Allow GitHub Actions to create pull requests » dans les réglages du dépôt)
 - [x] **O-029** Taille de PR recommandée (< ~400 lignes) et « 1 PR = 1 case de checklist » — _documenté_
