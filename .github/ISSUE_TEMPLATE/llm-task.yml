@@ -6,6 +6,42 @@ body:
     id: checklist
     attributes:
       label: Checklist ID
+      description: Example `A-015` or `O-030`.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Becomes the `area:` label.
+      options:
+        - auth
+        - permissions
+        - database
+        - admin
+        - announcements
+        - calendar
+        - map
+        - posts
+        - profile
+        - settings
+        - health
+        - ui
+        - pwa
+        - accessibility
+        - infra
+        - docs
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Becomes the `priority:` label.
+      options:
+        - high - blocks the current checklist step
+        - medium - planned for the current version
+        - low - nice to have
     validations:
       required: true
   - type: textarea

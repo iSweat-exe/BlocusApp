@@ -1,0 +1,161 @@
+# Path-based labels, applied to every PR by .github/workflows/auto-label.yml (actions/labeler).
+# Only labels listed here are managed (added and removed) by the labeler: all others are left alone.
+# Label names, colours and descriptions live in .github/labels.yml.
+
+"area: auth":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/features/auth/**
+          - src/app/*auth*/**
+          - src/lib/supabase/**
+          - src/proxy.ts
+          - src/proxy.test.ts
+
+"area: permissions":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/lib/data/permissions*
+          - src/lib/data/sanctions*
+          - src/server/require-permission*
+          - src/features/admin/permission-*
+          - src/features/admin/hierarchy*
+          - src/features/admin/sanction*
+          - src/features/admin/role-*
+          - src/features/admin/user-permissions.tsx
+          - docs/permissions.md
+
+"area: database":
+  - changed-files:
+      - any-glob-to-any-file:
+          - supabase/**
+          - src/lib/database.types.ts
+          - docs/database.md
+
+"area: admin":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/features/admin/**
+          - src/app/**/admin/**
+          - src/lib/data/audit*
+
+"area: announcements":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/features/announcements/**
+          - src/lib/data/announcements*
+
+"area: calendar":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/features/calendar/**
+          - src/app/**/calendar/**
+          - src/lib/data/events*
+
+"area: map":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/features/map/**
+          - src/app/**/map/**
+          - src/lib/data/map*
+          - src/lib/map-route*
+
+"area: posts":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/features/posts/**
+          - src/app/**/posts/**
+          - src/lib/data/posts*
+
+"area: profile":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/features/profile/**
+          - src/app/**/profil/**
+          - src/lib/data/profiles*
+          - src/components/avatar*
+
+"area: settings":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/features/settings/**
+          - src/app/**/settings/**
+
+"area: health":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/features/health/**
+          - src/app/api/health/**
+          - src/lib/data/health*
+          - src/components/sampled-analytics*
+          - docs/adr/0003-error-monitoring.md
+          - docs/adr/0006-health-monitoring.md
+
+"area: ui":
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/components/**
+          - src/app/globals.css
+          - src/app/layout.tsx
+          - src/app/**/layout.tsx
+          - src/features/refresh/**
+          - design/**
+          - docs/adr/0004-design-system-tokens.md
+
+"area: pwa":
+  - changed-files:
+      - any-glob-to-any-file:
+          - public/sw.js
+          - public/icons/**
+          - src/app/manifest.ts
+          - src/app/icon.png
+          - src/components/service-worker-register*
+
+"area: infra":
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**
+          - .husky/**
+          - vercel.json
+          - commitlint.config.mjs
+          - release-please-config.json
+          - .release-please-manifest.json
+          - eslint.config.mjs
+          - vitest.config.ts
+          - playwright.config.ts
+          - load/**
+
+# Only for PRs that change nothing but documentation (a feature that updates its docs is not an area: docs PR).
+"area: docs":
+  - changed-files:
+      - any-glob-to-all-files:
+          - docs/**
+          - .dev/**
+          - CLAUDE.md
+          - AGENTS.md
+          - README.md
+
+# --- flags ---------------------------------------------------------------------------------------------------------
+
+migration:
+  - changed-files:
+      - any-glob-to-any-file: supabase/migrations/**
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/server/**
+          - src/lib/supabase/**
+          - src/proxy.ts
+          - docs/security.md
+
+free-tier:
+  - changed-files:
+      - any-glob-to-any-file:
+          - vercel.json
+          - next.config.ts
+          - src/app/api/keep-alive/**
+          - src/lib/data/cache-tags.ts
+          - .dev/constraints.md
+          - docs/performance.md
+          - docs/load-testing.md
+          - load/**

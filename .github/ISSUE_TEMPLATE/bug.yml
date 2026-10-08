@@ -15,6 +15,52 @@ body:
       label: Steps to reproduce
     validations:
       required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Where does it happen? Becomes the `area:` label.
+      options:
+        - auth
+        - permissions
+        - database
+        - admin
+        - announcements
+        - calendar
+        - map
+        - posts
+        - profile
+        - settings
+        - health
+        - ui
+        - pwa
+        - accessibility
+        - infra
+        - docs
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Becomes the `priority:` label. The maintainer can change it while triaging.
+      options:
+        - critical - production is broken, data or security at risk
+        - high - a main feature is unusable
+        - medium - annoying, there is a workaround
+        - low - cosmetic or rare
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: Becomes the `platform:` label.
+      multiple: true
+      options:
+        - iOS
+        - Android
+        - Desktop
   - type: input
     id: env
     attributes:

@@ -1,13 +1,104 @@
-# Reference list of labels (create them in GitHub: Issues > Labels).
-- { name: "type: feature", color: "0e8a16", description: "New functionality from the checklists" }
-- { name: "type: bug", color: "d73a4a", description: "Something is broken" }
-- { name: "type: docs", color: "0075ca", description: "Documentation only" }
-- { name: "type: chore", color: "cfd3d7", description: "Tooling, deps, CI" }
+# Source of truth for the repository labels.
+#
+# Applied to GitHub by .github/workflows/labels-sync.yml (push on main, or "Run workflow") through
+# .github/scripts/sync-labels.sh. Never edit labels by hand in the GitHub UI: the next sync overwrites them.
+#
+# Fields: name (<= 50 chars), color (hex, no #), description (<= 100 chars),
+#         aliases (optional: former names, renamed in place so issues and PRs keep their label).
+#
+# Families (one colour each, so a list of labels stays readable at a glance):
+#   type:      what the change is. Mirrors the Conventional Commit types, set automatically from the PR title.
+#   area:      which part of the product it touches. Set automatically from the changed paths.
+#   priority:  how urgent it is. Set by a human.
+#   status:    where it stands in the workflow. Set by a human.
+#   size:      PR size, computed from the diff (generated files excluded). Never set by hand.
+#   platform:  device or OS specific.
+#   checklist: which v1.0.0 checklist it belongs to (CLAUDE.md: 1 task = 1 checklist item).
+#   flags:     cross-cutting markers (security, breaking, migration...).
+
+# --- type: -------------------------------------------------------------------------------------------------------
+- { name: "type: feature", color: "0e8a16", description: "New functionality (feat)", aliases: ["enhancement"] }
+- { name: "type: bug", color: "d73a4a", description: "Something is broken (fix)", aliases: ["bug"] }
+- { name: "type: refactor", color: "1d76db", description: "Code change with no behaviour change (refactor)" }
+- { name: "type: perf", color: "fbca04", description: "Speed, payload size or free-tier quota usage (perf)" }
+- { name: "type: test", color: "bfd4f2", description: "Tests only (test)" }
+- { name: "type: docs", color: "0075ca", description: "Documentation only (docs)", aliases: ["documentation"] }
+- { name: "type: build", color: "c5def5", description: "Build system and dependencies (build)" }
+- { name: "type: ci", color: "ededed", description: "CI/CD workflows and GitHub configuration (ci)" }
+- { name: "type: chore", color: "cfd3d7", description: "Maintenance and tooling (chore, style, revert)" }
 - { name: "type: llm-task", color: "5319e7", description: "Task prepared for an LLM agent" }
-- { name: "area: auth", color: "fbca04", description: "Authentication and sessions" }
-- { name: "area: permissions", color: "fbca04", description: "Roles and permissions" }
-- { name: "area: database", color: "fbca04", description: "Schema, migrations, RLS" }
-- { name: "area: pwa", color: "fbca04", description: "PWA, service worker, push" }
-- { name: "area: perf", color: "fbca04", description: "Cache, batching, throttling" }
-- { name: "priority: high", color: "b60205", description: "Blocks the current step" }
-- { name: "security", color: "b60205", description: "Security-sensitive change" }
+- { name: "type: question", color: "d876e3", description: "A question, not a change request", aliases: ["question"] }
+
+# --- area: (product / code domain) -------------------------------------------------------------------------------
+- { name: "area: auth", color: "fef2c0", description: "Sign-in, sessions, OAuth providers" }
+- { name: "area: permissions", color: "fef2c0", description: "Roles, permissions, hierarchy, sanctions" }
+- { name: "area: database", color: "fef2c0", description: "Schema, migrations, RLS, SQL functions" }
+- { name: "area: admin", color: "fef2c0", description: "Back-office: users, permissions, audit log" }
+- { name: "area: announcements", color: "fef2c0", description: "Announcements and the home feed" }
+- { name: "area: calendar", color: "fef2c0", description: "Calendar and events" }
+- { name: "area: map", color: "fef2c0", description: "Map, route and declared positions" }
+- { name: "area: posts", color: "fef2c0", description: "Posts, photos and their visibility" }
+- { name: "area: profile", color: "fef2c0", description: "User profile and account" }
+- { name: "area: settings", color: "fef2c0", description: "User settings: theme, accent colour" }
+- { name: "area: health", color: "fef2c0", description: "Health page, monitoring, error tracking, analytics" }
+- { name: "area: ui", color: "fef2c0", description: "Design system, shared components, navigation, animations" }
+- { name: "area: pwa", color: "fef2c0", description: "Manifest, service worker, install, push" }
+- { name: "area: accessibility", color: "fef2c0", description: "Barrier affecting people with disabilities", aliases: ["accessibility"] }
+- { name: "area: infra", color: "fef2c0", description: "Vercel, Supabase project config, CI/CD, repo tooling" }
+- { name: "area: docs", color: "fef2c0", description: "docs/, .dev/ and the project rules (CLAUDE.md, AGENTS.md)" }
+
+# --- priority: ---------------------------------------------------------------------------------------------------
+- { name: "priority: critical", color: "b60205", description: "Production is broken or data/security at risk: drop everything" }
+- { name: "priority: high", color: "d93f0b", description: "Blocks the current checklist step" }
+- { name: "priority: medium", color: "fbca04", description: "Planned for the current version" }
+- { name: "priority: low", color: "c2e0c6", description: "Nice to have, do when there is room" }
+
+# --- status: -----------------------------------------------------------------------------------------------------
+- { name: "status: needs-triage", color: "e99695", description: "New: needs a type, an area and a priority" }
+- { name: "status: needs-info", color: "d4c5f9", description: "Waiting for details from the reporter" }
+- { name: "status: needs-decision", color: "d4c5f9", description: "Waiting for a product/tech decision (see .dev/decisions-a-valider.md)" }
+- { name: "status: ready", color: "0e8a16", description: "Scoped and ready to be picked up (owner still to declare)" }
+- { name: "status: in-progress", color: "1d76db", description: "Someone (or an LLM agent) is on it: the owner is declared in the issue" }
+- { name: "status: needs-review", color: "fbca04", description: "Waiting for the human review required on every PR" }
+- { name: "status: blocked", color: "b60205", description: "Cannot move until another item is resolved" }
+
+# --- size: (PRs, automatic) --------------------------------------------------------------------------------------
+- { name: "size: XS", color: "2da44e", description: "Under 10 changed lines (generated files excluded)" }
+- { name: "size: S", color: "7bc96f", description: "10 to 49 changed lines" }
+- { name: "size: M", color: "e9d539", description: "50 to 149 changed lines" }
+- { name: "size: L", color: "f0883e", description: "150 to 399 changed lines" }
+- { name: "size: XL", color: "d1242f", description: "400+ changed lines: over the PR size guideline, consider splitting" }
+
+# --- platform: ---------------------------------------------------------------------------------------------------
+- { name: "platform: ios", color: "bfdadc", description: "iOS / Safari specific" }
+- { name: "platform: android", color: "bfdadc", description: "Android / Chrome specific" }
+- { name: "platform: desktop", color: "bfdadc", description: "Desktop browser specific" }
+
+# --- checklist: (CLAUDE.md: 1 task = 1 checklist item) -----------------------------------------------------------
+- { name: "checklist: organisation", color: "006b75", description: "Item O-xxx of .dev/checklist-v1.0.0-organisation.md" }
+- { name: "checklist: application", color: "006b75", description: "Item A-xxx of .dev/checklist-v1.0.0-application.md" }
+- { name: "backlog", color: "ededed", description: "Out of v1.0.0 scope: parked in the checklist Backlog section" }
+
+# --- flags -------------------------------------------------------------------------------------------------------
+- { name: "security", color: "b60205", description: "Security-sensitive change or vulnerability (auth, RLS, secrets)" }
+- { name: "breaking change", color: "b60205", description: "Changes behaviour, an API or the schema in a non-compatible way (feat!/fix!)" }
+- { name: "migration", color: "5319e7", description: "Adds a Supabase migration: needs the code owner review" }
+- { name: "free-tier", color: "fbca04", description: "Affects Vercel/Supabase free-tier quotas (see .dev/constraints.md)" }
+- { name: "llm-generated", color: "5319e7", description: "Automatic from the PR template: written (partly) by an LLM, human-reviewed" }
+- { name: "needs-tests", color: "d93f0b", description: "Automatic: feat/fix/perf changed code but no test file (unit, e2e, SQL)" }
+- { name: "needs-docs", color: "d93f0b", description: "Automatic: a feat changed code but neither docs/ nor .dev/" }
+
+# --- resolution --------------------------------------------------------------------------------------------------
+- { name: "duplicate", color: "cfd3d7", description: "This issue or pull request already exists" }
+- { name: "invalid", color: "e4e669", description: "This doesn't seem right" }
+- { name: "wontfix", color: "ffffff", description: "This will not be worked on" }
+
+# --- community ---------------------------------------------------------------------------------------------------
+- { name: "good first issue", color: "7057ff", description: "Good for newcomers" }
+- { name: "help wanted", color: "008672", description: "Extra attention is needed" }
+
+# --- managed by bots: kept here so the sync never reports them as unknown -----------------------------------------
+- { name: "dependencies", color: "0366d6", description: "Pull requests that update a dependency file (Dependabot)" }
+- { name: "github_actions", color: "000000", description: "Pull requests that update GitHub Actions code (Dependabot)" }
+- { name: "autorelease: pending", color: "ededed", description: "Release PR waiting to be merged (release-please)" }
+- { name: "autorelease: tagged", color: "ededed", description: "Release PR merged and tagged (release-please)" }
