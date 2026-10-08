@@ -218,6 +218,26 @@ test.describe("app shell", () => {
     await expect(page.getByRole("button", { name: "Déconnexion" })).toHaveCount(0);
   });
 
+  test("the header has a manual refresh button that survives a press", async ({ page }) => {
+    await page.goto("/");
+    const refresh = page.getByRole("banner").getByRole("button", { name: "Actualiser" });
+    await expect(refresh).toBeVisible();
+    await refresh.click();
+    // The page is rendered again on the server (slow here: the test database is unreachable), then the button is back.
+    await expect(refresh).toBeEnabled({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { level: 1, name: "Accueil" })).toBeVisible();
+  });
+
+  test("the login page is static and shows the error of a failed sign-in", async ({ page }) => {
+    const response = await page.goto("/login?error=oauth_callback");
+    // Prerendered: served without running the page on the server (no function invocation on Vercel).
+    expect(response?.headers()["x-nextjs-prerender"]).toMatch(/^1/);
+    await expect(page.getByText("La connexion a échoué. Réessaie.")).toBeVisible();
+    await page.goto("/login?error=nonsense");
+    await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();
+    await expect(page.getByText("La connexion a échoué.")).toHaveCount(0);
+  });
+
   test("serves the public auth pages", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Connexion" })).toBeVisible();

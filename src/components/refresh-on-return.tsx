@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-/** The page is not refreshed twice within this delay: it matches the 30 s of the shared data cache. */
+/** The page is not refreshed twice within this delay: a refresh gives the same data for a while anyway. */
 export const MIN_REFRESH_GAP_MS = 30_000;
 
 /**

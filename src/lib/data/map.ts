@@ -8,9 +8,9 @@ export type MapRoute = { id: string; points: LngLat[]; createdAt: string };
 
 const message = (cause: unknown) => (cause instanceof Error ? cause.message : "unknown error");
 
-// The route is public (RLS lets `anon` read it), so the read is cached once for everybody for 30 s ("feed"
+// The route is public (RLS lets `anon` read it), so the read is cached once for everybody for 2 min ("feed"
 // profile). Saving a route calls `updateTag("map-route")` (the editor sees the change at once, the others within
-// 30 s). Failures are thrown inside the cached function, never returned: an error must not be cached.
+// 2 min, or at once with "Actualiser"). Failures are thrown inside the cached function, never returned: an error must not be cached.
 async function fetchCurrentRoute(): Promise<MapRoute | null> {
   "use cache";
   cacheLife("feed");
