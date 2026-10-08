@@ -434,9 +434,25 @@ export type Database = {
       };
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
       get_permission_epoch: { Args: never; Returns: string };
+      health_connections: {
+        Args: never;
+        Returns: { max_connections: number; open_connections: number }[];
+      };
       health_stats: {
         Args: never;
         Returns: { db_size_bytes: number; users_active: number; users_total: number }[];
+      };
+      health_tables: { Args: never; Returns: { size_bytes: number; table_name: string }[] };
+      health_trends: {
+        Args: never;
+        Returns: {
+          last_cron_at: string | null;
+          min_score_7d: number | null;
+          p95_db_ms_24h: number | null;
+          p95_db_ms_7d: number | null;
+          snapshots_7d: number;
+          up_7d: number;
+        }[];
       };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       is_valid_route: { Args: { p_points: Json }; Returns: boolean };

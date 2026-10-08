@@ -65,7 +65,9 @@ Rotation : créer un nouveau jeton, le mettre dans Vercel, redéployer, supprime
 **Moniteur externe (gratuit)** : créer une sonde HTTP (UptimeRobot, Better Stack…) sur `https://<prod>/api/health`
 toutes les 5 min, alerte si le code n'est pas 200. La réponse ne contient que `{"status":"ok|degraded|down"}`.
 
-Lire le score : ≥ 90 opérationnel, ≥ 60 dégradé, sinon critique. « Actifs » = sessions renouvelées ces 15 dernières
+Lire le score : ≥ 90 opérationnel, ≥ 60 dégradé, sinon critique. « Tâche quotidienne » = dernier passage du
+cron (en retard après 36 h : vérifier Vercel → Settings → Cron Jobs, `CRON_SECRET` et `SUPABASE_SERVICE_ROLE_KEY`).
+La carte « Configuration » signale les variables manquantes. « Actifs » = sessions renouvelées ces 15 dernières
 minutes (approximation, invités exclus).
 
 ## Claims JWT de permissions (A-034)

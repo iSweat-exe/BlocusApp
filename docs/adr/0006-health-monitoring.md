@@ -34,8 +34,13 @@ Option 3 (+ un endpoint public `/api/health` pour un moniteur externe, option 1 
   C'est une approximation (jusqu'à 15 minutes de retard, invités non comptés), sans aucune connexion de plus.
 - **Historique** : un instantané par visite de la page (la base en garde au plus un toutes les 10 minutes) et un
   par jour dans le cron de `/api/keep-alive`, conservés 30 jours (purge à l'insertion, sans `pg_cron`).
-- **Score** (0-100) : latence de la base (40), latence d'Auth (25), taille de la base face aux 500 Mo (20),
-  dernier déploiement Vercel (15) ; une mesure inconnue (Vercel non configuré) est écartée du calcul.
+- **Score** (0-100) : latence de la base (30), latence d'Auth (20), taille de la base face aux 500 Mo (15),
+  dernier déploiement Vercel (10), fraîcheur du cron quotidien (10, il empêche la mise en pause du projet gratuit),
+  connexions ouvertes face à la limite du serveur (10), configuration d'environnement (5) ; une mesure inconnue
+  (Vercel non configuré, cron jamais passé) est écartée du calcul, pas comptée comme un échec.
+- **Tendance** : disponibilité sur 7 jours (part des mesures non critiques) et latence p95 de la base, calculées
+  depuis l'historique (indicateurs affichés, hors score) ; top 5 des tables les plus lourdes ; carte « Configuration »
+  (présence des variables d'environnement, jamais leur valeur).
 - **Vercel** : API REST `GET /v6/deployments` avec un jeton, uniquement côté serveur.
 - Le cron n'ayant pas d'utilisateur, il utilise la clé `service_role` (premier usage dans l'application), via un
   client dédié et étroit ; sans la clé, il ne fait rien.

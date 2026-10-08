@@ -9,6 +9,31 @@ export type AppClient = SupabaseClient<Database>;
 /** Counters read in the database. */
 export type HealthStats = { usersTotal: number; usersActive: number; dbSizeBytes: number };
 
+/** Availability and latency over the stored history, and the last run of the daily cron. */
+export type HealthTrends = {
+  snapshots7d: number;
+  /** Snapshots of the last 7 days whose score was 60 or more. */
+  up7d: number;
+  minScore7d: number | null;
+  p95Db24h: number | null;
+  p95Db7d: number | null;
+  /** ISO date of the last snapshot recorded by the cron, `null` if none. */
+  lastCronAt: string | null;
+};
+
+/** Size of one table (data and indexes). */
+export type TableSize = { name: string; bytes: number };
+
+/** Open connections to the database and the server limit. */
+export type Connections = { open: number; max: number };
+
+/** Details read next to the counters; each one is `null` when it could not be read. */
+export type HealthDetails = {
+  trends: HealthTrends | null;
+  tables: TableSize[] | null;
+  connections: Connections | null;
+};
+
 /** A row of the history. */
 export type HealthSnapshot = Database["public"]["Tables"]["health_snapshots"]["Row"];
 
@@ -77,8 +102,45 @@ export async function readHealthStats(
   }
 }
 
+/** Trends, heaviest tables and connections (needs `monitoring.view` or the service role). */
+export async function readHealthDetails(client: AppClient): Promise<HealthDetails> {
+  const [trends, tables, connections] = await Promise.all([
+    client.rpc("health_trends").then(
+      ({ data, error }): HealthTrends | null => {
+        const row = data?.[0];
+        return error || !row
+          ? null
+          : {
+              snapshots7d: row.snapshots_7d,
+              up7d: row.up_7d,
+              minScore7d: row.min_score_7d,
+              p95Db24h: row.p95_db_ms_24h,
+              p95Db7d: row.p95_db_ms_7d,
+              lastCronAt: row.last_cron_at,
+            };
+      },
+      () => null,
+    ),
+    client.rpc("health_tables").then(
+      ({ data, error }): TableSize[] | null =>
+        error || !data
+          ? null
+          : data.map((row) => ({ name: row.table_name, bytes: row.size_bytes })),
+      () => null,
+    ),
+    client.rpc("health_connections").then(
+      ({ data, error }): Connections | null => {
+        const row = data?.[0];
+        return error || !row ? null : { open: row.open_connections, max: row.max_connections };
+      },
+      () => null,
+    ),
+  ]);
+  return { trends, tables, connections };
+}
+
 /**
- * Stores a snapshot in the history. The database keeps at most one every 10 minutes and trims rows older than
+ * Stores a snapshot in the history. The database keeps at most one every 10 minutes per source and trims rows older than
  * 30 days itself.
  * @returns `true` when a row was written, `false` when it was skipped (too soon).
  */

@@ -50,6 +50,42 @@ function LatencyMetric({ label, ms }: { label: string; ms: number | null }) {
   );
 }
 
+/** Daily cron: green while it ran in the last 36 hours, the keep-alive prevents Supabase from pausing the project. */
+function cronMetric(report: HealthReport, now: number) {
+  const last = report.details.trends?.lastCronAt;
+  if (!last) {
+    return (
+      <Metric
+        label="Tâche quotidienne"
+        value="Jamais exécutée"
+        hint="Aucun passage enregistré (cron ou clé service manquants ?)"
+      />
+    );
+  }
+  const late = (report.cronAgeHours ?? 0) > 36;
+  return (
+    <Metric
+      label="Tâche quotidienne"
+      value={late ? "En retard" : "À jour"}
+      hint={`Dernier passage ${formatAge(Date.parse(last), now)}${late ? " : le projet gratuit risque la mise en pause" : ""}`}
+    />
+  );
+}
+
+/** Heaviest tables, with their share of the database quota. */
+function TableSizes({ tables }: { tables: { name: string; bytes: number }[] }) {
+  return (
+    <ul className="card divide-y divide-line">
+      {tables.map((table) => (
+        <li key={table.name} className="flex items-center justify-between gap-3 px-4 py-2 text-sm">
+          <code className="min-w-0 truncate font-mono text-xs">{table.name}</code>
+          <span className="shrink-0 text-muted">{formatBytes(table.bytes)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function vercelMetric(report: HealthReport, now: number) {
   const { vercel } = report;
   if (vercel.kind === "not_configured") {
@@ -135,6 +171,11 @@ export async function HealthView() {
   const stats = report.stats;
   const used = stats ? stats.dbSizeBytes / DB_QUOTA_BYTES : null;
   const snapshots = history.ok ? history.value : [];
+  const { trends, tables, connections } = report.details;
+  const availability =
+    trends && trends.snapshots7d > 0
+      ? Math.round((trends.up7d / trends.snapshots7d) * 1000) / 10
+      : null;
 
   return (
     <div className="flex flex-col gap-section">
@@ -158,6 +199,16 @@ export async function HealthView() {
           <LatencyMetric label="Base de données" ms={report.dbMs} />
           <LatencyMetric label="Authentification" ms={report.authMs} />
           {vercelMetric(report, now)}
+          {cronMetric(report, now)}
+          <Metric
+            label="Connexions à la base"
+            value={connections ? `${connections.open} / ${connections.max}` : "—"}
+            hint={
+              connections
+                ? `${Math.round((connections.open / connections.max) * 100)} % de la limite du serveur`
+                : "Illisible"
+            }
+          />
           <Metric
             label="Stockage"
             value={
@@ -167,6 +218,15 @@ export async function HealthView() {
           />
         </div>
       </section>
+
+      {tables && tables.length > 0 && (
+        <section aria-labelledby="tables-title" className="flex flex-col gap-2">
+          <h3 id="tables-title" className="section-title">
+            Tables les plus lourdes
+          </h3>
+          <TableSizes tables={tables} />
+        </section>
+      )}
 
       <section aria-labelledby="users-title" className="flex flex-col gap-2">
         <h3 id="users-title" className="section-title">
@@ -184,11 +244,51 @@ export async function HealthView() {
 
       <section aria-labelledby="history-title" className="flex flex-col gap-2">
         <h3 id="history-title" className="section-title">
-          Historique (30 jours)
+          Historique et tendance
         </h3>
         <div className="card p-4">
           <ScoreHistory snapshots={snapshots} />
         </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Metric
+            label="Disponibilité (7 j)"
+            value={availability === null ? "—" : `${String(availability).replace(".", ",")} %`}
+            hint={
+              trends
+                ? `${trends.snapshots7d} mesures, score minimum ${trends.minScore7d ?? "—"}`
+                : "Illisible"
+            }
+          />
+          <Metric
+            label="Base, p95 (24 h)"
+            value={formatMs(trends?.p95Db24h ?? null)}
+            hint="95 % des mesures sont plus rapides"
+          />
+          <Metric label="Base, p95 (7 j)" value={formatMs(trends?.p95Db7d ?? null)} />
+        </div>
+      </section>
+
+      <section aria-labelledby="config-title" className="flex flex-col gap-2">
+        <h3 id="config-title" className="section-title">
+          Configuration
+        </h3>
+        <ul className="card divide-y divide-line">
+          {report.config.map((check) => (
+            <li key={check.key} className="flex flex-col gap-0.5 px-4 py-2 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span>{check.label}</span>
+                <span
+                  className={
+                    check.ok ? "text-success" : check.required ? "text-danger" : "text-warning"
+                  }
+                >
+                  {check.ok ? "Configuré" : check.required ? "Manquant" : "Non configuré"}
+                </span>
+              </div>
+              {!check.ok && <p className="text-xs text-faint">{check.hint}</p>}
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   );

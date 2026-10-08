@@ -11,6 +11,12 @@ export type ScoreInput = {
   dbSizeBytes: number | null;
   /** State of the latest production deployment (`null` = not configured or unreachable, left out). */
   vercelState: string | null;
+  /** Hours since the daily cron last recorded a snapshot (`null` = never, left out). */
+  cronAgeHours?: number | null;
+  /** Open connections / server limit, from 0 to 1 (`null` = unknown, left out). */
+  connectionsRatio?: number | null;
+  /** Share of the required configuration checks that pass, from 0 to 1 (`null` = unknown, left out). */
+  configShare?: number | null;
 };
 
 export type HealthStatus = "ok" | "degraded" | "down";
@@ -32,22 +38,35 @@ function ramp(value: number, good: number, bad: number): number {
 
 /**
  * Global health score from 0 to 100: a weighted average of the measures that exist.
- * - database latency (40): full marks up to 200 ms, none from 1.5 s, or the database does not answer;
- * - Auth latency (25): full marks up to 300 ms, none from 2 s, or Auth does not answer;
- * - database size (20): full marks up to 70 % of the 500 MB quota, none at 100 %;
- * - Vercel deployment (15): `READY` full marks, `ERROR` none.
- * A measure that is unknown (not configured, or the stats could not be read) is left out, not counted as 0.
+ * - database latency (30): full marks up to 200 ms, none from 1.5 s, or the database does not answer;
+ * - Auth latency (20): full marks up to 300 ms, none from 2 s, or Auth does not answer;
+ * - database size (15): full marks up to 70 % of the 500 MB quota, none at 100 %;
+ * - Vercel deployment (10): `READY` full marks, `ERROR` none;
+ * - daily cron (10): full marks up to 36 h since its last snapshot, none from 72 h (a project left without
+ *   activity is paused by Supabase after a week);
+ * - connections (10): full marks up to 60 % of the server limit, none from 90 %;
+ * - configuration (5): share of the required environment checks that pass.
+ * A measure that is unknown (not configured, never recorded, unreadable) is left out, not counted as 0.
  */
 export function computeHealthScore(input: ScoreInput): number {
   const parts: { weight: number; share: number }[] = [
-    { weight: 40, share: input.dbMs === null ? 0 : ramp(input.dbMs, 200, 1500) },
-    { weight: 25, share: input.authMs === null ? 0 : ramp(input.authMs, 300, 2000) },
+    { weight: 30, share: input.dbMs === null ? 0 : ramp(input.dbMs, 200, 1500) },
+    { weight: 20, share: input.authMs === null ? 0 : ramp(input.authMs, 300, 2000) },
   ];
   if (input.dbSizeBytes !== null) {
-    parts.push({ weight: 20, share: ramp(input.dbSizeBytes / DB_QUOTA_BYTES, 0.7, 1) });
+    parts.push({ weight: 15, share: ramp(input.dbSizeBytes / DB_QUOTA_BYTES, 0.7, 1) });
   }
   if (input.vercelState !== null) {
-    parts.push({ weight: 15, share: VERCEL_SHARE[input.vercelState] ?? 0.5 });
+    parts.push({ weight: 10, share: VERCEL_SHARE[input.vercelState] ?? 0.5 });
+  }
+  if (input.cronAgeHours != null) {
+    parts.push({ weight: 10, share: ramp(input.cronAgeHours, 36, 72) });
+  }
+  if (input.connectionsRatio != null) {
+    parts.push({ weight: 10, share: ramp(input.connectionsRatio, 0.6, 0.9) });
+  }
+  if (input.configShare != null) {
+    parts.push({ weight: 5, share: Math.min(1, Math.max(0, input.configShare)) });
   }
   const total = parts.reduce((sum, part) => sum + part.weight, 0);
   const earned = parts.reduce((sum, part) => sum + part.weight * part.share, 0);

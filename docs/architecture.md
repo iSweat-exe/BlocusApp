@@ -143,8 +143,10 @@ d'action en bas avec la classe `.form-actions` quand `useInDialog()` est vrai. U
 
 `HealthView` (`src/features/health/health-view.tsx`) mesure à chaque visite : latence de la base (lecture publique
 minimale) et d'Auth (`/auth/v1/health`), compteurs SQL `health_stats()` (inscrits, actifs sur 15 min, taille de la
-base), dernier déploiement de production via l'API Vercel (`vercel.ts`, « non configuré » sans jeton), puis calcule
-le score (`score.ts`, pondérations dans sa TSDoc). Elle enregistre un instantané (`record_health_snapshot()`, au plus
+base), dernier déploiement de production via l'API Vercel (`vercel.ts`, « non configuré » sans jeton), les détails SQL
+(`health_trends()`, `health_tables()`, `health_connections()` : disponibilité et p95 sur 7 jours, âge du dernier
+passage du cron, tables les plus lourdes, connexions), la configuration d'environnement (`config.ts`, présence
+seulement), puis calcule le score (`score.ts`, 7 facteurs, pondérations dans sa TSDoc). Elle enregistre un instantané (`record_health_snapshot()`, au plus
 un toutes les 10 min) et dessine l'historique des 30 jours. La page est dynamique (`connection()`), derrière
 `monitoring.view` (404 sinon) ; les fonctions SQL revérifient la permission. Le cron quotidien de `/api/keep-alive`
 enregistre aussi un instantané avec la clé `service_role` (`cron-snapshot.ts`, sans effet si la clé manque).

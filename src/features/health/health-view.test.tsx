@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { HealthReport } from "./collect";
 import { HealthView } from "./health-view";
@@ -23,6 +23,32 @@ const report: HealthReport = {
   authMs: 140,
   stats: { usersTotal: 120, usersActive: 7, dbSizeBytes: 50 * 1024 * 1024 },
   vercel: { kind: "not_configured" },
+  cronAgeHours: 12,
+  config: [
+    { key: "CRON_SECRET", label: "Secret du cron", hint: "x", ok: true, required: true },
+    {
+      key: "SUPABASE_SERVICE_ROLE_KEY",
+      label: "Clé service Supabase",
+      hint: "Sans elle, pas d'historique.",
+      ok: false,
+      required: true,
+    },
+  ],
+  details: {
+    trends: {
+      snapshots7d: 40,
+      up7d: 39,
+      minScore7d: 72,
+      p95Db24h: 120,
+      p95Db7d: 300,
+      lastCronAt: "2026-10-08T22:00:00.000Z",
+    },
+    tables: [
+      { name: "audit_logs", bytes: 8 * 1024 * 1024 },
+      { name: "profiles", bytes: 1024 * 1024 },
+    ],
+    connections: { open: 12, max: 60 },
+  },
 };
 
 const snapshot = (id: number, score: number) => ({
@@ -59,6 +85,39 @@ describe("HealthView", () => {
     expect(screen.getByText("50,0 Mo / 500,0 Mo")).toBeInTheDocument();
     expect(screen.getByText("120")).toBeInTheDocument();
     expect(screen.getByText("7")).toBeInTheDocument();
+  });
+
+  it("shows the cron, the connections, the heaviest tables and the 7-day trend", async () => {
+    await renderView();
+    expect(screen.getByText("À jour")).toBeInTheDocument();
+    expect(screen.getByText("12 / 60")).toBeInTheDocument();
+    expect(screen.getByText("20 % de la limite du serveur")).toBeInTheDocument();
+    expect(screen.getByText("audit_logs")).toBeInTheDocument();
+    expect(screen.getByText("8,0 Mo")).toBeInTheDocument();
+    expect(screen.getByText("97,5 %")).toBeInTheDocument();
+    expect(screen.getByText("120 ms")).toBeInTheDocument();
+  });
+
+  it("warns when the daily cron is late or never ran", async () => {
+    collectHealth.mockResolvedValue({ ...report, cronAgeHours: 50 });
+    await renderView();
+    expect(screen.getByText("En retard")).toBeInTheDocument();
+    cleanup();
+
+    collectHealth.mockResolvedValue({
+      ...report,
+      cronAgeHours: null,
+      details: { ...report.details, trends: null, tables: null, connections: null },
+    });
+    await renderView();
+    expect(screen.getByText("Jamais exécutée")).toBeInTheDocument();
+  });
+
+  it("lists the configuration checks and what is missing", async () => {
+    await renderView();
+    expect(screen.getByText("Configuré")).toBeInTheDocument();
+    expect(screen.getByText("Manquant")).toBeInTheDocument();
+    expect(screen.getByText("Sans elle, pas d'historique.")).toBeInTheDocument();
   });
 
   it("says Vercel is not configured instead of failing", async () => {
