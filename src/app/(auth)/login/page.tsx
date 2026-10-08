@@ -9,7 +9,10 @@ export default function LoginPage() {
   return (
     <div className="flex w-full flex-col justify-between flex-1 font-syne z-10">
       <header className="text-center mt-[clamp(40px,8vh,72px)] mb-[20px]">
-        <h1 className="font-syne text-[clamp(2.4rem,7vw,3rem)] font-bold tracking-[-0.04em] text-foreground mb-[4px]">
+        <h1
+          aria-label="Connexion"
+          className="font-syne text-[clamp(2.4rem,7vw,3rem)] font-bold tracking-[-0.04em] text-foreground mb-[4px]"
+        >
           BLOCUS<span className="text-accent">.</span>
         </h1>
         <p className="text-[0.9rem] font-medium text-muted">Toutes les infos en direct</p>
