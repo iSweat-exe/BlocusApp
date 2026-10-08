@@ -8,7 +8,6 @@ vi.mock("@/lib/data/profiles", () => ({
   getProfile: (...args: unknown[]) => getProfile(...args),
   listRoles: async () => ({ ok: true, value: [{ key: "member", label: "Membre" }] }),
 }));
-vi.mock("@/features/auth/actions", () => ({ signOut: vi.fn() }));
 vi.mock("next/link", () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
     <a href={href} {...rest}>

@@ -61,7 +61,7 @@ préchargements ni pour les fichiers statiques : voir `docs/performance.md` (« 
 posé du verifier PKCE puis redirection vers Supabase → Discord ; un simple lien fonctionne sans JavaScript, avant
 l'hydratation et dans une PWA installée) → Discord → Supabase →
 `/auth/callback` (Route Handler : échange PKCE `code` → session en cookies httpOnly, `next` validé par
-`safeRedirectPath`) → retour à l'app. `signOut` termine la session. Google = même flux (`src/app/auth/login/google/route.ts`), sans l'étape mobile propre à Discord.
+`safeRedirectPath`) → retour à l'app. La déconnexion est un `<form method="post" action="/auth/logout">` (Route Handler `src/app/auth/logout/route.ts`, redirection 303 vers `/login`) : pas de Server Action, donc rien qui dépende des identifiants d'actions du build. Google = même flux (`src/app/auth/login/google/route.ts`), sans l'étape mobile propre à Discord.
 
 **Page `/login`.** Logo + titre, bouton Discord, bouton Google (`GoogleButton`, lien `/auth/login/google`), séparateur « ou » puis
 `GuestLink` (« Continuer en tant qu'invité » → `/`, lecture seule : le Guest est simplement une visite sans session).

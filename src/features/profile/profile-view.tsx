@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Avatar } from "@/components/avatar";
 import { canAccessAdmin } from "@/features/admin/access";
-import { signOut } from "@/features/auth/actions";
 import { getProfile, listRoles } from "@/lib/data/profiles";
 import type { SessionPermissions } from "@/server/session";
 
@@ -108,7 +107,7 @@ export async function ProfileView({ session }: { session: SessionPermissions }) 
         </Link>
       )}
 
-      <form action={signOut}>
+      <form action="/auth/logout" method="post">
         <button type="submit" className="btn btn-danger w-full">
           Déconnexion
         </button>
