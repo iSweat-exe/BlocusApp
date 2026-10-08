@@ -68,6 +68,7 @@
   /* Fonts. */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-syne: var(--font-syne);
 
   /* Radii: controls (buttons, inputs), cards, sheets. Pills and avatars use rounded-full. */
   --radius-control: 0.75rem;
@@ -109,6 +110,10 @@
 
 /* 3. Shared component classes. */
 @layer components {
+  .font-syne {
+    font-family: var(--font-syne), var(--font-sans), sans-serif;
+  }
+
   .page-title {
     @apply text-2xl font-semibold tracking-tight;
   }
