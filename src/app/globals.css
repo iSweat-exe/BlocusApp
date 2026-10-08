@@ -81,8 +81,9 @@
   --spacing-gutter: 1rem; /* page side padding */
   /* Bottom padding of anything pinned to the bottom edge (tab bar, sheets). iPhones report the home indicator
      through env(); Android browsers and PWAs often report 0 while the gesture / navigation bar still sits on
-     the screen edge, so keep a minimum clearance of 1 rem. */
-  --spacing-safe-bottom: max(env(safe-area-inset-bottom), 1rem);
+     the screen edge (about 24 dp for the gesture pill), so keep a minimum clearance of 2 rem. iPhones are not
+     affected: their inset (about 34 px) is larger than the minimum. */
+  --spacing-safe-bottom: max(env(safe-area-inset-bottom), 2rem);
   --spacing-section: 1.5rem; /* gap between page sections */
 
   /* Motion. */

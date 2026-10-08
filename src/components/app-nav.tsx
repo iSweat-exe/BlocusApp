@@ -14,7 +14,7 @@ const ITEMS = [
 /**
  * Bottom navigation of the app (mobile first). Each item is at least 64 px tall (Android asks for 48 px,
  * iOS for 44 px), shows an icon above its label, and the bar keeps clear of the iPhone home indicator and of the Android
- * gesture / navigation bar with the `pb-safe-bottom` token (`env(safe-area-inset-bottom)`, at least 1 rem). The active section has an accent pill behind its icon.
+ * gesture / navigation bar with the `pb-safe-bottom` token (`env(safe-area-inset-bottom)`, at least 2 rem). The active section has an accent pill behind its icon.
  */
 export function AppNav() {
   const pathname = usePathname();

@@ -29,11 +29,11 @@ test.describe("app shell", () => {
     page,
   }) => {
     await page.goto("/");
-    // Browsers without a safe area (Android) report 0 for env(safe-area-inset-bottom): the token enforces 1 rem.
+    // Browsers without a safe area (Android) report 0 for env(safe-area-inset-bottom): the token enforces 2 rem.
     const padding = await page
       .getByRole("navigation", { name: "Navigation principale" })
       .evaluate((nav) => getComputedStyle(nav).paddingBottom);
-    expect(padding).toBe("16px");
+    expect(padding).toBe("32px");
   });
 
   test("home shows the announcements section without crashing when the data is unreachable", async ({
