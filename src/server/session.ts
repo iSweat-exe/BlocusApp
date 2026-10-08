@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
 import { cache } from "react";
+import { requestCookies } from "@/lib/supabase/request-cookies";
 import { createClient } from "@/lib/supabase/server";
 
 /** What the UI needs to know about the current user to show or hide controls. */
@@ -22,7 +22,7 @@ export type SessionPermissions = {
  * Wrapped in `React.cache`: the header, the page and its sections share one read per request.
  */
 export const getSessionPermissions = cache(async (): Promise<SessionPermissions | null> => {
-  const supabase = createClient(await cookies());
+  const supabase = createClient(await requestCookies());
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
   if (!claims?.sub) return null;

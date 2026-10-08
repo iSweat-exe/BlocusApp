@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import type { Database } from "@/lib/database.types";
 import { err, ok, type Result } from "@/lib/result";
+import { requestCookies } from "@/lib/supabase/request-cookies";
 import { createClient } from "@/lib/supabase/server";
 
 /** A sanction as shown on the admin user page. */
@@ -18,7 +18,7 @@ export const SANCTION_HISTORY_SIZE = 50;
  */
 export async function listSanctions(targetId: string): Promise<Result<Sanction[], "load_failed">> {
   try {
-    const supabase = createClient(await cookies());
+    const supabase = createClient(await requestCookies());
     const { data, error } = await supabase
       .from("moderation_actions")
       .select("id, kind, reason, created_at, expires_at, revoked_at")

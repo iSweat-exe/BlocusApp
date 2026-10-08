@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
 import { err, ok, type Result } from "@/lib/result";
+import { requestCookies } from "@/lib/supabase/request-cookies";
 import { createClient } from "@/lib/supabase/server";
 
 /** Why a permission check failed. */
@@ -25,7 +25,7 @@ export async function requirePermission(
   permission: string,
   options: RequirePermissionOptions = {},
 ): Promise<Result<{ userId: string }, PermissionError>> {
-  const supabase = createClient(await cookies());
+  const supabase = createClient(await requestCookies());
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
   const userId = claims?.sub;

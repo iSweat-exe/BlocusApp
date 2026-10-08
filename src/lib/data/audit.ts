@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import type { Database } from "@/lib/database.types";
 import { err, ok, type Result } from "@/lib/result";
+import { requestCookies } from "@/lib/supabase/request-cookies";
 import { createClient } from "@/lib/supabase/server";
 
 /** A row of the audit log. */
@@ -25,7 +25,7 @@ export async function listAuditLogs(
   options: { action?: string | null; before?: number | null } = {},
 ): Promise<Result<AuditPage, "load_failed">> {
   try {
-    const supabase = createClient(await cookies());
+    const supabase = createClient(await requestCookies());
     let query = supabase
       .from("audit_logs")
       .select("id, actor_id, action, target_id, details, created_at")

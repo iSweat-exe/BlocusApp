@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import type { Database } from "@/lib/database.types";
 import { err, ok, type Result } from "@/lib/result";
+import { requestCookies } from "@/lib/supabase/request-cookies";
 import { createClient } from "@/lib/supabase/server";
 
 type Tables = Database["public"]["Tables"];
@@ -15,7 +15,7 @@ export type UserOverride = Pick<Tables["permission_overrides"]["Row"], "permissi
 /** Lists the permission catalogue (reference data readable by signed-in users). */
 export async function listPermissions(): Promise<Result<PermissionInfo[], "load_failed">> {
   try {
-    const supabase = createClient(await cookies());
+    const supabase = createClient(await requestCookies());
     const { data, error } = await supabase
       .from("permissions")
       .select("key, description")
@@ -29,7 +29,7 @@ export async function listPermissions(): Promise<Result<PermissionInfo[], "load_
 /** Lists which permissions each role holds (`super_admin` is implicit: it holds them all). */
 export async function listRolePermissions(): Promise<Result<RolePermission[], "load_failed">> {
   try {
-    const supabase = createClient(await cookies());
+    const supabase = createClient(await requestCookies());
     const { data, error } = await supabase.from("role_permissions").select("role, permission");
     return error ? err("load_failed", error.message) : ok(data);
   } catch (cause) {
@@ -42,7 +42,7 @@ export async function listUserOverrides(
   userId: string,
 ): Promise<Result<UserOverride[], "load_failed">> {
   try {
-    const supabase = createClient(await cookies());
+    const supabase = createClient(await requestCookies());
     const { data, error } = await supabase
       .from("permission_overrides")
       .select("permission, effect")
