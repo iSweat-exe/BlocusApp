@@ -30,6 +30,16 @@ mettre une donnée qui varie selon l'utilisateur (permissions, profil, administr
 monde. Si une règle RLS de lecture de ces tables est un jour restreinte (par exemple « membres seulement »), il faut
 retirer la lecture du cache partagé au même moment.
 
+## Posts : visibilité, auteur et images (A-123c à A-123f)
+
+Les brouillons et posts privés ne sont lisibles que par leur auteur (RLS) ; la table `announcements` n'est plus lisible
+par `anon`. Le fil public passe par la vue `announcement_feed`, qui s'exécute avec les droits de son propriétaire (choix
+volontaire, `anon` n'a pas accès à `profiles`) et décide de ce qui sort : seulement les posts publics, et l'auteur
+(id, pseudo, avatar) seulement si `show_author` est coché. Les modérateurs (`announcement.delete`) lisent la table pour
+les posts publics et voient donc leur auteur. Images : bucket public plafonné à 300 Ko et à WebP/JPEG, écriture limitée
+aux titulaires de `announcement.publish` dans leur propre dossier ; le serveur revérifie la taille, le format réel et
+les dimensions. Une image est une donnée publique : ne pas y mettre de donnée sensible.
+
 ## En-têtes HTTP
 
 Définis dans `next.config.ts` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`,

@@ -1,36 +1,112 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { FullScreenDialog } from "@/components/full-screen-dialog";
-import { listAnnouncements } from "@/lib/data/announcements";
+import {
+  type Announcement,
+  listAnnouncements,
+  listMyAnnouncements,
+  type MyAnnouncement,
+} from "@/lib/data/announcements";
 import { getSessionPermissions } from "@/server/session";
+import { AnnouncementCard, type CardPost } from "./announcement-card";
 import { AnnouncementForm } from "./announcement-form";
-import { formatAnnouncementDate } from "./date";
 import { FEED_MAX, FEED_STEP } from "./feed-limit";
-import { DeleteAnnouncementButton } from "./delete-announcement-button";
+import type { PostStatus } from "./schema";
 
-/** Home feed: latest announcements for everyone, plus publish/delete controls by permission. */
+/** A public post as a card; `mine` is the viewer's own row of that post, if it is theirs. */
+function publicCard(
+  post: Announcement,
+  mine: MyAnnouncement | undefined,
+  canDeleteAny: boolean,
+): CardPost {
+  return {
+    id: post.id,
+    title: post.title,
+    body: post.body,
+    date: post.published_at,
+    edited: post.edited_at !== null,
+    status: "public",
+    imagePath: post.image_path,
+    imageWidth: post.image_width,
+    imageHeight: post.image_height,
+    author: post.author_pseudo
+      ? { pseudo: post.author_pseudo, avatarUrl: post.author_avatar_url }
+      : null,
+    mine: mine ?? null,
+    canDelete: canDeleteAny || mine !== undefined,
+  };
+}
+
+/** One of the viewer's own drafts or private posts as a card. */
+function ownCard(post: MyAnnouncement): CardPost {
+  return {
+    id: post.id,
+    title: post.title,
+    body: post.body,
+    date: post.updated_at,
+    edited: false,
+    status: post.status as PostStatus,
+    imagePath: post.image_path,
+    imageWidth: post.image_width,
+    imageHeight: post.image_height,
+    author: null,
+    mine: post,
+    canDelete: true,
+  };
+}
+
+/**
+ * Home feed: latest public posts for everyone. Publishers also get a "create" button, their drafts and private
+ * posts (visible to them only) and an edit button on their own posts; moderators a delete button on any post.
+ */
 export async function AnnouncementFeed({ limit }: { limit: number }) {
   // The shared cache holds data that does not depend on the request, so Next.js would run it while building the
   // page (stale announcements baked into the shell, and a failing build when the database is unreachable).
   // Reading at request time keeps the data fresh: it is still cached for 2 min across visitors.
   await connection();
-  const [result, session] = await Promise.all([
-    listAnnouncements(limit + 1),
-    getSessionPermissions(),
-  ]);
+  const session = await getSessionPermissions();
   const can = (permission: string) => session?.permissions.includes(permission) ?? false;
+  const canPublish = session !== null && can("announcement.publish");
+  const [result, own] = await Promise.all([
+    listAnnouncements(limit + 1),
+    canPublish ? listMyAnnouncements(session.userId) : Promise.resolve(null),
+  ]);
   // Read after the data above, so the clock is only used at request time.
   const now = new Date();
+  const myPosts = own?.ok ? own.value : [];
+  const mineById = new Map(myPosts.map((post) => [post.id, post]));
+  const myPrivatePosts = myPosts.filter((post) => post.status !== "public");
   // One extra row is requested to know whether there is more to show.
   const announcements = result.ok ? result.value.slice(0, limit) : [];
   const hasMore = result.ok && result.value.length > limit;
+  const canDeleteAny = can("announcement.delete");
 
   return (
     <section aria-label="Actualités" className="flex flex-col gap-4">
-      {can("announcement.publish") && (
+      {canPublish && (
         <FullScreenDialog triggerLabel="Créer un post" title="Nouveau post">
           <AnnouncementForm />
         </FullScreenDialog>
+      )}
+      {own && !own.ok && (
+        <p role="alert" className="alert alert-error">
+          Impossible de charger tes brouillons pour le moment.
+        </p>
+      )}
+
+      {myPrivatePosts.length > 0 && (
+        <section aria-labelledby="my-posts-title" className="flex flex-col gap-3">
+          <h2 id="my-posts-title" className="section-title">
+            Mes brouillons et posts privés
+          </h2>
+          <ul className="flex flex-col gap-3">
+            {myPrivatePosts.map((post) => (
+              <li key={post.id}>
+                <AnnouncementCard post={ownCard(post)} now={now} />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {!result.ok ? (
@@ -43,40 +119,14 @@ export async function AnnouncementFeed({ limit }: { limit: number }) {
         </p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {announcements.map((announcement) => {
-            const canDelete =
-              can("announcement.delete") ||
-              (can("announcement.publish") && announcement.author_id === session?.userId);
-            return (
-              <li key={announcement.id}>
-                {/* A plain card: border only, no side bar, no shadow, no badge. */}
-                <article
-                  className={`rounded-card border border-line px-4 pt-4 ${
-                    canDelete ? "pb-2" : "pb-4"
-                  }`}
-                >
-                  <header className="flex flex-col gap-1">
-                    <time dateTime={announcement.created_at} className="text-xs text-muted">
-                      {formatAnnouncementDate(announcement.created_at, now)}
-                    </time>
-                    <h2 className="break-words text-lg font-semibold leading-snug">
-                      {announcement.title}
-                    </h2>
-                  </header>
-
-                  <p className="mt-2 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/90">
-                    {announcement.body}
-                  </p>
-
-                  {canDelete && (
-                    <footer className="mt-3 flex justify-end border-t border-line pt-2">
-                      <DeleteAnnouncementButton id={announcement.id} title={announcement.title} />
-                    </footer>
-                  )}
-                </article>
-              </li>
-            );
-          })}
+          {announcements.map((announcement) => (
+            <li key={announcement.id}>
+              <AnnouncementCard
+                post={publicCard(announcement, mineById.get(announcement.id), canDeleteAny)}
+                now={now}
+              />
+            </li>
+          ))}
         </ul>
       )}
 

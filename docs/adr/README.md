@@ -14,5 +14,6 @@ Un ADR n'est jamais supprimé : s'il est remplacé, son statut passe à `Superse
 | [0003](./0003-error-monitoring.md)         | Monitoring des erreurs                 | Proposed |
 | [0004](./0004-design-system-tokens.md)     | Design system centralisé (tokens)      | Proposed |
 | [0005](./0005-map-library.md)              | Librairie et fond de carte             | Proposed |
+| [0007](./0007-post-images.md)              | Images des posts et visibilité         | Proposed |
 
 À venir : bibliothèque de carte (A-126), stratégie de cache (A-080), modèle de messagerie (A-124).

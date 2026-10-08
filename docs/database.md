@@ -57,11 +57,23 @@ Annonces du fil d'accueil (migration `20261007150000_create_announcements.sql`).
 | `created_at` | `timestamptz` | défaut `now()`                                                  |
 | `updated_at` | `timestamptz` | trigger `set_updated_at`                                        |
 
-Index : `(created_at desc, id desc)` pour le fil (pagination par curseur), `author_id`.
-RLS : lecture pour `anon` et `authenticated` (Guest) ; insertion si `announcement.publish` et
-`author_id = auth.uid()` ; modification (titre/corps) de ses propres annonces si `announcement.publish` ;
-suppression si `announcement.delete`, ou de ses propres annonces si `announcement.publish`.
-Le pseudo de l'auteur n'est pas exposé aux Guests (`profiles` est réservé aux connectés).
+Posts v2 (migration `20261009130000_announcements_v2.sql`, ADR 0007) : `status` (`draft` | `private` | `public`,
+défaut `public`), `show_author` (booléen, défaut faux), `image_path` / `image_width` / `image_height` (une image,
+les trois ensemble ou aucun ; chemin `<id auteur>/<uuid>.webp|jpg`), `published_at` (date de passage en public,
+posée par le trigger `announcements_before_write`, le fil trie dessus), `edited_at` (posé quand le titre, le
+texte ou l'image d'un post public change).
+
+Index : `(published_at desc, id desc)` partiel sur les posts publics (le fil), `author_id`.
+RLS sur la table : **plus aucune lecture pour `anon`** ; `authenticated` lit ses propres lignes (tous états), et
+les titulaires de `announcement.delete` les lignes publiques (pour supprimer) ; insertion si `announcement.publish`,
+`author_id = auth.uid()` et image dans son propre dossier ; modification de ses propres posts si
+`announcement.publish` (`author_id` et `created_at` ne changent jamais) ; suppression si `announcement.delete`, ou de
+ses propres posts si `announcement.publish`.
+
+**Fil public** : la vue `announcement_feed` (propriétaire, `security_invoker = false`, volontaire) ne renvoie que les
+posts `public` ; `author_id`, `author_pseudo` et `author_avatar_url` ne sont remplis que si `show_author` est vrai.
+`anon` et `authenticated` n'ont que cette vue. **Images** : bucket public `announcement-images` (300 Ko, WebP/JPEG),
+écriture réservée à `announcement.publish` dans son dossier, lecture et suppression par l'auteur ou un modérateur.
 
 ### `audit_logs`
 
