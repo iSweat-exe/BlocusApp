@@ -64,6 +64,10 @@ export function useSheetSwipe({
       if (!eligible || !touch) return;
       const delta = touch.clientY - startY;
       if (!dragging && delta <= 0) return; // upward gestures scroll normally
+      if (!dragging) {
+        // An opening animation still running would override the inline transform: let the finger win.
+        sheet.getAnimations?.().forEach((animation) => animation.cancel());
+      }
       dragging = true;
       offset = Math.max(0, delta);
       if (event.cancelable) event.preventDefault();
