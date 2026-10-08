@@ -34,6 +34,18 @@ Actions manuelles (une fois par environnement) :
 
 Le Client Secret ne se met jamais dans le dépôt ni dans un commentaire de `.env`.
 
+## Connexion Google (A-021)
+
+Actions manuelles (une fois par environnement) :
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → écran de consentement OAuth (scopes `openid`,
+   `email`, `profile`) → Identifiants → Client OAuth « Application Web » : ajouter le redirect
+   `https://<project-ref>.supabase.co/auth/v1/callback`, copier Client ID et Secret.
+2. Supabase → Authentication → Providers → Google : activer, coller Client ID / Secret.
+3. Les Redirect URLs et `NEXT_PUBLIC_SITE_URL` sont ceux de la connexion Discord.
+4. Écran de consentement en mode « Testing » : seuls les comptes de test fonctionnent ; passer en « In production »
+   avant le lancement.
+
 ## Claims JWT de permissions (A-034)
 
 En local le hook est activé par `supabase/config.toml`. **Sur un projet hébergé**, activer à la main :

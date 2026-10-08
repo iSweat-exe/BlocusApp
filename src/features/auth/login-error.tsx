@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 
 const ERRORS: Record<string, string> = {
-  oauth_start: "Impossible de démarrer la connexion Discord. Réessaie.",
+  oauth_start: "Impossible de démarrer la connexion. Réessaie.",
   oauth_callback: "La connexion a échoué. Réessaie.",
 };
 

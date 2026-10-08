@@ -10,8 +10,8 @@ export type SessionPermissions = {
   permissions: string[];
   /** E-mail of the account, when the sign-in provider shared it. */
   email: string | null;
-  /** Sign-in provider (e.g. `discord`), from the JWT `app_metadata`. */
-  provider: string | null;
+  /** Sign-in providers linked to the account (e.g. `discord`, `google`), from the JWT `app_metadata`. */
+  providers: string[];
   /** Avatar URL shared by the provider (`user_metadata`): untrusted, check it with `safeAvatarUrl()`. */
   avatarUrl: string | null;
 };
@@ -33,9 +33,15 @@ export const getSessionPermissions = cache(async (): Promise<SessionPermissions 
     : [];
   const role = typeof claims.app_role === "string" ? claims.app_role : null;
   const email = typeof claims.email === "string" && claims.email ? claims.email : null;
-  const provider =
-    typeof claims.app_metadata?.provider === "string" ? claims.app_metadata.provider : null;
+  // `providers` lists every linked identity; `provider` is only the first one used to sign up.
+  const linked: unknown = claims.app_metadata?.providers;
+  const first: unknown = claims.app_metadata?.provider;
+  const providers = Array.isArray(linked)
+    ? linked.filter((item): item is string => typeof item === "string")
+    : typeof first === "string"
+      ? [first]
+      : [];
   const avatar: unknown = claims.user_metadata?.avatar_url;
   const avatarUrl = typeof avatar === "string" && avatar ? avatar : null;
-  return { userId: claims.sub, role, permissions, email, provider, avatarUrl };
+  return { userId: claims.sub, role, permissions, email, providers, avatarUrl };
 });

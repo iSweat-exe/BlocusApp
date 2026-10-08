@@ -16,7 +16,7 @@ describe("LoginError", () => {
   });
 
   it.each([
-    ["oauth_start", "Impossible de démarrer la connexion Discord. Réessaie."],
+    ["oauth_start", "Impossible de démarrer la connexion. Réessaie."],
     ["oauth_callback", "La connexion a échoué. Réessaie."],
   ])("explains the %s error", (code, message) => {
     query = `error=${code}`;

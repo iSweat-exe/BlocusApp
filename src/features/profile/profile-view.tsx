@@ -42,9 +42,7 @@ export async function ProfileView({ session }: { session: SessionPermissions }) 
   const { pseudo, avatar_url, role, created_at, id } = profile.value;
   const roleLabel =
     (roles.ok ? roles.value.find((item) => item.key === role)?.label : null) ?? role;
-  const provider = session.provider
-    ? (PROVIDER_LABELS[session.provider] ?? session.provider)
-    : null;
+  const providers = session.providers.map((name) => PROVIDER_LABELS[name] ?? name);
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,7 +60,11 @@ export async function ProfileView({ session }: { session: SessionPermissions }) 
         </h2>
         <dl className={`${CARD} divide-y divide-foreground/10`}>
           {session.email && <Row label="E-mail">{session.email}</Row>}
-          {provider && <Row label="Connexion via">{provider}</Row>}
+          {providers.length > 0 && (
+            <Row label={providers.length > 1 ? "Connexions" : "Connexion via"}>
+              {providers.join(", ")}
+            </Row>
+          )}
           <Row label="Membre depuis">{dateFormat.format(new Date(created_at))}</Row>
           <Row label="Identifiant">
             <code className="break-all font-mono text-xs">{id}</code>
