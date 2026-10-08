@@ -1,24 +1,13 @@
-import Link from "next/link";
-import { FullScreenDialog } from "@/components/full-screen-dialog";
 import { listEventsBetween } from "@/lib/data/events";
 import { getSessionPermissions } from "@/server/session";
-import { EventForm } from "./event-form";
-import { monthGrid, shiftMonth } from "./month-grid";
-import {
-  dayKeyOf,
-  formatDayKeyLong,
-  formatMonthLabel,
-  formatTimeRange,
-  monthKeyOf,
-  zonedToUtc,
-} from "./time";
+import { monthGrid } from "./month-grid";
+import { MonthView, type DayEvent } from "./month-view";
+import { dayKeyOf, formatTimeRange, zonedToUtc } from "./time";
 
-const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-
-const href = (month: string, day?: string) =>
-  day ? `/calendar?month=${month}&day=${day}` : `/calendar?month=${month}`;
-
-/** Month grid with a marker on days that have events, and the events of the selected day below. */
+/**
+ * Month calendar: reads the whole visible grid in one (shared, cached) query, groups the events by day
+ * and hands them to the client component, which handles day selection without any further request.
+ */
 export async function CalendarView({ month, day }: { month: string; day: string }) {
   const weeks = monthGrid(month);
   const firstCell = weeks[0]?.[0]?.key;
@@ -32,160 +21,28 @@ export async function CalendarView({ month, day }: { month: string; day: string 
     getSessionPermissions(),
   ]);
 
-  const today = dayKeyOf(new Date());
-  const events = result.ok ? result.value : [];
-  const byDay = new Map<string, typeof events>();
-  for (const event of events) {
-    const key = dayKeyOf(new Date(event.starts_at));
-    byDay.set(key, [...(byDay.get(key) ?? []), event]);
+  // Group on the server so the client receives only what it shows (no raw timestamps, no time zone work).
+  const eventsByDay: Record<string, DayEvent[]> = {};
+  for (const event of result.ok ? result.value : []) {
+    (eventsByDay[dayKeyOf(new Date(event.starts_at))] ??= []).push({
+      id: event.id,
+      title: event.title,
+      location: event.location ?? "",
+      time: formatTimeRange(event.starts_at, event.ends_at),
+      finished: event.finished_at !== null,
+    });
   }
-  const selected = byDay.get(day) ?? [];
-  // Display only: the Server Action re-checks the permission, and the database refuses past starts.
-  const canCreate = (session?.permissions.includes("event.create") ?? false) && day >= today;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <Link
-          href={href(shiftMonth(month, -1))}
-          prefetch={false}
-          aria-label="Mois précédent"
-          className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
-        >
-          ‹
-        </Link>
-        <div className="flex flex-col items-center">
-          <h2 className="text-lg font-semibold first-letter:uppercase">
-            {formatMonthLabel(month)}
-          </h2>
-          {monthKeyOf(today) !== month && (
-            <Link
-              href={href(monthKeyOf(today), today)}
-              prefetch={false}
-              className="text-xs underline"
-            >
-              Aujourd&apos;hui
-            </Link>
-          )}
-        </div>
-        <Link
-          href={href(shiftMonth(month, 1))}
-          prefetch={false}
-          aria-label="Mois suivant"
-          className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
-        >
-          ›
-        </Link>
-      </div>
-
-      {!result.ok && (
-        <p role="alert" className="alert alert-error">
-          Impossible de charger les événements pour le moment.
-        </p>
-      )}
-
-      <div
-        role="grid"
-        aria-label={`Calendrier ${formatMonthLabel(month)}`}
-        className="flex flex-col gap-1"
-      >
-        <div role="row" className="grid grid-cols-7 text-center text-xs text-muted">
-          {WEEKDAYS.map((name) => (
-            <span key={name} role="columnheader">
-              {name}
-            </span>
-          ))}
-        </div>
-        {weeks.map((week) => (
-          <div key={week[0]?.key} role="row" className="grid grid-cols-7 gap-1">
-            {week.map((cell) => {
-              const dayEvents = byDay.get(cell.key) ?? [];
-              const count = dayEvents.length;
-              const open = dayEvents.filter((event) => !event.finished_at).length;
-              const isSelected = cell.key === day;
-              const isToday = cell.key === today;
-              return (
-                <Link
-                  key={cell.key}
-                  role="gridcell"
-                  href={href(month, cell.key)}
-                  prefetch={false}
-                  aria-selected={isSelected}
-                  aria-current={isToday ? "date" : undefined}
-                  aria-label={`${formatDayKeyLong(cell.key)}${count ? `, ${count} événement${count > 1 ? "s" : ""}` : ""}`}
-                  className={`flex h-14 flex-col items-center justify-center rounded-control text-sm ${
-                    isSelected
-                      ? "bg-accent text-accent-ink"
-                      : isToday
-                        ? "border border-accent"
-                        : "bg-foreground/5"
-                  } ${cell.inMonth ? "" : "opacity-40"}`}
-                >
-                  <span>{cell.day}</span>
-                  <span
-                    aria-hidden="true"
-                    className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
-                      count
-                        ? isSelected
-                          ? "bg-white"
-                          : open > 0
-                            ? "bg-accent"
-                            : "bg-foreground/40"
-                        : "bg-transparent"
-                    }`}
-                  />
-                </Link>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-
-      <section aria-labelledby="day-title" className="flex flex-col gap-2">
-        <h3 id="day-title" className="font-semibold first-letter:uppercase">
-          {formatDayKeyLong(day)}
-        </h3>
-        {selected.length === 0 ? (
-          <p className="text-sm text-muted">Aucun événement ce jour-là.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {selected.map((event) => (
-              <li key={event.id}>
-                <Link
-                  href={`/calendar/${event.id}`}
-                  aria-disabled={event.finished_at ? true : undefined}
-                  className={`card-link flex flex-col p-4 ${
-                    event.finished_at ? "bg-foreground/5 opacity-60" : ""
-                  }`}
-                >
-                  <span className="flex items-center justify-between gap-2">
-                    <span
-                      className={`text-sm font-medium ${event.finished_at ? "" : "text-accent"}`}
-                    >
-                      {formatTimeRange(event.starts_at, event.ends_at)}
-                    </span>
-                    {event.finished_at && (
-                      <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-semibold">
-                        Terminé
-                      </span>
-                    )}
-                  </span>
-                  <span className={`font-semibold ${event.finished_at ? "line-through" : ""}`}>
-                    {event.title}
-                  </span>
-                  {event.location && <span className="text-sm text-muted">{event.location}</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {canCreate && (
-        <FullScreenDialog triggerLabel="Ajouter un événement" title="Nouvel événement">
-          <EventForm mode="create" day={day} />
-        </FullScreenDialog>
-      )}
-    </div>
+    // Keyed by month: changing month remounts it, so the selected day restarts from the server's choice.
+    <MonthView
+      key={month}
+      month={month}
+      initialDay={day}
+      today={dayKeyOf(new Date())}
+      canCreateEvents={session?.permissions.includes("event.create") ?? false}
+      loadFailed={!result.ok}
+      eventsByDay={eventsByDay}
+    />
   );
 }

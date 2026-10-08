@@ -5,16 +5,20 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 type Fields = { year: number; month: number; day: number; hour: number; minute: number };
 
+// Built once: constructing an Intl.DateTimeFormat costs ~100 µs, and a month view needs hundreds of
+// conversions (one per grid cell and per event), which used to dominate the render time.
+const fieldsFormat = new Intl.DateTimeFormat("en-CA", {
+  timeZone: EVENT_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
 function zonedFields(date: Date): Fields {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: EVENT_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(date);
+  const parts = fieldsFormat.formatToParts(date);
   const read = (type: string) => Number(parts.find((part) => part.type === type)?.value);
   return {
     year: read("year"),
