@@ -30,7 +30,7 @@ Profil public 1:1 avec `auth.users` (migration `20261007120000_create_profiles.s
 | `updated_at` | `timestamptz` | mis à jour par le trigger `set_updated_at`                             |
 
 - Création : trigger `on_auth_user_created` → `handle_new_user()` (`SECURITY DEFINER`, `search_path` vide).
-  Pseudo initial tiré du nom Discord (nettoyé) ; suffixe si collision ; `user` par défaut. Cette valeur
+  Pseudo initial tiré du nom Discord / Google (accents retirés, caractères non autorisés supprimés) ; suffixe si collision ; `user` par défaut. Cette valeur
   n'est **jamais** utilisée pour une décision d'autorisation.
 - RLS : `select` pour `authenticated` ; `update` limité à sa propre ligne et aux colonnes `pseudo` et
   `avatar_url` (grant par colonne) ; aucun `insert`/`delete` côté client ; `anon` sans aucun droit.

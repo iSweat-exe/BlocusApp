@@ -1,5 +1,5 @@
 begin;
-select plan(11);
+select plan(12);
 
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
 values
@@ -7,7 +7,9 @@ values
    '{"user_name": "Alice#1", "avatar_url": "https://cdn.example/a.png"}'),
   ('00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'b@test.dev',
    '{"user_name": "alice1"}'),
-  ('00000000-0000-0000-0000-0000000000c3', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'c@test.dev', '{}');
+  ('00000000-0000-0000-0000-0000000000c3', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'c@test.dev', '{}'),
+  ('00000000-0000-0000-0000-0000000000d4', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'd@test.dev',
+   '{"full_name": "Roméo Dupré"}');
 
 select is((select pseudo from public.profiles where id = '00000000-0000-0000-0000-0000000000a1'), 'Alice1',
   'trigger creates a sanitized profile');
@@ -15,6 +17,9 @@ select isnt((select pseudo from public.profiles where id = '00000000-0000-0000-0
   'pseudo collision gets a suffix');
 select is((select pseudo from public.profiles where id = '00000000-0000-0000-0000-0000000000c3'), 'user',
   'fallback pseudo when the provider gives none');
+
+select is((select pseudo from public.profiles where id = '00000000-0000-0000-0000-0000000000d4'), 'RomeoDupre',
+  'accented letters become their base letter in the initial pseudo');
 
 -- anon: no access.
 set local role anon;
@@ -24,7 +29,7 @@ select throws_ok('select * from public.profiles', '42501', null, 'anon cannot re
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-0000000000a1", "role": "authenticated"}';
 
-select cmp_ok((select count(*)::int from public.profiles where id::text like '00000000-0000-0000-0000-0000000000%'), '=', 3,
+select cmp_ok((select count(*)::int from public.profiles where id::text like '00000000-0000-0000-0000-0000000000%'), '=', 4,
   'authenticated can read all profiles');
 
 update public.profiles set pseudo = 'AliceNew' where id = '00000000-0000-0000-0000-0000000000a1';
