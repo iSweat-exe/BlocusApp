@@ -39,6 +39,24 @@ test.describe("app shell", () => {
     await expect(page.getByRole("radio", { name: "Bleu" })).toBeChecked();
   });
 
+  test("the settings page forces the theme and keeps it after a reload", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.goto("/settings");
+    const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(await background()).toBe("rgb(10, 10, 10)");
+
+    await page.getByRole("radio", { name: "Clair" }).click();
+    expect(await background()).toBe("rgb(255, 255, 255)");
+    await page.reload();
+    // Applied before paint by the boot script, even though the system is dark.
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    expect(await background()).toBe("rgb(255, 255, 255)");
+
+    await page.getByRole("radio", { name: "Système" }).click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme");
+    expect(await background()).toBe("rgb(10, 10, 10)");
+  });
+
   test("does not expose a public messages page", async ({ page }) => {
     const response = await page.goto("/messages");
     expect(response?.status()).toBe(404);

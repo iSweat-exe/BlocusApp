@@ -6,8 +6,13 @@
  * app changes from here. Mobile-app style: large touch targets, generous radii, soft surfaces.
  */
 
-/* 1. Color tokens (light, then dark). */
+/*
+ * 1. Color tokens (light, then dark). The user picks the theme in the settings: `data-theme="light"` or
+ * `"dark"` on <html> forces it, no attribute follows the system. The dark values are therefore written
+ * twice (system dark without a forced light theme, and forced dark): keep both blocks identical.
+ */
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
   --accent: #ef4444;
@@ -21,7 +26,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --background: #0a0a0a;
     --foreground: #ededed;
     --accent: #ff3b46;
@@ -29,6 +35,16 @@
     --danger: #f87171;
     --success: #4ade80;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --accent: #ff3b46;
+  --accent-strong: #e02530;
+  --danger: #f87171;
+  --success: #4ade80;
 }
 
 /* 2. Theme: tokens exposed as Tailwind utilities (bg-accent, text-muted, rounded-card, min-h-control…). */

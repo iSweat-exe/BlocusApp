@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { ACCENT_BOOT_SCRIPT } from "@/features/settings/accent-script";
+import { THEME_BOOT_SCRIPT } from "@/features/settings/theme-script";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const geistSans = Geist({
@@ -41,7 +42,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
-        {/* Applies the saved accent color before first paint (no flash of the default red). */}
+        {/* Apply the saved theme and accent color before first paint (no flash of the defaults). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: ACCENT_BOOT_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
