@@ -110,6 +110,16 @@ describe("describeAuditEntry", () => {
     ).toBe("alice a rouvert l'événement « Rassemblement ».");
   });
 
+  it("describes a route save with its number of points", () => {
+    expect(
+      describeAuditEntry(
+        entry({ action: "map.route_saved", target_id: null, details: { points: 12 } }),
+        NAMES,
+      ),
+    ).toBe("alice a modifié le tracé de la carte (12 points).");
+    expect(AUDIT_ACTIONS["map.route_saved"]).toBeDefined();
+  });
+
   it("copes with deleted accounts, missing details and unknown actions", () => {
     expect(describeAuditEntry(entry({ actor_id: "zzzzzzzzzz", details: null }), NAMES)).toContain(
       "compte supprimé (zzzzzzzz)",
