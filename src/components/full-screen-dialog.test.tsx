@@ -70,6 +70,32 @@ describe("FullScreenDialog", () => {
     expect(document.body.style.overflow).toBe("");
   });
 
+  it("slides up on opening and slides away before closing (Web Animations API)", async () => {
+    const finished = Promise.resolve();
+    const animate = vi.fn<(keyframes: unknown, options?: unknown) => { finished: Promise<void> }>(
+      () => ({ finished }),
+    );
+    Object.defineProperty(HTMLElement.prototype, "animate", { value: animate, configurable: true });
+    try {
+      const user = userEvent.setup();
+      renderDialog();
+      await user.click(screen.getByRole("button", { name: "Créer un post" }));
+      const sheetCall = animate.mock.calls.find(([keyframes]) => Array.isArray(keyframes));
+      expect(sheetCall?.[0]).toEqual([
+        { transform: "translateY(100%)" },
+        { transform: "translateY(0)" },
+      ]);
+
+      await user.click(screen.getByRole("button", { name: "Fermer" }));
+      await act(async () => {
+        await finished;
+      });
+      expect(document.querySelector("dialog")).not.toHaveAttribute("open");
+    } finally {
+      Reflect.deleteProperty(HTMLElement.prototype, "animate");
+    }
+  });
+
   it("useDialogClose is a harmless no-op outside a dialog", async () => {
     const user = userEvent.setup();
     render(<SubmitLikeChild />);
