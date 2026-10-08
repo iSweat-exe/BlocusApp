@@ -153,7 +153,7 @@ export function Select({
           />
           <div
             ref={sheetRef}
-            className="fixed inset-x-0 bottom-0 z-50 animate-sheet-up rounded-t-sheet border border-line bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-full sm:mt-2 sm:min-w-full sm:animate-none sm:rounded-control sm:p-1"
+            className="fixed inset-x-0 bottom-0 z-50 animate-sheet-up rounded-t-sheet border border-line bg-background p-3 pb-safe-bottom shadow-2xl sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-full sm:mt-2 sm:min-w-full sm:animate-none sm:rounded-control sm:p-1"
           >
             <div aria-hidden="true" className="-mt-1 flex justify-center pb-3 pt-1 sm:hidden">
               <span className="h-1.5 w-10 rounded-full bg-foreground/20" />

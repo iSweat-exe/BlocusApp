@@ -91,8 +91,10 @@ Pagination et cache (A-080+) : étape 1.6.
 
 `src/components/app-nav.tsx` : quatre onglets (Accueil, Calendrier, Carte, Réglages), chacun avec une **icône** (SVG en
 ligne, `src/components/icons.tsx`) au-dessus de son libellé, **64 px de haut** (Android demande 48 px, iOS 44 px),
-une pastille d'accent derrière l'icône active, un fond flouté et `pb-[env(safe-area-inset-bottom)]` pour ne pas
-passer sous l'indicateur d'accueil de l'iPhone (`viewport-fit=cover` est déjà activé). Les survols ne s'appliquent
+une pastille d'accent derrière l'icône active, un fond flouté et la marge `pb-safe-bottom` (token de `globals.css` :
+`max(env(safe-area-inset-bottom), 1rem)`) pour ne pas passer sous l'indicateur d'accueil de l'iPhone (`viewport-fit=cover`
+est déjà activé) ni coller au bord sur Android, dont les navigateurs et PWA renvoient souvent 0 pour `env()` alors que
+la barre de gestes ou de navigation occupe le bas de l'écran. Même token pour les feuilles (`Select`, dialogues). Les survols ne s'appliquent
 qu'aux pointeurs qui survolent (`@media (hover: hover)`). Le contenu est une colonne centrée de `max-w-3xl`
 (identique sur mobile, centrée sur desktop ; les pages `/profil` et `/admin` y sont aussi).
 `globals.css` : variable `--accent`, `min-height: 100dvh`, pas de délai ni de zoom au double toucher
