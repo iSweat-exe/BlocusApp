@@ -111,12 +111,16 @@ plus dans l'en-tête : elle se trouve sur `/profil`.** Les icônes sont des SVG 
 
 ## Fenêtre plein écran
 
-`src/components/full-screen-dialog.tsx` : un bouton qui ouvre une fenêtre couvrant tout le viewport
-(`<dialog>` natif : piège du focus, Échap et geste « retour » Android pour fermer, focus restitué ; `h-dvh`, marges
-`env(safe-area-inset-*)` pour l'iPhone ; défilement de la page bloquée derrière). Le contenu n'est monté que
-fenêtre ouverte (formulaire vierge à chaque ouverture). Un formulaire passé en `children` depuis un Server
-Component la ferme après un succès avec le hook `useDialogClose()` (pas de fonction en prop). Utilisée pour
-« Créer un post » (`announcement-feed.tsx`) et « Ajouter un événement » (`calendar-view.tsx`).
+`src/components/full-screen-dialog.tsx` : un bouton qui ouvre une **feuille** (style modale native) couvrant l'écran
+sous la barre d'état : coins supérieurs arrondis, poignée, fond assombri, animation de montée, **fermeture en la
+glissant vers le bas** (depuis l'en-tête, ou depuis le contenu défilé tout en haut : `use-sheet-swipe.ts`, le même que
+la feuille du `Select`) ou en touchant la zone assombrie. `<dialog>` natif : piège du focus, Échap et geste « retour »
+Android pour fermer, focus restitué (le contenu reçoit le focus à l'ouverture, pas le bouton de fermeture) ;
+`env(safe-area-inset-*)` pour l'iPhone ; défilement de la page bloquée derrière ; panneau centré dès `sm`. Le contenu
+n'est monté que fenêtre ouverte (formulaire vierge à chaque ouverture). Un formulaire passé en `children` depuis un
+Server Component la ferme après un succès avec `useDialogClose()` (pas de fonction en prop) et épingle son bouton
+d'action en bas avec la classe `.form-actions` quand `useInDialog()` est vrai. Utilisée pour « Créer un post »
+(`announcement-feed.tsx`) et « Ajouter un événement » (`month-view.tsx`).
 
 **Couleur d'accent personnalisable.** `/settings` (`src/features/settings/`) : l'utilisateur choisit un préréglage ou une couleur libre ; elle est stockée dans `localStorage` (`blocus.accent`, `#rrggbb` validé par `normalizeHex`) et posée en variables CSS `--accent`, `--accent-strong`, `--accent-ink` sur `<html>`. Un script inline dans `<head>` (`accent-script.ts`, autorisé par la CSP actuelle `'unsafe-inline'`) l'applique avant le premier rendu, sans flash rouge. Réglage local à l'appareil, sans base de données (synchro entre appareils = hors périmètre).
 
