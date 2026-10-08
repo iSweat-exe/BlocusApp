@@ -11,6 +11,8 @@ export const AUDIT_ACTIONS: Record<string, string> = {
   "user.banned": "Bans",
   "sanction.revoked": "Sanctions levées",
   "map.route_saved": "Tracé de la carte modifié",
+  "map.position_declared": "Positions déclarées",
+  "map.position_removed": "Positions retirées",
 };
 
 /** An audit log row as needed by the UI. */
@@ -102,6 +104,18 @@ export function describeAuditEntry(entry: AuditEntryView, names: AuditNames): st
       return `${actor} a rouvert l'événement « ${detail(entry.details, "title") ?? "?"} ».`;
     case "map.route_saved":
       return `${actor} a modifié le tracé de la carte (${detailNumber(entry.details, "points") ?? "?"} points).`;
+    case "map.position_declared": {
+      const label = detail(entry.details, "label");
+      return `${actor} a déclaré la position de la manifestation${label ? ` : ${label}` : ""}.`;
+    }
+    case "map.position_removed": {
+      const label = detail(entry.details, "label");
+      const own =
+        typeof entry.details === "object" &&
+        entry.details !== null &&
+        (entry.details as Record<string, unknown>).own === true;
+      return `${actor} a retiré ${own ? "sa" : "une"} position de la manifestation${label ? ` (${label})` : ""}.`;
+    }
     case "sanction.revoked":
       return `${actor} a levé une sanction de ${target}.`;
     default:

@@ -138,6 +138,40 @@ export type Database = {
           },
         ];
       };
+      map_positions: {
+        Row: {
+          author_id: string | null;
+          declared_at: string;
+          id: string;
+          label: string;
+          lat: number;
+          lng: number;
+          removed_at: string | null;
+          removed_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id?: string | null;
+          declared_at?: string;
+          id?: string;
+          label?: string;
+          lat: number;
+          lng: number;
+          removed_at?: string | null;
+          removed_by?: string | null;
+        };
+        Update: {
+          author_id?: string | null;
+          declared_at?: string;
+          id?: string;
+          label?: string;
+          lat?: number;
+          lng?: number;
+          removed_at?: string | null;
+          removed_by?: string | null;
+        };
+        Relationships: [];
+      };
       map_route_versions: {
         Row: {
           author_id: string | null;
@@ -353,11 +387,16 @@ export type Database = {
         Returns: string;
       };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
+      declare_map_position: {
+        Args: { p_label?: string; p_lat: number; p_lng: number };
+        Returns: string;
+      };
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
       get_permission_epoch: { Args: never; Returns: string };
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       is_valid_route: { Args: { p_points: Json }; Returns: boolean };
       is_banned: { Args: { p_user_id: string }; Returns: boolean };
+      remove_map_position: { Args: { p_id: string }; Returns: undefined };
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };
       save_map_route: { Args: { p_base?: string; p_points: Json }; Returns: string };

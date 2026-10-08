@@ -4,10 +4,14 @@ import { Map as MapLibreMap, Marker, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useReducer, useRef, useState, useTransition } from "react";
-import { PencilIcon } from "@/components/icons";
+import { PencilIcon, PinIcon } from "@/components/icons";
+import type { MapPosition } from "@/lib/data/map-positions";
 import { routeBounds, routeToGeoJSON, type LngLat } from "@/lib/map-route";
-import { saveMapRoute } from "./actions";
+import { declareMapPosition, removeMapPosition, saveMapRoute } from "./actions";
 import { DEFAULT_VIEW, LOCATE_ZOOM, MAP_STYLES } from "./map-config";
+import { PositionInfo } from "./position-info";
+import { createPositionMarker, setPositionMarkerLabel } from "./position-marker";
+import { PositionToolbar } from "./position-toolbar";
 import { canSave, editorReducer, initEditor, isDirty } from "./route-editor-state";
 import { addRouteLayers, setRouteData, setRouteEditing } from "./route-layers";
 import { RouteToolbar, type ToolbarError } from "./route-toolbar";
@@ -48,14 +52,29 @@ type Props = {
   route: MapViewRoute | null;
   /** Holds `map.route.edit` (display only: the Server Action and the database re-check it). */
   canEditRoute: boolean;
+  /** Declared positions of the demonstration, newest (= current) first. */
+  positions: MapPosition[];
+  /** Holds `map.position.declare` (display only: the Server Action and the database re-check it). */
+  canDeclarePosition: boolean;
+  /** May remove the current position: its author, or an administrator (the database re-checks). */
+  canRemovePosition: boolean;
 };
+
+/** What the map is doing: showing, editing the route, or declaring the position. */
+type Mode = "view" | "route" | "position";
 
 /**
  * The map: base map, the route, route editing for those who may, and "Me localiser". Client-only (WebGL),
  * loaded on demand by `MapLoader`. "Me localiser" shows the user's own position **on this device only**: it is
  * never sent anywhere (A-127).
  */
-export default function MapView({ route, canEditRoute }: Props) {
+export default function MapView({
+  route,
+  canEditRoute,
+  positions,
+  canDeclarePosition,
+  canRemovePosition,
+}: Props) {
   const router = useRouter();
   const theme = useMapTheme();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,8 +93,30 @@ export default function MapView({ route, canEditRoute }: Props) {
   const [initialTheme] = useState(theme);
   const [initialRoute] = useState(route);
 
+  const [mode, setMode] = useState<Mode>("view");
+  const editing = mode === "route";
+  const declaring = mode === "position";
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  // Position declaration.
+  const [positionLabel, setPositionLabel] = useState("");
+  const [positionError, setPositionError] = useState<string | null>(null);
+  const [declaringNow, startDeclaring] = useTransition();
+  // The newest declaration decides: if it was removed there is no current position (an older one never comes back).
+  const newest = positions[0] ?? null;
+  const current = newest && !newest.removedAt ? newest : null;
+  const [initialPosition] = useState(current);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [confirmingRemoval, setConfirmingRemoval] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+  const [removing, startRemoving] = useTransition();
+  const markerRef = useRef<Marker | null>(null);
+
   // Route editing.
-  const [editing, setEditing] = useState(false);
   const [editor, dispatch] = useReducer(editorReducer, route?.points ?? [], initEditor);
   const [baseId, setBaseId] = useState<string | null>(null);
   const [confirmingDiscard, setConfirmingDiscard] = useState(false);
@@ -95,7 +136,10 @@ export default function MapView({ route, canEditRoute }: Props) {
   useEffect(() => {
     const container = containerRef.current;
     if (!container || !supported) return;
-    const bounds = routeBounds(initialRoute?.points ?? []);
+    const bounds = routeBounds([
+      ...(initialRoute?.points ?? []),
+      ...(initialPosition ? [[initialPosition.lng, initialPosition.lat] as LngLat] : []),
+    ]);
     const created = new MapLibreMap({
       container,
       style: MAP_STYLES[initialTheme],
@@ -126,7 +170,7 @@ export default function MapView({ route, canEditRoute }: Props) {
       mapRef.current = null;
       setMap(null);
     };
-  }, [supported, initialTheme, initialRoute]);
+  }, [supported, initialTheme, initialRoute, initialPosition]);
 
   // Follow the app theme without recreating the map (keeps the position and zoom).
   const appliedTheme = useRef(initialTheme);
@@ -145,6 +189,40 @@ export default function MapView({ route, canEditRoute }: Props) {
   useEffect(() => {
     if (map) setRouteEditing(map, editing);
   }, [map, editing]);
+  // The position marker is a DOM button: it survives style changes and keeps its colour in the dark theme.
+  useEffect(() => {
+    if (!map) return;
+    if (!current) {
+      markerRef.current?.remove();
+      markerRef.current = null;
+      return;
+    }
+    if (!markerRef.current) {
+      const element = createPositionMarker(current.label);
+      markerRef.current = new Marker({ element }).setLngLat([current.lng, current.lat]).addTo(map);
+    } else {
+      markerRef.current.setLngLat([current.lng, current.lat]);
+      setPositionMarkerLabel(markerRef.current.getElement() as HTMLButtonElement, current.label);
+    }
+  }, [map, current]);
+  // Taps on the marker open the information card (only while just looking at the map).
+  useEffect(() => {
+    const element = markerRef.current?.getElement();
+    if (!element) return;
+    const open = (event: Event) => {
+      event.stopPropagation();
+      if (mode === "view") setInfoOpen(true);
+    };
+    element.addEventListener("click", open);
+    return () => element.removeEventListener("click", open);
+  }, [map, current, mode]);
+  useEffect(
+    () => () => {
+      markerRef.current?.remove();
+      markerRef.current = null;
+    },
+    [],
+  );
 
   useRouteEditing(map, editing, dispatch);
 
@@ -153,12 +231,17 @@ export default function MapView({ route, canEditRoute }: Props) {
     setBaseId(route?.id ?? null);
     setSaveError(null);
     setConfirmingDiscard(false);
-    setEditing(true);
+    setMode("route");
   };
   const stopEditing = () => {
-    setEditing(false);
+    setMode("view");
     setConfirmingDiscard(false);
     setSaveError(null);
+  };
+  const startDeclaringPosition = () => {
+    setPositionError(null);
+    setPositionLabel("");
+    setMode("position");
   };
   const save = () => {
     setSaveError(null);
@@ -179,6 +262,30 @@ export default function MapView({ route, canEditRoute }: Props) {
   const center = (): LngLat | null => {
     const at = map?.getCenter();
     return at ? [at.lng, at.lat] : null;
+  };
+
+  const declare = () => {
+    const at = center();
+    if (!at) return;
+    setPositionError(null);
+    startDeclaring(async () => {
+      const result = await declareMapPosition(at[0], at[1], positionLabel);
+      if (result.status === "success") setMode("view");
+      else setPositionError(result.message);
+    });
+  };
+  const removePosition = () => {
+    if (!current) return;
+    setRemoveError(null);
+    startRemoving(async () => {
+      const result = await removeMapPosition(current.id);
+      if (result.status === "success") {
+        setInfoOpen(false);
+        setConfirmingRemoval(false);
+      } else {
+        setRemoveError(result.message);
+      }
+    });
   };
 
   const locateMe = () => {
@@ -230,19 +337,33 @@ export default function MapView({ route, canEditRoute }: Props) {
         </div>
       )}
 
-      {ready && !editing && (
-        <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-start justify-between gap-2">
-          {canEditRoute ? (
-            <button
-              type="button"
-              onClick={startEditing}
-              className="btn btn-sm pointer-events-auto gap-2 border border-line-strong bg-background/90 shadow-lg backdrop-blur"
-            >
-              <PencilIcon className="h-4 w-4" />
-              Modifier le tracé
-            </button>
-          ) : (
-            <span />
+      {ready && mode === "view" && (
+        <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2">
+          {(canEditRoute || canDeclarePosition) && (
+            <div className="flex gap-2">
+              {canEditRoute && (
+                <button
+                  type="button"
+                  onClick={startEditing}
+                  aria-label="Modifier le tracé"
+                  className="btn btn-sm pointer-events-auto gap-2 border border-line-strong bg-background/90 shadow-lg backdrop-blur"
+                >
+                  <PencilIcon className="h-4 w-4" />
+                  Tracé
+                </button>
+              )}
+              {canDeclarePosition && (
+                <button
+                  type="button"
+                  onClick={startDeclaringPosition}
+                  aria-label="Déclarer la position"
+                  className="btn btn-sm pointer-events-auto gap-2 border border-line-strong bg-background/90 shadow-lg backdrop-blur"
+                >
+                  <PinIcon className="h-4 w-4" />
+                  Position
+                </button>
+              )}
+            </div>
           )}
           {!route && (
             <p className="chip pointer-events-auto bg-background/90 text-muted shadow backdrop-blur">
@@ -281,41 +402,78 @@ export default function MapView({ route, canEditRoute }: Props) {
         />
       )}
 
+      {mode === "view" && infoOpen && current && (
+        <PositionInfo
+          position={current}
+          history={positions}
+          now={now}
+          canRemove={canRemovePosition}
+          confirmingRemoval={confirmingRemoval}
+          removing={removing}
+          error={removeError}
+          onAskRemove={setConfirmingRemoval}
+          onRemove={removePosition}
+          onClose={() => {
+            setInfoOpen(false);
+            setConfirmingRemoval(false);
+            setRemoveError(null);
+          }}
+        />
+      )}
+
+      {declaring && (
+        <PositionToolbar
+          label={positionLabel}
+          onLabelChange={setPositionLabel}
+          declaring={declaringNow}
+          locating={locate === "locating"}
+          error={
+            positionError ??
+            (locate === "denied" || locate === "unavailable" ? LOCATE_MESSAGES[locate] : null)
+          }
+          onDeclare={declare}
+          onUseGps={locateMe}
+          onClose={() => setMode("view")}
+        />
+      )}
+
       <div
-        className={`pointer-events-none absolute inset-x-3 z-10 flex flex-col items-end gap-2 ${
-          editing ? "bottom-60" : "bottom-8"
+        className={`pointer-events-none absolute inset-x-3 z-10 flex items-end justify-between gap-2 ${
+          editing ? "bottom-60" : declaring ? "hidden" : "bottom-8"
         }`}
       >
-        {(locate === "denied" || locate === "unavailable") && (
-          <p role="status" className="alert alert-error pointer-events-auto max-w-xs text-xs">
-            {LOCATE_MESSAGES[locate]}
-          </p>
-        )}
-        <button
-          type="button"
-          onClick={locateMe}
-          disabled={!ready || locate === "locating"}
-          aria-label="Me localiser"
-          className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-line-strong bg-background/90 text-accent shadow-lg backdrop-blur active:bg-foreground/10 disabled:opacity-60"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="22"
-            height="22"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.9"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            focusable="false"
-            className={locate === "locating" ? "animate-pulse" : ""}
+        <div className="ml-auto flex flex-col items-end gap-2">
+          {mode === "view" && (locate === "denied" || locate === "unavailable") && (
+            <p role="status" className="alert alert-error pointer-events-auto max-w-xs text-xs">
+              {LOCATE_MESSAGES[locate]}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={locateMe}
+            disabled={!ready || locate === "locating"}
+            aria-label="Me localiser"
+            className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-line-strong bg-background/90 text-accent shadow-lg backdrop-blur active:bg-foreground/10 disabled:opacity-60"
           >
-            <circle cx="12" cy="12" r="3.5" />
-            <circle cx="12" cy="12" r="8" />
-            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-          </svg>
-        </button>
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.9"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              focusable="false"
+              className={locate === "locating" ? "animate-pulse" : ""}
+            >
+              <circle cx="12" cy="12" r="3.5" />
+              <circle cx="12" cy="12" r="8" />
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -245,3 +245,45 @@ label {
   border: 3px solid #fff;
   box-shadow: 0 0 0 6px rgb(59 130 246 / 0.25);
 }
+
+/* Marker of the declared position of the demonstration (a DOM button, see position-marker.ts). */
+.map-position-marker {
+  position: relative;
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--accent-ink);
+}
+.map-position-disc {
+  position: relative;
+  display: flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 3px solid #fff;
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.45);
+}
+.map-position-pulse {
+  position: absolute;
+  inset: 4px;
+  border-radius: 9999px;
+  background: var(--accent);
+  opacity: 0.5;
+  animation: map-position-pulse 1.8s ease-out infinite;
+}
+@keyframes map-position-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}

@@ -1,4 +1,5 @@
 import { CloseIcon, RedoIcon, TrashIcon, UndoIcon } from "@/components/icons";
+import { Crosshair } from "./crosshair";
 
 export type ToolbarError = { message: string; stale: boolean };
 
@@ -49,18 +50,7 @@ export function RouteToolbar(props: Props) {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between">
-      {/* The crosshair: where the next point goes. */}
-      <div aria-hidden="true" className="absolute inset-0 flex items-center justify-center">
-        <svg viewBox="0 0 40 40" width="40" height="40" className="text-foreground drop-shadow">
-          <circle cx="20" cy="20" r="3" fill="currentColor" />
-          <path
-            d="M20 4v10M20 26v10M4 20h10M26 20h10"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
+      <Crosshair />
 
       <div className="pointer-events-auto relative flex items-center justify-between gap-2 border-b border-line bg-background/90 p-2 backdrop-blur">
         <button

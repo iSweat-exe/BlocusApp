@@ -35,6 +35,14 @@ Définis dans `next.config.ts` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-P
 `Permissions-Policy`, `frame-ancestors`). Toute nouvelle origine externe (carte, images, analytics) doit
 être ajoutée explicitement à la CSP dans la même PR.
 
+## Vie privée de la carte (A-127)
+
+Seule la **position de la manifestation, déclarée par un gérant**, est stockée et affichée (table `map_positions`,
+lecture publique). La position d'un utilisateur ordinaire n'est **jamais** envoyée au serveur : « Me localiser » place un
+repère local sur l'écran de l'utilisateur seul. Le gérant qui utilise « Ma position » ne déclare rien tant qu'il n'a pas
+validé : le bouton déplace seulement la carte. L'accès à la géolocalisation de l'appareil est limité à notre origine
+(`Permissions-Policy: geolocation=(self)`) et n'est demandé qu'au toucher d'un de ces boutons.
+
 ## Signalement d'une vulnérabilité
 
 Ne pas ouvrir d'issue publique : contacter directement les mainteneurs.
