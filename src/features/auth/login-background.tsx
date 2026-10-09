@@ -1,13 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 const BG_IMAGES = ["/images/blocus-bg-1.jpg", "/images/blocus-bg-2.jpg", "/images/blocus-bg-3.jpg"];
 
 /** Background image overlay for the login screen. Picks a random image on mount. */
 export function LoginBackground() {
-  const [selectedIndex] = useState(() => Math.floor(Math.random() * BG_IMAGES.length));
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSelectedIndex(Math.floor(Math.random() * BG_IMAGES.length));
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div
