@@ -13,7 +13,7 @@
  */
 :root {
   color-scheme: light;
-  --background: #ffffff;
+  --background: #f8fafc;
   --foreground: #171717;
   --accent: #ef4444;
   --accent-strong: #dc2626; /* pressed state */
@@ -29,7 +29,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --background: #0a0a0a;
+    --background: #090c12;
     --foreground: #ededed;
     --accent: #ff3b46;
     --accent-strong: #e02530;
@@ -41,7 +41,7 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --background: #0a0a0a;
+  --background: #090c12;
   --foreground: #ededed;
   --accent: #ff3b46;
   --accent-strong: #e02530;
@@ -114,10 +114,6 @@
 
 /* 3. Shared component classes. */
 @layer components {
-  .font-syne {
-    font-family: var(--font-syne), var(--font-sans), sans-serif;
-  }
-
   .page-title {
     @apply text-2xl font-semibold tracking-tight;
   }

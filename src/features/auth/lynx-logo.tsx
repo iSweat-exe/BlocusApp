@@ -1,10 +1,13 @@
+/**
+ * Decorative Lynx branding logo component from the original Blocus design.
+ */
 export function LynxLogo() {
   return (
-    <div className="flex items-center justify-center my-2 opacity-85 text-foreground">
+    <div className="my-2 flex items-center justify-center opacity-85 text-foreground">
       <svg
         version="1.0"
         xmlns="http://www.w3.org/2000/svg"
-        className="max-w-[130px] h-auto text-foreground"
+        className="h-auto max-w-[130px]"
         viewBox="0 0 600.000000 219.000000"
         preserveAspectRatio="xMidYMid meet"
         aria-hidden="true"
