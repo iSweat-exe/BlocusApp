@@ -13,7 +13,7 @@
  */
 :root {
   color-scheme: light;
-  --background: #f8fafc;
+  --background: #ffffff;
   --foreground: #171717;
   --accent: #ef4444;
   --accent-strong: #dc2626; /* pressed state */
@@ -29,7 +29,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --background: #090c12;
+    --background: #0a0a0a;
     --foreground: #ededed;
     --accent: #ff3b46;
     --accent-strong: #e02530;
@@ -41,13 +41,24 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --background: #090c12;
+  --background: #0a0a0a;
   --foreground: #ededed;
   --accent: #ff3b46;
   --accent-strong: #e02530;
   --danger: #f87171;
   --success: #4ade80;
   --warning: #fbbf24;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #171717;
+  --accent: #ef4444;
+  --accent-strong: #dc2626;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #d97706;
 }
 
 /* 2. Theme: tokens exposed as Tailwind utilities (bg-accent, text-muted, rounded-card, min-h-control…). */
