@@ -181,6 +181,14 @@
       transparent 70%
     );
   }
+  /* Soft glow of the accent color rising from the bottom edge (login screen). */
+  .accent-glow {
+    background: radial-gradient(
+      ellipse at 50% 100%,
+      color-mix(in srgb, var(--accent) 22%, transparent),
+      transparent 70%
+    );
+  }
   .section-title {
     @apply px-1 text-xs font-semibold tracking-wide text-faint uppercase;
   }
