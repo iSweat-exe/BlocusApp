@@ -10,6 +10,9 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) => {
   return createServerClient<Database>(supabaseUrl!, supabaseKey!, {
     cookieOptions: authCookieOptions,
+    // Every OAuth start stores its own PKCE verifier; the flow id on the callback URL (`sb_flow_id`) tells the
+    // callback which one to use, so a second start (other tab, other provider) cannot break a pending one.
+    auth: { experimental: { appendPkceFlowIdToRedirects: true } },
     cookies: {
       getAll() {
         return cookieStore.getAll();

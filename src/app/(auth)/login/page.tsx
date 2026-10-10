@@ -4,35 +4,35 @@ import { GoogleButton } from "@/features/auth/google-button";
 import { GuestLink } from "@/features/auth/guest-link";
 import { LoginBackground } from "@/features/auth/login-background";
 import { LoginError } from "@/features/auth/login-error";
-import { LynxLogo } from "@/features/auth/lynx-logo";
 
 export default function LoginPage() {
   return (
     <>
       <LoginBackground />
 
-      <div className="relative z-10 mx-auto flex h-dvh max-h-dvh w-full max-w-[440px] flex-col justify-between overflow-hidden font-syne px-5 pt-[max(20px,env(safe-area-inset-top))] pb-5">
-        <header className="mt-[clamp(40px,8vh,72px)] mb-5 text-center">
+      {/* `min-h-dvh` and no fixed height: on a short screen (landscape, large system font) the page scrolls. */}
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-safe-top pb-safe-bottom font-syne">
+        <header className="mt-10 mb-5 text-center sm:mt-16">
           <h1 className="sr-only">Connexion</h1>
 
           <p
-            className="mb-1 font-syne text-[clamp(2.4rem,7vw,3rem)] font-bold tracking-[-0.04em] text-foreground"
+            className="mb-1 text-4xl font-bold tracking-tighter text-foreground sm:text-5xl"
             aria-hidden="true"
           >
             BLOCUS<span className="text-accent">.</span>
           </p>
-          <p className="text-[0.9rem] font-medium text-muted">Toutes les infos en direct</p>
+          <p className="text-sm font-medium text-muted">Toutes les infos en direct</p>
         </header>
 
         <Suspense>
           <LoginError />
         </Suspense>
 
-        <div className="my-auto flex flex-col gap-2.5">
+        <div className="my-auto flex flex-col gap-2.5 py-6">
           <DiscordButton />
           <GoogleButton />
 
-          <div className="my-0.5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-faint">
+          <div className="my-0.5 flex items-center gap-3 text-xs font-semibold tracking-wider text-faint uppercase">
             <span className="h-px flex-1 bg-foreground/15" />
             ou
             <span className="h-px flex-1 bg-foreground/15" />
@@ -40,8 +40,6 @@ export default function LoginPage() {
 
           <GuestLink />
         </div>
-
-        <LynxLogo />
       </div>
     </>
   );

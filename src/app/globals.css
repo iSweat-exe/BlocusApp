@@ -50,17 +50,6 @@
   --warning: #fbbf24;
 }
 
-:root[data-theme="light"] {
-  color-scheme: light;
-  --background: #ffffff;
-  --foreground: #171717;
-  --accent: #ef4444;
-  --accent-strong: #dc2626;
-  --danger: #dc2626;
-  --success: #16a34a;
-  --warning: #d97706;
-}
-
 /* 2. Theme: tokens exposed as Tailwind utilities (bg-accent, text-muted, rounded-card, min-h-control…). */
 @theme inline {
   --color-background: var(--background);
@@ -83,9 +72,9 @@
   /* Fonts. */
   --font-sans: var(--font-syne), var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-syne: var(--font-syne);
+  --font-syne: var(--font-syne-face);
 
-  /* Radii: controls (buttons, inputs), cards, sheets. Pills and avatars use rounded-full. */
+  /* Radii: controls (buttons, inputs, header icon buttons, avatars), cards, sheets. Pills use rounded-full. */
   --radius-control: 0.75rem;
   --radius-card: 1rem;
   --radius-sheet: 1.5rem;
@@ -100,6 +89,8 @@
      the screen edge (about 24 dp for the gesture pill), so keep a minimum clearance of 2 rem. iPhones are not
      affected: their inset (about 34 px) is larger than the minimum. */
   --spacing-safe-bottom: max(env(safe-area-inset-bottom), 2rem);
+  /* Top padding of full-screen pages: clears a notch or status bar, with a minimum of 1.25 rem. */
+  --spacing-safe-top: max(env(safe-area-inset-top), 1.25rem);
   --spacing-section: 1.5rem; /* gap between page sections */
 
   /* Motion. */
@@ -177,31 +168,18 @@
   }
 }
 
-.animate-gear-spin {
-  animation: icon-gear-spin 600ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-  transform-origin: 50% 50% !important;
-  transform-box: fill-box !important;
-}
-.animate-home-bounce {
-  animation: icon-home-bounce 500ms ease-out !important;
-  transform-origin: 50% 50% !important;
-  transform-box: fill-box !important;
-}
-.animate-calendar-pop {
-  animation: icon-calendar-pop 500ms ease-out !important;
-  transform-origin: 50% 50% !important;
-  transform-box: fill-box !important;
-}
-.animate-map-fold {
-  animation: icon-map-fold 500ms ease-out !important;
-  transform-origin: 50% 50% !important;
-  transform-box: fill-box !important;
-}
-
 /* 3. Shared component classes. */
 @layer components {
   .page-title {
     @apply font-syne text-2xl font-bold tracking-tight;
+  }
+  /* Soft glow of the accent color rising from the bottom edge (login screen). */
+  .accent-glow {
+    background: radial-gradient(
+      ellipse at 50% 100%,
+      color-mix(in srgb, var(--accent) 22%, transparent),
+      transparent 70%
+    );
   }
   .section-title {
     @apply px-1 text-xs font-semibold tracking-wide text-faint uppercase;

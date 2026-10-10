@@ -6,11 +6,14 @@ const SIZES = {
   md: { px: 44, box: "h-11 w-11 text-sm" },
   lg: { px: 80, box: "h-20 w-20 text-2xl" },
   xl: { px: 96, box: "h-24 w-24 text-3xl" },
+  /** Fills its parent (a 44 px header button): the parent sets the size and clips the corners. */
+  fill: { px: 44, box: "h-full w-full text-sm" },
 } as const;
 
 /**
- * Round profile picture with an initials fallback. The URL is user-editable data, so it only renders when
- * `safeAvatarUrl()` accepts it (https, allowed host). Server Component: no client JavaScript.
+ * Profile picture with the rounded-square shape of the controls (`rounded-control`) and an initials fallback.
+ * The URL is user-editable data, so it only renders when `safeAvatarUrl()` accepts it (https, allowed host).
+ * Server Component: no client JavaScript.
  */
 export function Avatar({
   pseudo,
