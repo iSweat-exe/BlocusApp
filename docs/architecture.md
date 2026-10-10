@@ -71,8 +71,8 @@ verifier dans un cookie `blocus-auth-flow-<id>-code-verifier` (5 au maximum) et 
 celui du lien déjà affiché et l'échange échouait avec `bad_code_verifier`. Les `Redirect URLs` de Supabase doivent donc finir
 par `**` (`docs/runbook.md`).
 
-**Page `/login`.** Logo + titre, bouton Discord, bouton Google (`GoogleButton`, lien `/auth/login/google`), séparateur « ou » puis
-`GuestLink` (« Continuer en tant qu'invité » → `/`, lecture seule : le Guest est simplement une visite sans session).
+**Page `/login`.** Titre de marque « BLOCUS. » (en Syne, masqué aux lecteurs d'écran : le vrai titre de la page est un `h1` `sr-only` « Connexion »), bouton Discord, bouton Google (`GoogleButton`, lien `/auth/login/google`), séparateur « ou » puis
+`GuestLink` (« Continuer en tant qu'invité » → `/`, lecture seule : le Guest est simplement une visite sans session). Le fond est un halo CSS de la couleur d'accent (`.accent-glow`, `LoginBackground`) : aucune image à télécharger, et il suit le thème et l'accent choisis. La page a une hauteur minimale d'écran (`min-h-dvh`) mais **défile** si le contenu est plus haut (mode paysage, grande police système, message d'erreur) : ne pas figer la hauteur ni masquer le débordement, le zoom étant bloqué (voir « Pas de zoom »). Syne est chargée avec `next/font` (police variable) et exposée par l'utilitaire `font-syne`.
 
 **Connexion Discord sur mobile / PWA.** Une fois la page hydratée, le lien est remplacé par l'URL
 `https://discord.com/oauth2/authorize?...` elle-même (obtenue via `GET /auth/login/discord?format=json`, qui
