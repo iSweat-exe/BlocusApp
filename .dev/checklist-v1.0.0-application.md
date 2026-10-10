@@ -121,7 +121,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [x] **A-120** Squelette des routes et navigation basse (mobile-first, safe-area iOS) — _`npm run build` génère les 6 routes_
 - [ ] **A-121** Garde d’accès : `(app)` en lecture seule pour un Guest (A-022), actions d'écriture redirigées vers `/login` ; `(auth)` redirige vers `/` si déjà connecté 🔒 — _testé E2E_
 - [ ] **A-122** Login / Register : formulaires, validation (Zod), erreurs par champ, états de chargement — _parcours E2E OK_
-- [~] **A-122b** Redesign de l'écran `/login` : titre de marque « BLOCUS. » en Archivo ExtraBold, halo de la couleur d'accent en fond (CSS, sans image), page qui défile sur écran court — _fait (#76), à valider sur de vrais téléphones ; photos de fond : reportées tant que leur source et leur licence ne sont pas connues_
+- [~] **A-122b** Redesign de l'écran `/login` : titre de marque « BLOCUS. » en Archivo ExtraBold, fond de trois photos provisoires tirées au hasard côté client (Lorem Picsum, `docs/credits.md`), une seule téléchargée et fondue vers le haut, page qui défile sur écran court — _fait (#76), à valider sur de vrais téléphones ; photos définitives : voir Backlog_
 - [~] **A-122c** Icônes sur les boutons de `/login` : logo Discord, logo Google, œil pour le mode invité (décoratives, 20 px) — _fait, à valider sur de vrais téléphones_
 - [~] **A-123a** Table `announcements` + RLS (lecture Guest, écriture `announcement.publish` / `announcement.delete`) + tests pgTAP — _fait, reste la PR de l'UI_
 - [~] **A-123b** **Accueil** : fil des **dernières actualités** (annonces…), plus récentes en premier ; publication réservée aux personnes autorisées (`announcement.publish`) ; lecture ouverte au Guest — _données issues du cache (1.6)_
@@ -193,4 +193,5 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - **Messagerie** (messages privés + groupes, permissions `message.*`) : reportée, la communication passe par Instagram pour l'instant ; la page `/messages` ne doit pas exister publiquement.
 - **Utilisateurs « en direct » exacts** (présence Supabase Realtime) : écartés tant que le pic visé consomme toute la limite gratuite de ~200 connexions ; « actifs » est approché par les sessions renouvelées (ADR 0006).
 - **Rate limit** : compter l'envoi des images de posts avant la création du post, compter les suppressions, passer à une fenêtre glissante si la fenêtre fixe se révèle trop permissive.
+- **Photos de fond de `/login`** : remplacer les trois images provisoires (Lorem Picsum) par des images dont l'équipe détient les droits, avec source et licence dans `docs/credits.md` (pas de personne reconnaissable sans consentement).
 - _(y noter toute autre idée qui déborde)_

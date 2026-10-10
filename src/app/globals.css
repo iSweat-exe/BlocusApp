@@ -175,13 +175,12 @@
   .page-title {
     @apply text-2xl font-extrabold tracking-tight;
   }
-  /* Soft glow of the accent color rising from the bottom edge (login screen). */
-  .accent-glow {
-    background: radial-gradient(
-      ellipse at 50% 100%,
-      color-mix(in srgb, var(--accent) 22%, transparent),
-      transparent 70%
-    );
+  /* Photo rising from the bottom edge and fading out upwards into the page, in light and dark (login screen). */
+  .login-bg {
+    background-position: center bottom;
+    background-size: cover;
+    -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 100%);
+    mask-image: linear-gradient(to top, #000 0%, transparent 100%);
   }
   .section-title {
     @apply px-1 font-sans text-xs font-semibold tracking-wide text-faint uppercase;
