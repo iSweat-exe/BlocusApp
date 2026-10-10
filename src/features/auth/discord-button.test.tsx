@@ -27,6 +27,15 @@ describe("DiscordButton", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("shows the Discord logo, hidden from assistive technologies: the text names the link", () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    render(<DiscordButton />);
+    const link = screen.getByRole("link", { name: "Continuer avec Discord" });
+    const logo = link.querySelector("svg");
+    expect(logo).toHaveAttribute("aria-hidden", "true");
+    expect(logo).toHaveAttribute("focusable", "false");
+  });
+
   it("keeps the server-redirect link when the URL cannot be fetched", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     render(<DiscordButton />);
