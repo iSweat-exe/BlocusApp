@@ -4,7 +4,6 @@ import { GoogleButton } from "@/features/auth/google-button";
 import { GuestLink } from "@/features/auth/guest-link";
 import { LoginBackground } from "@/features/auth/login-background";
 import { LoginError } from "@/features/auth/login-error";
-import { LynxLogo } from "@/features/auth/lynx-logo";
 
 export default function LoginPage() {
   return (
@@ -40,8 +39,6 @@ export default function LoginPage() {
 
           <GuestLink />
         </div>
-
-        <LynxLogo />
       </div>
     </>
   );
