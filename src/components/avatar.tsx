@@ -31,7 +31,7 @@ export function Avatar({
 }) {
   const { px, box } = SIZES[size];
   const safe = safeAvatarUrl(url);
-  const base = `${box} shrink-0 rounded-full ${ring ? "ring-4 ring-foreground/10" : ""} ${className}`;
+  const base = `${box} shrink-0 rounded-control ${ring ? "ring-4 ring-foreground/10" : ""} ${className}`;
 
   if (safe) {
     return (

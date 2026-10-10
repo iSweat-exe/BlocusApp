@@ -3,7 +3,7 @@ import type { SVGProps } from "react";
 /** Inline SVG icons (24x24, `currentColor`): no icon library, no extra request. Decorative by default. */
 type IconProps = SVGProps<SVGSVGElement>;
 
-function Icon({ children, ...props }: IconProps) {
+function Icon({ children, className, style, ...props }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -16,6 +16,8 @@ function Icon({ children, ...props }: IconProps) {
       strokeLinejoin="round"
       aria-hidden="true"
       focusable="false"
+      style={{ isolation: "isolate", ...style }}
+      className={`inline-block origin-center shrink-0 ${className ?? ""}`}
       {...props}
     >
       {children}
@@ -46,9 +48,8 @@ export function UserIcon(props: IconProps) {
 /** House: home. */
 export function HomeIcon(props: IconProps) {
   return (
-    <Icon {...props}>
-      <path d="m4 11 8-7 8 7" />
-      <path d="M6 10v9a1 1 0 0 0 1 1h3v-5h4v5h3a1 1 0 0 0 1-1v-9" />
+    <Icon strokeWidth="2" {...props}>
+      <path d="M3.75 10.5L12 3.75l8.25 6.75v9A1.5 1.5 0 0 1 18.75 21H14.5v-5.25a1.25 1.25 0 0 0-1.25-1.25h-2.5a1.25 1.25 0 0 0-1.25 1.25V21H5.25A1.5 1.5 0 0 1 3.75 19.5v-9z" />
     </Icon>
   );
 }
@@ -56,10 +57,14 @@ export function HomeIcon(props: IconProps) {
 /** Calendar page: calendar. */
 export function CalendarIcon(props: IconProps) {
   return (
-    <Icon {...props}>
-      <rect x="4" y="5" width="16" height="15" rx="2" />
-      <path d="M8 3v4M16 3v4M4 10h16" />
-      <path d="M9 14h.01M12 14h.01M15 14h.01M9 17h.01M12 17h.01" />
+    <Icon strokeWidth="2" {...props}>
+      <path d="M8 2v3M16 2v3M3.5 8.5h17M5 4.5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2z" />
+      <circle cx="8" cy="12.5" r="0.8" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12.5" r="0.8" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="12.5" r="0.8" fill="currentColor" stroke="none" />
+      <circle cx="8" cy="16" r="0.8" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="16" r="0.8" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="16" r="0.8" fill="currentColor" stroke="none" />
     </Icon>
   );
 }
@@ -67,9 +72,8 @@ export function CalendarIcon(props: IconProps) {
 /** Folded map: map. */
 export function MapIcon(props: IconProps) {
   return (
-    <Icon {...props}>
-      <path d="m9 4-5 2v14l5-2 6 2 5-2V4l-5 2-6-2Z" />
-      <path d="M9 4v14M15 6v14" />
+    <Icon strokeWidth="2" {...props}>
+      <path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6zM9 3v15M15 6v15" />
     </Icon>
   );
 }
@@ -84,15 +88,12 @@ export function TrashIcon(props: IconProps) {
   );
 }
 
-/** Three sliders: settings. */
+/** Settings gear: settings. */
 export function SettingsIcon(props: IconProps) {
   return (
-    <Icon {...props}>
-      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
-      <circle cx="15" cy="7" r="2" />
-      <circle cx="9" cy="17" r="2" />
-      <path d="M4 12h3M11 12h9" />
-      <circle cx="9" cy="12" r="2" />
+    <Icon strokeWidth="2" {...props}>
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
     </Icon>
   );
 }
