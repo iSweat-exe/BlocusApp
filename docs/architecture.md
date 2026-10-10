@@ -122,11 +122,17 @@ qu'aux pointeurs qui survolent (`@media (hover: hover)`). Le contenu est une col
 ## En-tête de l'application
 
 `src/components/app-header.tsx` (dans `(app)/layout.tsx`, sous `<Suspense>` avec un repli de même hauteur) :
-barre collante floutée avec la marque à gauche ; à droite, un bouton rond de 44 px **Administration** (icône
-bouclier, seulement avec une permission d'administration, `canAccessAdmin`) et un bouton **profil** (avatar Discord
-si présent dans les métadonnées du JWT et passé par `safeAvatarUrl`, sinon une icône). Les invités ont un bouton
-« Se connecter ». La section courante est marquée `aria-current` (`header-icon-link.tsx`). **La déconnexion n'est
+barre collante floutée avec la marque « BLOCUS. » (en Syne, nommée par son texte visible : le point est
+`aria-hidden`) à gauche ; à droite, le bouton **Actualiser**, un bouton carré arrondi de 44 px **Administration**
+(icône bouclier, seulement avec une permission d'administration, `canAccessAdmin`) et un bouton **profil** (avatar
+Discord si présent dans les métadonnées du JWT et passé par `safeAvatarUrl`, sinon une icône ; l'avatar remplit le
+bouton, `size="fill"`). Les invités ont un bouton « Se connecter ». Tout ce qui se touche garde **44 px** minimum
+(`min-h-tap`). La section courante est marquée `aria-current` (`header-icon-link.tsx`). **La déconnexion n'est
 plus dans l'en-tête : elle se trouve sur `/profil`.** Les icônes sont des SVG en ligne (`src/components/icons.tsx`).
+Le bouton Actualiser reste désactivé et son icône tourne **jusqu'à la fin de l'action serveur** (la transition doit
+renvoyer la promesse de `refreshPublicData`, sinon l'état d'attente s'arrête aussitôt). Les icônes de la barre
+d'onglets jouent une courte animation au toucher (`--animate-*` de `globals.css`, jamais en `!important` : la règle
+`prefers-reduced-motion` de `globals.css` doit pouvoir les neutraliser).
 
 ## Fenêtre plein écran
 
@@ -149,7 +155,7 @@ d'action en bas avec la classe `.form-actions` quand `useInDialog()` est vrai. U
 
 **Thème clair / sombre / système.** Sur `/settings`, un contrôle segmenté (`theme-picker.tsx`) stocke le choix dans `localStorage` (`blocus.theme`, `light` ou `dark` ; absent = système) et pose `data-theme` sur `<html>`. `globals.css` force alors les variables claires ou sombres ; sans attribut, `prefers-color-scheme` décide. Un script inline (`theme-script.ts`) l'applique avant le premier rendu et aligne les balises `theme-color` (barre du navigateur). `color-scheme` est aussi posé pour les contrôles natifs.
 
-**Design system.** Tokens et classes partagées dans `src/app/globals.css` (couleurs, arrondis, espacements, polices), cf. `docs/conventions.md` et ADR 0004. `src/components/avatar.tsx` affiche la photo de profil (URL contrôlée par `safeAvatarUrl`) ou les initiales.
+**Design system.** Tokens et classes partagées dans `src/app/globals.css` (couleurs, arrondis, espacements, polices), cf. `docs/conventions.md` et ADR 0004. `src/components/avatar.tsx` affiche la photo de profil (URL contrôlée par `safeAvatarUrl`) ou les initiales, en carré arrondi (`rounded-control`, comme les boutons) ; seules les pastilles (`.chip`) restent rondes. Les titres de page (`.page-title`) sont en Syne gras.
 
 **Liste déroulante réutilisable.** `src/components/select.tsx` (`<Select label options name? defaultValue? value? onChange? size?>`) : feuille en bas d'écran sur mobile (fermable en la glissant vers le bas, `use-sheet-swipe.ts`), popover dès `sm`, motif ARIA listbox (flèches, Début/Fin, Entrée/Espace, Échap). Dans un formulaire, la valeur part par un `<input type="hidden" name>` : utilisable avec les Server Actions et les formulaires GET. Remplace les `<select>` natifs de l'administration (rôle, durée de ban, filtre du journal).
 
