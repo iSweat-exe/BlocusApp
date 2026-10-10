@@ -16,7 +16,7 @@ export default function LoginPage() {
           <h1 className="sr-only">Connexion</h1>
 
           <p
-            className="mb-1 text-4xl font-bold tracking-tighter text-foreground sm:text-5xl"
+            className="mb-1 font-display text-4xl font-extrabold tracking-tighter text-foreground sm:text-5xl"
             aria-hidden="true"
           >
             BLOCUS<span className="text-accent">.</span>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Syne } from "next/font/google";
+import { Archivo, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { ACCENT_BOOT_SCRIPT } from "@/features/settings/accent-script";
 import { THEME_BOOT_SCRIPT } from "@/features/settings/theme-script";
@@ -7,11 +7,17 @@ import { NoZoom } from "@/components/no-zoom";
 import { SampledAnalytics } from "@/components/sampled-analytics";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Text font. Variable: every weight (400 text, 500 secondary, 600 labels and buttons) is the same file.
+const inter = Inter({
+  variable: "--font-inter-face",
   subsets: ["latin"],
-  // Only the fallback of Syne (see `--font-sans` in `globals.css`): do not preload a second text font.
-  preload: false,
+});
+
+// Display font (brand and headings, from 600 to 800). Variable too. Both are named by `--font-sans` and
+// `--font-display` in `globals.css`.
+const archivo = Archivo({
+  variable: "--font-archivo-face",
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
@@ -19,12 +25,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   // Only used by a few screens (profile, admin, settings, map): no need to preload it on every page.
   preload: false,
-});
-
-const syne = Syne({
-  // The font of the whole app: `--font-sans` in `globals.css` puts it first.
-  variable: "--font-syne-face",
-  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -56,7 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} h-full antialiased`}
+      className={`${inter.variable} ${archivo.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

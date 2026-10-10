@@ -11,23 +11,32 @@ function declared(name: string): string | undefined {
 }
 
 describe("typography", () => {
-  it("makes Syne the first font of the app, with Geist Sans as the fallback", () => {
-    expect(declared("--font-sans")).toBe(
-      "var(--font-syne-face), var(--font-geist-sans), sans-serif",
+  it("uses Inter for the text and Archivo for the display, each with a text fallback", () => {
+    expect(declared("--font-sans")).toBe("var(--font-inter-face), system-ui, sans-serif");
+    expect(declared("--font-display")).toBe(
+      "var(--font-archivo-face), var(--font-inter-face), system-ui, sans-serif",
     );
   });
 
-  it("applies --font-sans once on the body (no second, redundant Syne declaration)", () => {
+  it("applies --font-sans once on the body", () => {
     const body = /\nbody\s*\{[^}]*\}/.exec(css)?.[0] ?? "";
     expect(body).toContain("font-family: var(--font-sans), Arial, Helvetica, sans-serif;");
-    expect(body).not.toContain("--font-syne");
+    expect(body).not.toContain("--font-display");
   });
 
-  it("loads Syne in the root layout with the variable that --font-sans points at", () => {
-    expect(layout).toMatch(/Syne\(\{[^}]*variable: "--font-syne-face"/);
+  it("sets headings in the display font, and keeps the small section labels in the text font", () => {
+    const base = /@layer base\s*\{[^@]*\n\}/.exec(css)?.[0] ?? "";
+    expect(base).toMatch(/h1,\s*h2,\s*h3\s*\{\s*font-family: var\(--font-display\);/);
+    expect(/\.section-title\s*\{[^}]*\bfont-sans\b/.test(css)).toBe(true);
   });
 
-  it("does not preload the fallback font", () => {
-    expect(layout).toMatch(/Geist\(\{[^}]*preload: false/);
+  it("loads both fonts in the root layout, with the variables the tokens point at", () => {
+    expect(layout).toMatch(/Inter\(\{[^}]*variable: "--font-inter-face"/);
+    expect(layout).toMatch(/Archivo\(\{[^}]*variable: "--font-archivo-face"/);
+  });
+
+  it("does not load the fonts it replaced, and still lazy-loads the monospace one", () => {
+    expect(layout).not.toMatch(/Syne|Geist\(/);
+    expect(layout).toMatch(/Geist_Mono\(\{[^}]*preload: false/);
   });
 });

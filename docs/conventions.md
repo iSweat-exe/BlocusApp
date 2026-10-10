@@ -53,7 +53,7 @@ hauteur de bouton : utiliser les tokens et classes partagées.
 | --------------------- | ----------------------------------------------------------------------------- |
 | Couleurs              | `bg-accent`, `text-accent`, `text-danger`, `text-success`, `text-muted`, `text-faint`, `border-line`, `bg-surface` |
 | Arrondis              | `rounded-control` (boutons, champs, boutons d’icône de l’en-tête, avatars), `rounded-card` (cartes), `rounded-sheet` (feuilles), `rounded-full` (pastilles) |
-| Police                | rien à ajouter : Syne est la police par défaut (`--font-sans`) ; `font-mono` pour les valeurs techniques |
+| Police                | rien à ajouter pour le texte (Inter, `--font-sans`) ; titres `h1` à `h3` et `font-display` (Archivo) pour la marque ; `font-mono` pour les valeurs techniques ; graisses : 400 texte, 500 secondaire, 600 étiquettes et boutons, 600 à 800 titres |
 | Zones tactiles        | `min-h-tap` (44 px), `min-h-control` (48 px), `min-h-control-sm` (40 px)      |
 | Rythme                | `p-gutter` (marge de page), `gap-section` (entre sections)                    |
 | Cartes / alertes      | `.card`, `.card-link`, `.alert .alert-error`, `.chip .chip-accent`            |
