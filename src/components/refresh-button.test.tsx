@@ -28,4 +28,21 @@ describe("RefreshButton", () => {
     finish();
     await waitFor(() => expect(button).toBeEnabled());
   });
+
+  it("stays busy for as long as the action has not finished, however long that takes", async () => {
+    // A slow refresh: no timer may re-enable the button and allow a second press while it is running.
+    let finish: () => void = () => {};
+    refreshPublicData.mockReturnValue(new Promise<void>((resolve) => (finish = resolve)));
+    render(<RefreshButton />);
+    const button = screen.getByRole("button", { name: "Actualiser" });
+    await userEvent.click(button);
+    await waitFor(() => expect(button).toBeDisabled());
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+
+    // Resolved last: the `beforeEach` above returns the mock, which Vitest calls again as the teardown.
+    finish();
+    await waitFor(() => expect(button).toBeEnabled());
+  });
 });

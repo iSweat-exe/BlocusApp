@@ -19,6 +19,16 @@ describe("Avatar", () => {
     expect(screen.getByText("BM")).toBeInTheDocument();
   });
 
+  it("has the rounded-square shape of the controls, and can fill its parent", () => {
+    const { container } = render(
+      <Avatar pseudo="Alice" url="https://cdn.discordapp.com/avatars/1/a.png" size="fill" />,
+    );
+    const img = container.querySelector("img");
+    expect(img).toHaveClass("rounded-control", "h-full", "w-full");
+    expect(img).not.toHaveClass("rounded-full");
+    expect(img?.className).not.toMatch(/\bh-(9|11|20|24)\b/);
+  });
+
   it("can be decorative", () => {
     const { container } = render(
       <Avatar pseudo="Alice" url="https://cdn.discordapp.com/avatars/1/a.png" decorative />,
