@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Syne } from "next/font/google";
 import "./globals.css";
 import { ACCENT_BOOT_SCRIPT } from "@/features/settings/accent-script";
 import { THEME_BOOT_SCRIPT } from "@/features/settings/theme-script";
@@ -17,6 +17,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   // Only used by a few screens (profile, admin, settings, map): no need to preload it on every page.
   preload: false,
+});
+
+const syne = Syne({
+  variable: "--font-syne",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -48,7 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
