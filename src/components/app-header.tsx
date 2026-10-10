@@ -27,10 +27,12 @@ export async function AppHeader() {
         <Link
           href="/"
           prefetch={false}
-          aria-label="BlocusApp"
-          className="font-syne text-xl font-bold tracking-[-0.04em] text-foreground transition-opacity active:opacity-80"
+          className="inline-flex min-h-tap items-center font-syne text-xl font-bold tracking-tighter text-foreground transition-opacity active:opacity-80"
         >
-          BLOCUS<span className="text-accent">.</span>
+          BLOCUS
+          <span aria-hidden="true" className="text-accent">
+            .
+          </span>
         </Link>
 
         <nav aria-label="Compte" className="flex items-center gap-2">
@@ -39,7 +41,7 @@ export async function AppHeader() {
             <Link
               href="/login"
               prefetch={false}
-              className="btn btn-primary btn-sm rounded-control font-syne shadow-2xs transition-all active:scale-95"
+              className="btn btn-primary btn-sm min-h-tap font-syne shadow-2xs transition-all active:scale-95"
             >
               Se connecter
             </Link>
@@ -51,17 +53,7 @@ export async function AppHeader() {
                 </HeaderIconLink>
               )}
               <HeaderIconLink href="/profil" label="Mon profil">
-                {avatar ? (
-                  <Avatar
-                    pseudo=""
-                    url={avatar}
-                    size="sm"
-                    decorative
-                    className="h-full w-full rounded-[inherit] object-cover"
-                  />
-                ) : (
-                  <UserIcon />
-                )}
+                {avatar ? <Avatar pseudo="" url={avatar} size="fill" decorative /> : <UserIcon />}
               </HeaderIconLink>
             </>
           )}

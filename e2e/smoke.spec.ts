@@ -208,7 +208,8 @@ test.describe("app shell", () => {
   test("the header offers sign-in to Guests and never a sign-out button", async ({ page }) => {
     await page.goto("/");
     const header = page.getByRole("banner");
-    await expect(header.getByRole("link", { name: "BlocusApp" })).toBeVisible();
+    // The brand link is named by what it shows (« BLOCUS. », the dot is decorative), not by an aria-label.
+    await expect(header.getByRole("link", { name: "BLOCUS", exact: true })).toBeVisible();
     await expect(header.getByRole("link", { name: "Se connecter" })).toHaveAttribute(
       "href",
       "/login",

@@ -1,38 +1,30 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { refreshPublicData } from "@/features/refresh/actions";
 import { RefreshIcon } from "./icons";
 
 /**
- * "Actualiser" button of the header: the manual way to get the latest data now.
- * The icon spins smoothly when pressed and re-renders the page with fresh data.
+ * "Actualiser" button of the header: the manual way to get the latest data now. The app keeps shared data for up
+ * to 2 minutes and refreshes on return after a while away (see `RefreshOnReturn`); this expires that data and
+ * re-renders the page. The icon spins, and the button stays disabled, until the new page is there: the transition
+ * must return the action's promise, otherwise `pending` ends at once and the button could be pressed again while
+ * a refresh is still running.
  */
 export function RefreshButton() {
   const [pending, startTransition] = useTransition();
-  const [isSpinning, setIsSpinning] = useState(false);
-
-  const handleRefresh = () => {
-    setIsSpinning(true);
-    setTimeout(() => setIsSpinning(false), 650);
-    startTransition(() => {
-      void refreshPublicData();
-    });
-  };
-
-  const active = pending || isSpinning;
 
   return (
     <button
       type="button"
-      onClick={handleRefresh}
-      disabled={active}
+      onClick={() => startTransition(() => refreshPublicData())}
+      disabled={pending}
       aria-label="Actualiser"
       title="Actualiser"
-      aria-busy={active}
-      className="flex h-tap w-tap items-center justify-center rounded-control border border-line-strong/60 bg-surface/80 text-foreground/80 backdrop-blur-xs shadow-2xs transition-all active:scale-95 active:bg-foreground/15 [@media(hover:hover)]:hover:bg-foreground/10 disabled:opacity-70"
+      aria-busy={pending}
+      className="flex h-tap w-tap items-center justify-center rounded-control border border-line-strong/60 bg-surface/80 text-foreground/80 backdrop-blur-xs shadow-2xs transition-all active:scale-95 active:bg-foreground/15 disabled:opacity-70 [@media(hover:hover)]:hover:bg-foreground/10"
     >
-      <RefreshIcon className={active ? "animate-spin" : undefined} />
+      <RefreshIcon className={pending ? "animate-spin" : undefined} />
     </button>
   );
 }

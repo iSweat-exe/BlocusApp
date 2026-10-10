@@ -3,7 +3,7 @@ import type { SVGProps } from "react";
 /** Inline SVG icons (24x24, `currentColor`): no icon library, no extra request. Decorative by default. */
 type IconProps = SVGProps<SVGSVGElement>;
 
-function Icon({ children, className, style, ...props }: IconProps) {
+function Icon({ children, className, ...props }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -16,7 +16,6 @@ function Icon({ children, className, style, ...props }: IconProps) {
       strokeLinejoin="round"
       aria-hidden="true"
       focusable="false"
-      style={{ isolation: "isolate", ...style }}
       className={`inline-block origin-center shrink-0 ${className ?? ""}`}
       {...props}
     >
