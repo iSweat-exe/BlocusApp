@@ -23,7 +23,7 @@ const contentSecurityPolicy = [
   `img-src 'self' data: blob: ${supabaseOrigin} https://cdn.discordapp.com https://lh3.googleusercontent.com ${TILES_ORIGIN}`,
   "font-src 'self' data:",
   // The map fetches its style, vector tiles, glyphs and sprites from the tiles origin.
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWs} ${TILES_ORIGIN}${isDev ? " ws://localhost:*" : ""}`,
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWs} ${TILES_ORIGIN}${isDev ? " ws: http:" : ""}`,
   // MapLibre parses tiles in a worker (a same-origin file, or a blob: wrapper around a cross-origin one).
   "worker-src 'self' blob:",
   "manifest-src 'self'",
@@ -48,6 +48,18 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  ...(isDev
+    ? {
+        allowedDevOrigins: [
+          "localhost:3000",
+          "127.0.0.1:3000",
+          "192.168.1.20",
+          "192.168.1.20:3000",
+          "192.168.56.1",
+          "192.168.56.1:3000",
+        ],
+      }
+    : {}),
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

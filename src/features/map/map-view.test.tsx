@@ -600,7 +600,7 @@ describe("MapView position", () => {
     await user.click(screen.getByRole("button", { name: "Déclarer la position" }));
     await user.click(screen.getByRole("button", { name: "Déclarer ici" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Patiente quelques secondes");
-    expect(screen.getByRole("button", { name: "Déclarer ici" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Déclarer ici" })).toBeInTheDocument();
   });
 
   it("the GPS shortcut only moves the map: nothing is declared until the manager confirms", async () => {
