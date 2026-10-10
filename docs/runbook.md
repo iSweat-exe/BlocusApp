@@ -30,8 +30,10 @@ Actions manuelles (une fois par environnement) :
    ajouter le redirect `https://<project-ref>.supabase.co/auth/v1/callback`, copier Client ID et Secret.
 2. Supabase → Authentication → Providers → Discord : activer, coller Client ID / Secret.
 3. Supabase → Authentication → URL Configuration : `Site URL` = URL de production ; `Redirect URLs` =
-   `https://<prod>/auth/callback`, `https://*-<équipe>.vercel.app/auth/callback` (previews) et
-   `http://localhost:3000/auth/callback`.
+   `https://<prod>/auth/callback**`, `https://*-<équipe>.vercel.app/auth/callback**` (previews) et
+   `http://localhost:3000/auth/callback**`. Le `**` final est **obligatoire** : chaque démarrage OAuth ajoute
+   `?sb_flow_id=…` au `redirectTo` (voir `docs/architecture.md`) et Supabase compare l'URL query string comprise ;
+   sans lui, Supabase refuse le `redirectTo` et renvoie vers le `Site URL`.
 4. `NEXT_PUBLIC_SITE_URL` renseigné dans Vercel (utilisé pour le `redirectTo`).
 
 Le Client Secret ne se met jamais dans le dépôt ni dans un commentaire de `.env`.
