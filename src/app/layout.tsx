@@ -10,6 +10,8 @@ import { ServiceWorkerRegister } from "@/components/service-worker-register";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  // Only the fallback of Syne (see `--font-sans` in `globals.css`): do not preload a second text font.
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
@@ -20,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 const syne = Syne({
-  // Not `--font-syne`: that name is the theme token (`font-syne` in `globals.css`), which points at this one.
+  // The font of the whole app: `--font-sans` in `globals.css` puts it first.
   variable: "--font-syne-face",
   subsets: ["latin"],
 });

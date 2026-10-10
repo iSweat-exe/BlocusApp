@@ -70,9 +70,9 @@
   --color-faint: color-mix(in srgb, var(--foreground) 45%, transparent);
 
   /* Fonts. */
-  --font-sans: var(--font-geist-sans);
+  /* Syne is the font of the whole app; Geist Sans only covers what Syne lacks. */
+  --font-sans: var(--font-syne-face), var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-syne: var(--font-syne-face);
 
   /* Radii: controls (buttons, inputs, header icon buttons, avatars), cards, sheets. Pills use rounded-full. */
   --radius-control: 0.75rem;
@@ -171,15 +171,7 @@
 /* 3. Shared component classes. */
 @layer components {
   .page-title {
-    @apply font-syne text-2xl font-bold tracking-tight;
-  }
-  /* Soft glow of the accent color rising from the bottom edge (login screen). */
-  .accent-glow {
-    background: radial-gradient(
-      ellipse at 50% 100%,
-      color-mix(in srgb, var(--accent) 22%, transparent),
-      transparent 70%
-    );
+    @apply text-2xl font-bold tracking-tight;
   }
   /* Soft glow of the accent color rising from the bottom edge (login screen). */
   .accent-glow {

@@ -27,7 +27,7 @@ export async function AppHeader() {
         <Link
           href="/"
           prefetch={false}
-          className="inline-flex min-h-tap items-center font-syne text-xl font-bold tracking-tighter text-foreground transition-opacity active:opacity-80"
+          className="inline-flex min-h-tap items-center text-xl font-bold tracking-tighter text-foreground transition-opacity active:opacity-80"
         >
           BLOCUS
           <span aria-hidden="true" className="text-accent">
@@ -41,7 +41,7 @@ export async function AppHeader() {
             <Link
               href="/login"
               prefetch={false}
-              className="btn btn-primary btn-sm min-h-tap font-syne shadow-2xs transition-all active:scale-95"
+              className="btn btn-primary btn-sm min-h-tap shadow-2xs transition-all active:scale-95"
             >
               Se connecter
             </Link>
