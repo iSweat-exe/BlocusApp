@@ -20,7 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 const syne = Syne({
-  variable: "--font-syne",
+  // Not `--font-syne`: that name is the theme token (`font-syne` in `globals.css`), which points at this one.
+  variable: "--font-syne-face",
   subsets: ["latin"],
 });
 
