@@ -27,7 +27,7 @@ export async function AppHeader() {
         <Link
           href="/"
           prefetch={false}
-          className="inline-flex min-h-tap items-center text-xl font-bold tracking-tighter text-foreground transition-opacity active:opacity-80"
+          className="inline-flex min-h-tap items-center font-display text-xl font-extrabold tracking-tighter text-foreground transition-opacity active:opacity-80"
         >
           BLOCUS
           <span aria-hidden="true" className="text-accent">

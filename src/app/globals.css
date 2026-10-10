@@ -70,8 +70,10 @@
   --color-faint: color-mix(in srgb, var(--foreground) 45%, transparent);
 
   /* Fonts. */
-  /* Syne is the font of the whole app; Geist Sans only covers what Syne lacks. */
-  --font-sans: var(--font-syne-face), var(--font-geist-sans), sans-serif;
+  /* Inter for the text, Archivo for the display (brand and headings), Geist Mono for technical values.
+     Weights: 400 text, 500 secondary text, 600 labels and buttons, 600 to 800 for display. */
+  --font-sans: var(--font-inter-face), system-ui, sans-serif;
+  --font-display: var(--font-archivo-face), var(--font-inter-face), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
 
   /* Radii: controls (buttons, inputs, header icon buttons, avatars), cards, sheets. Pills use rounded-full. */
@@ -171,7 +173,7 @@
 /* 3. Shared component classes. */
 @layer components {
   .page-title {
-    @apply text-2xl font-bold tracking-tight;
+    @apply text-2xl font-extrabold tracking-tight;
   }
   /* Soft glow of the accent color rising from the bottom edge (login screen). */
   .accent-glow {
@@ -182,7 +184,7 @@
     );
   }
   .section-title {
-    @apply px-1 text-xs font-semibold tracking-wide text-faint uppercase;
+    @apply px-1 font-sans text-xs font-semibold tracking-wide text-faint uppercase;
   }
   .card {
     @apply rounded-card border border-line bg-surface;
@@ -256,6 +258,15 @@
   }
   .chip-accent {
     @apply bg-accent/15 text-accent;
+  }
+}
+
+/* Headings use the display font. `.section-title` (a small label) stays in the text font. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
   }
 }
 
