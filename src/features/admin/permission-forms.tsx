@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useOptimistic } from "react";
 import {
   setUserPermission,
   toggleRolePermission,
@@ -21,26 +21,68 @@ function Feedback({ state }: { state: PermissionState }) {
   );
 }
 
-/** One role x permission toggle. `granted` is the *wanted* state, i.e. the opposite of the current one. */
-export function RolePermissionToggle({
+/**
+ * One role x permission switch. It flips at once (optimistic) and goes back by itself when the server refuses:
+ * the page then re-renders with the stored state. The form sends the *wanted* state, the opposite of the
+ * current one, so it works without any client state and the server stays authoritative.
+ */
+export function RolePermissionSwitch({
   role,
   permission,
   currentlyGranted,
+  label,
 }: {
   role: string;
   permission: string;
   currentlyGranted: boolean;
+  /** Accessible name: what the switch controls, and for which role. */
+  label: string;
 }) {
-  const [state, action, pending] = useActionState(toggleRolePermission, INITIAL_STATE);
+  const [state, dispatch, pending] = useActionState(toggleRolePermission, INITIAL_STATE);
+  const [granted, setGranted] = useOptimistic(currentlyGranted);
+
+  function submit(formData: FormData) {
+    setGranted(!currentlyGranted);
+    dispatch(formData);
+  }
+
   return (
-    <form action={action} className="flex flex-col items-end gap-1">
+    <form action={submit} className="flex flex-col items-end gap-1">
       <input type="hidden" name="role" value={role} />
       <input type="hidden" name="permission" value={permission} />
       <input type="hidden" name="granted" value={currentlyGranted ? "false" : "true"} />
-      <button type="submit" disabled={pending} className="btn btn-outline btn-sm">
-        {pending ? "…" : currentlyGranted ? "Retirer" : "Accorder"}
+      <button
+        type="submit"
+        role="switch"
+        aria-checked={granted}
+        aria-label={label}
+        aria-busy={pending}
+        disabled={pending}
+        className="flex h-tap w-14 items-center justify-center rounded-full"
+      >
+        <span
+          aria-hidden="true"
+          className={`flex h-7 w-12 items-center rounded-full transition-colors ${
+            granted ? "bg-accent" : "bg-foreground/20"
+          } ${pending ? "opacity-60" : ""}`}
+        >
+          <span
+            className={`block size-6 rounded-full bg-white shadow-sm transition-transform ${
+              granted ? "translate-x-5.5" : "translate-x-0.5"
+            }`}
+          />
+        </span>
       </button>
-      <Feedback state={state} />
+      {state.status === "error" && state.message && (
+        <p role="alert" className="max-w-56 text-right text-xs text-danger">
+          {state.message}
+        </p>
+      )}
+      {state.status === "success" && (
+        <span role="status" className="sr-only">
+          {state.message}
+        </span>
+      )}
     </form>
   );
 }

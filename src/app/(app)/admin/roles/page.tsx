@@ -1,26 +1,33 @@
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { RoleMatrix } from "@/features/admin/role-matrix";
+import { RolesSkeleton } from "@/features/admin/roles-skeleton";
 import { getSessionPermissions } from "@/server/session";
 
-async function RolesContent() {
+async function RolesContent({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
   const session = await getSessionPermissions();
   if (!session) redirect("/login");
   // Hidden (404) without the permission; the actions re-check in the database.
   if (!session.permissions.includes("permission.manage")) notFound();
-  return <RoleMatrix session={session} />;
+
+  const { role } = await searchParams;
+  // An unknown or repeated value is ignored by the model, which then opens the default role.
+  return (
+    <RoleMatrix session={session} requestedRole={typeof role === "string" ? role : undefined} />
+  );
 }
 
-export default function AdminRolesPage() {
+export default function AdminRolesPage({ searchParams }: PageProps<"/admin/roles">) {
   return (
     <div className="flex flex-col gap-section">
-      <h2 className="text-xl font-semibold tracking-tight">Rôles et permissions</h2>
-      <p className="text-sm text-muted">
-        Choisis ce que peut faire chaque rôle. Tu modifies uniquement les rôles en dessous du tien,
-        et tu n&apos;accordes que ce que tu possèdes.
-      </p>
-      <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
-        <RolesContent />
+      <header className="flex flex-col gap-1">
+        <h2 className="text-xl font-bold tracking-tight">Rôles et permissions</h2>
+        <p className="text-sm text-muted">
+          Choisis un rôle, puis ce qu&apos;il a le droit de faire.
+        </p>
+      </header>
+      <Suspense fallback={<RolesSkeleton />}>
+        <RolesContent searchParams={searchParams as Promise<{ role?: string }>} />
       </Suspense>
     </div>
   );

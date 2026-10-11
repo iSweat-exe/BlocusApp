@@ -146,6 +146,25 @@ export function PencilIcon(props: IconProps) {
   );
 }
 
+/** Check mark: granted, done. */
+export function CheckIcon(props: IconProps) {
+  return (
+    <Icon strokeWidth="2.2" {...props}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </Icon>
+  );
+}
+
+/** Closed padlock: locked, cannot be changed. */
+export function LockIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </Icon>
+  );
+}
+
 /** Cross: close. */
 export function CloseIcon(props: IconProps) {
   return (
