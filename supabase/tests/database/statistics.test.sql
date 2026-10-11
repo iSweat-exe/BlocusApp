@@ -1,5 +1,33 @@
 begin;
-select plan(32);
+select plan(34);
+
+-- The dev seed (supabase/seed.sql) runs before the tests and already holds accounts: every figure is compared with
+-- what existed before the fixtures below, never with an absolute number.
+create temp table base as
+select
+  (select count(*)::int from public.profiles) as users,
+  (select count(*)::int from public.profiles where created_at > now() - interval '24 hours') as signups_24h,
+  (select count(*)::int from public.profiles where created_at > now() - interval '7 days') as signups_7d,
+  (select count(*)::int from public.profiles where created_at > now() - interval '30 days') as signups_30d,
+  (select count(*)::int from public.profiles
+    where created_at >= date_trunc('hour', now(), 'UTC') - interval '23 hours') as signups_window,
+  (select count(*)::int from public.user_activity where last_seen_at > now() - interval '24 hours') as active_24h,
+  (select count(*)::int from public.user_activity where last_seen_at > now() - interval '7 days') as active_7d,
+  (select count(*)::int from public.user_activity where last_seen_at > now() - interval '30 days') as active_30d,
+  (select count(distinct target_id)::int from public.moderation_actions
+    where kind = 'ban' and revoked_at is null and (expires_at is null or expires_at > now())) as banned,
+  (select count(*)::int from public.announcements where status = 'public') as posts,
+  (select count(*)::int from public.events) as events,
+  (select count(*)::int from public.events where starts_at > now() and finished_at is null) as upcoming,
+  (select count(*)::int from public.map_positions where removed_at is null) as positions,
+  (select count(*)::int from public.profiles where role = 'manager') as managers,
+  (select count(*)::int from auth.users where raw_app_meta_data ->> 'provider' = 'discord') as discord,
+  (select count(*)::int from auth.users where raw_app_meta_data ->> 'provider' is null) as no_provider,
+  (select count(*)::int from public.profiles p
+    where not exists (select 1 from public.signup_origins o where o.user_id = p.id and o.country is not null)) as no_country,
+  (select count(*)::int from public.signup_origins where country = 'FR') as fr,
+  (select count(*)::int from public.signup_origins where country = 'BE') as be;
+grant select on base to public;
 
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, raw_app_meta_data)
 values
@@ -63,18 +91,18 @@ select throws_ok($$select * from public.stats_overview()$$, '42501', null, 'anon
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-0000000000d3", "role": "authenticated"}';
 
-select is((select users_total from public.stats_overview()), 4, 'overview: users');
-select is((select signups_24h from public.stats_overview()), 3, 'overview: sign-ups in 24 hours');
-select is((select signups_7d from public.stats_overview()), 3, 'overview: sign-ups in 7 days (the 10-day-old account is out)');
-select is((select signups_30d from public.stats_overview()), 4, 'overview: sign-ups in 30 days');
-select is((select active_24h from public.stats_overview()), 1, 'overview: active in 24 hours');
-select is((select active_7d from public.stats_overview()), 2, 'overview: active in 7 days');
-select is((select active_30d from public.stats_overview()), 2, 'overview: active in 30 days (40 days ago is out)');
-select is((select banned_now from public.stats_overview()), 1, 'overview: only the active ban counts');
-select is((select posts_public from public.stats_overview()), 1, 'overview: drafts are not public posts');
-select is((select events_total from public.stats_overview()), 2, 'overview: events');
-select is((select events_upcoming from public.stats_overview()), 1, 'overview: a finished event is not upcoming');
-select is((select positions_active from public.stats_overview()), 1, 'overview: removed positions are not counted');
+select is((select users_total from public.stats_overview()), (select users + 4 from base), 'overview: users');
+select is((select signups_24h from public.stats_overview()), (select signups_24h + 3 from base), 'overview: sign-ups in 24 hours');
+select is((select signups_7d from public.stats_overview()), (select signups_7d + 3 from base), 'overview: sign-ups in 7 days (the 10-day-old account is out)');
+select is((select signups_30d from public.stats_overview()), (select signups_30d + 4 from base), 'overview: sign-ups in 30 days');
+select is((select active_24h from public.stats_overview()), (select active_24h + 1 from base), 'overview: active in 24 hours');
+select is((select active_7d from public.stats_overview()), (select active_7d + 2 from base), 'overview: active in 7 days');
+select is((select active_30d from public.stats_overview()), (select active_30d + 2 from base), 'overview: active in 30 days (40 days ago is out)');
+select is((select banned_now from public.stats_overview()), (select banned + 1 from base), 'overview: only the active ban counts');
+select is((select posts_public from public.stats_overview()), (select posts + 1 from base), 'overview: drafts are not public posts');
+select is((select events_total from public.stats_overview()), (select events + 2 from base), 'overview: events');
+select is((select events_upcoming from public.stats_overview()), (select upcoming + 1 from base), 'overview: a finished event is not upcoming');
+select is((select positions_active from public.stats_overview()), (select positions + 1 from base), 'overview: removed positions are not counted');
 select is(
   (select tracking_since from public.stats_overview()), date_trunc('hour', now(), 'UTC') - interval '3 hours',
   'overview: tracking starts at the first measured hour');
@@ -97,23 +125,28 @@ select is(
   (select tracked from public.stats_activity(24) where hour = date_trunc('hour', now(), 'UTC') - interval '2 hours'), true,
   'activity: an hour without a count after the first measure is a real zero');
 select is(
-  (select sum(signups)::int from public.stats_activity(24)), 3,
+  (select sum(signups)::int from public.stats_activity(24)), (select signups_window + 3 from base),
   'activity: sign-ups are counted per hour over the window');
 
 -- Breakdown.
 select is(
-  (select total from public.stats_breakdown() where kind = 'role' and key = 'manager'), 1,
+  (select total from public.stats_breakdown() where kind = 'role' and key = 'manager'), (select managers + 1 from base),
   'breakdown: users per role');
 select is(
-  (select total from public.stats_breakdown() where kind = 'provider' and key = 'discord'), 2,
+  (select total from public.stats_breakdown() where kind = 'provider' and key = 'discord'), (select discord + 2 from base),
   'breakdown: accounts per sign-up provider');
 select is(
-  (select total from public.stats_breakdown() where kind = 'provider' and key = 'unknown'), 1,
+  (select total from public.stats_breakdown() where kind = 'provider' and key = 'unknown'), (select no_provider + 1 from base),
   'breakdown: an account without provider is "unknown"');
 select is(
-  (select array_agg(key || ':' || total order by total desc, key) from public.stats_breakdown() where kind = 'country'),
-  array['FR:2', 'BE:1', 'unknown:1'],
-  'breakdown: top countries, then the accounts without a known country');
+  (select total from public.stats_breakdown() where kind = 'country' and key = 'FR'), (select fr + 2 from base),
+  'breakdown: accounts per sign-up country');
+select is(
+  (select total from public.stats_breakdown() where kind = 'country' and key = 'BE'), (select be + 1 from base),
+  'breakdown: another country');
+select is(
+  (select total from public.stats_breakdown() where kind = 'country' and key = 'unknown'), (select no_country + 1 from base),
+  'breakdown: the accounts without a known country are "unknown"');
 
 select * from finish();
 rollback;
