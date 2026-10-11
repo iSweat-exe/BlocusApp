@@ -44,11 +44,11 @@ Marque chaque ligne **GARDER** ou **RETIRER**. Les idées retirées seront suppr
 | A-113 | RGPD : export/suppression de compte | ☐ GARDER ☐ RETIRER |
 
 ## Questions ouvertes
-1. Quels rôles exacts veux-tu (au-delà de `user`, `moderator`, `admin`, `super_admin`) ?
+1. ~~Quels rôles exacts veux-tu (au-delà de `user`, `moderator`, `admin`, `super_admin`) ?~~ Réponse : `manager` (Gérant), plus `relay` (Relais), `editor` (Rédacteur) et `developer` (Développeur), voir A-031b et `docs/permissions.md`.
 2. ~~Que sont les « messages » ?~~ Réponse : pas de messagerie pour l'instant, on communique via Instagram (reportée au Backlog).
 3. L'app est-elle commerciale (impact sur Vercel Hobby) ?
 4. Langue de la documentation : français (actuel) ou anglais ? (les commentaires de code restent en anglais)
-5. Rôle « gérant » : nom exact et liste précise de ses permissions ?
+5. ~~Rôle « gérant » : nom exact et liste précise de ses permissions ?~~ Réponse : « Gérant » (`manager`) : annonces, tracé, position, création et clôture d'événements (matrice dans `docs/permissions.md`).
 6. Garde-t-on e-mail / mot de passe (A-011) en plus de Discord et Google ?
 7. Ville X et emprise de la carte ; lib de carte (A-126) ?
 8. Un Guest voit-il la position de la manifestation en direct ?

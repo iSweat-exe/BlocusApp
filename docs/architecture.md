@@ -43,7 +43,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/calendar`   | Calendrier : grille de mois (`?month=AAAA-MM&day=AAAA-MM-JJ`) et événements du jour | Lecture : Guest ; écriture : autorisés (`event.create`) |
 | `(app)`  | `/calendar/[id]` | Détail d'un événement                 | Lecture : Guest                            |
 | `(app)`  | `/map`        | Carte : fond OpenFreeMap (MapLibre, ADR 0005), tracé (lecture et édition au doigt), « Me localiser » et position déclarée | Lecture : Guest ; tracé : `map.route.edit` ; position : `map.position.declare` |
-| `(app)`  | `/admin`      | Administration : utilisateurs (recherche, filtre par rôle, liste) | Une permission d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`) ; sinon 404, Guest → `/login` |
+| `(app)`  | `/admin`      | Administration : utilisateurs (recherche, filtre par rôle, liste) | Une permission d'administration (`role.assign`, `user.ban`, `permission.manage`, `audit.read`, `monitoring.view`, `statistics.view`) ; sinon 404, Guest → `/login` |
 | `(app)`  | `/admin/statistics` | Statistiques : chiffres clés, activité et inscriptions par heure (24 h / 7 j / 30 j), heures de pointe, répartition des comptes, contenu | `statistics.view` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/health` | Santé de l'application : score en jauge, services avec état coloré, tables, utilisateurs, historique, configuration | `monitoring.view` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/users/[id]` | Fiche utilisateur : origine d'inscription (`user.origin.view`), rôle, sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |

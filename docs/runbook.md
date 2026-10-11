@@ -238,6 +238,10 @@ Puis se déconnecter / reconnecter pour renouveler le token. Garde-fou : le **de
 remplacer, promouvoir d'abord le nouveau, puis rétrograder l'ancien. Cela bloque aussi la suppression de son
 compte `auth.users` (cascade).
 
+**Qui devrait être `super_admin` ?** Le moins de comptes possible (le propriétaire, un second pour ne pas se bloquer).
+Un développeur qui ne fait que surveiller l'application prend le rôle `developer` (santé, statistiques, journal en
+lecture, aucun pouvoir sur les comptes), qu'un administrateur lui attribue depuis la fiche utilisateur : pas de SQL.
+
 ## Sauvegarde et restauration (O-073)
 
 L'offre gratuite de Supabase n'offre pas de sauvegarde automatique fiable : planifier un export régulier.

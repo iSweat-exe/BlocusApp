@@ -2,8 +2,11 @@
 const TONES: Record<string, string> = {
   super_admin: "bg-accent text-accent-ink",
   admin: "bg-accent/15 text-accent",
+  developer: "bg-foreground/15 text-foreground",
   moderator: "bg-warning/15 text-warning",
   manager: "bg-success/15 text-success",
+  editor: "bg-success/10 text-success",
+  relay: "bg-foreground/10 text-foreground",
 };
 
 /** Classes of the badge of a role; a role this version does not know yet is neutral. */

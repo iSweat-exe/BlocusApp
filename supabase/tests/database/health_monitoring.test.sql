@@ -16,11 +16,11 @@ values
   (gen_random_uuid(), '00000000-0000-0000-0000-0000000000a4', now(), now(), now()),
   (gen_random_uuid(), '00000000-0000-0000-0000-0000000000a1', now() - interval '2 days', now() - interval '2 days', now() - interval '2 days');
 
--- Permission matrix: only admin (and super_admin through has_permission) holds monitoring.view.
+-- Permission matrix: admin and developer (and super_admin through has_permission) hold monitoring.view.
 select is(
   (select array_agg(role order by role) from public.role_permissions where permission = 'monitoring.view'),
-  array['admin'],
-  'monitoring.view is granted to admin only');
+  array['admin', 'developer'],
+  'monitoring.view is granted to admin and developer');
 
 -- An old snapshot, to check the retention below (inserted as the table owner).
 insert into public.health_snapshots (created_at, score, source)

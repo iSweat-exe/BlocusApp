@@ -38,7 +38,7 @@ select throws_ok(
   '42501', null, 'user cannot escalate their own role');
 
 -- Reference data is readable but not writable by clients.
-select cmp_ok((select count(*)::int from public.roles), '=', 5, 'authenticated can read roles');
+select cmp_ok((select count(*)::int from public.roles), '>=', 5, 'authenticated can read roles');
 select cmp_ok((select count(*)::int from public.permissions), '>=', 7, 'authenticated can read permissions');
 select throws_ok(
   $$insert into public.role_permissions (role, permission) values ('user', 'user.ban')$$,

@@ -53,6 +53,7 @@ describe("RoleMatrixView", () => {
     view("moderator");
     expect(screen.getByRole("heading", { level: 3, name: "Modérateur" })).toBeInTheDocument();
     expect(screen.getByText("Modifiable")).toBeInTheDocument();
+    expect(screen.getByText(/Supervise le contenu des gérants/)).toBeInTheDocument();
     expect(screen.getByText(/sur 4 permissions/)).toBeInTheDocument();
     for (const group of ["Annonces", "Calendrier", "Modération", "Administration"]) {
       expect(screen.getByRole("heading", { level: 4, name: group })).toBeInTheDocument();

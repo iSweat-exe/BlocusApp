@@ -6,7 +6,10 @@ values
   ('00000000-0000-0000-0000-00000000d002', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'manager@seed.test', '{"user_name": "seed_manager"}'),
   ('00000000-0000-0000-0000-00000000d003', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'moderator@seed.test', '{"user_name": "seed_moderator"}'),
   ('00000000-0000-0000-0000-00000000d004', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'admin@seed.test', '{"user_name": "seed_admin"}'),
-  ('00000000-0000-0000-0000-00000000d005', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'super_admin@seed.test', '{"user_name": "seed_super_admin"}');
+  ('00000000-0000-0000-0000-00000000d005', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'super_admin@seed.test', '{"user_name": "seed_super_admin"}'),
+  ('00000000-0000-0000-0000-00000000d006', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'relay@seed.test', '{"user_name": "seed_relay"}'),
+  ('00000000-0000-0000-0000-00000000d007', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'editor@seed.test', '{"user_name": "seed_editor"}'),
+  ('00000000-0000-0000-0000-00000000d008', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'developer@seed.test', '{"user_name": "seed_developer"}');
 
 update public.profiles
    set role = split_part(u.email, '@', 1)

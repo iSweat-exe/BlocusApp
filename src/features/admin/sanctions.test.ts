@@ -89,8 +89,14 @@ describe("admin access helpers", () => {
   it("opens the admin area with any admin permission", () => {
     expect(canAccessAdmin(["user.ban"])).toBe(true);
     expect(canAccessAdmin(["audit.read"])).toBe(true);
+    expect(canAccessAdmin(["monitoring.view"])).toBe(true);
     expect(canAccessAdmin(["announcement.publish"])).toBe(false);
     expect(canAccessAdmin([])).toBe(false);
+  });
+
+  it("does not open the admin area for muting alone: there is nothing to mute with yet", () => {
+    expect(canAccessAdmin(["user.mute"])).toBe(false);
+    expect(canAccessAdmin(["user.mute", "announcement.delete", "event.delete"])).toBe(false);
   });
 
   it("checks for any of the wanted permissions", () => {
