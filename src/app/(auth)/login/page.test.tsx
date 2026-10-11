@@ -46,9 +46,11 @@ describe("LoginPage", () => {
     }
   });
 
-  it("draws its background with CSS only: no image to download", () => {
+  it("has a decorative photo background, drawn as a CSS background (no img element)", () => {
     const { container } = render(<LoginPage />);
     expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector(".accent-glow")).toHaveAttribute("aria-hidden", "true");
+    const photo = container.querySelector(".login-bg");
+    expect(photo).not.toBeNull();
+    expect(photo?.parentElement).toHaveAttribute("aria-hidden", "true");
   });
 });
