@@ -1,14 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { parseJournalParams } from "@/features/admin/audit";
+import { JournalSkeleton } from "@/features/admin/journal-skeleton";
 import { JournalView } from "@/features/admin/journal-view";
 import { getSessionPermissions } from "@/server/session";
 
-async function JournalContent({
-  searchParams,
-}: {
-  searchParams: Promise<{ action?: string; before?: string }>;
-}) {
+type JournalSearchParams = { category?: string; action?: string; before?: string };
+
+async function JournalContent({ searchParams }: { searchParams: Promise<JournalSearchParams> }) {
   const session = await getSessionPermissions();
   if (!session) redirect("/login");
   // Hidden (404) without the permission; RLS also returns nothing to users lacking audit.read.
@@ -20,14 +19,14 @@ async function JournalContent({
 export default function AdminJournalPage({ searchParams }: PageProps<"/admin/journal">) {
   return (
     <div className="flex flex-col gap-section">
-      <h2 className="text-xl font-semibold tracking-tight">Journal d&apos;audit</h2>
-      <p className="text-sm text-muted">
-        Historique des actions d&apos;administration : changements de rôle, permissions, bans.
-      </p>
-      <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
-        <JournalContent
-          searchParams={searchParams as Promise<{ action?: string; before?: string }>}
-        />
+      <header className="flex flex-col gap-1">
+        <h2 className="text-xl font-bold tracking-tight">Journal d&apos;audit</h2>
+        <p className="text-sm text-muted">
+          Qui a fait quoi, et quand : rôles, permissions, sanctions, calendrier et carte.
+        </p>
+      </header>
+      <Suspense fallback={<JournalSkeleton />}>
+        <JournalContent searchParams={searchParams as Promise<JournalSearchParams>} />
       </Suspense>
     </div>
   );

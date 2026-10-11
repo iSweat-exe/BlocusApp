@@ -47,7 +47,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/admin/health` | Santé de l'application : score global, base, Auth, Vercel, stockage, utilisateurs, historique | `monitoring.view` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/users/[id]` | Fiche utilisateur : sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/roles` | Rôles et permissions : un rôle à la fois (onglets), permissions groupées, interrupteurs | Permission `permission.manage` (sinon 404 ; Guest → `/login`) |
-| `(app)`  | `/admin/journal` | Journal d'audit (lecture, filtre, pagination) | Permission `audit.read` (sinon 404 ; Guest → `/login`) |
+| `(app)`  | `/admin/journal` | Journal d'audit : par jour, filtre par catégorie, pagination | Permission `audit.read` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/settings`   | Réglages : couleur de l'application (préréglages + couleur libre), raccourci profil/connexion | Public (réglages stockés sur l'appareil) |
 | `(app)`  | `/profil`     | Profil (lecture) : carte identité, compte, permissions, déconnexion| Connecté (Guest → `/login`)                |
 
@@ -157,7 +157,9 @@ d'action en bas avec la classe `.form-actions` quand `useInDialog()` est vrai. U
 
 **Design system.** Tokens et classes partagées dans `src/app/globals.css` (couleurs, arrondis, espacements, polices), cf. `docs/conventions.md` et ADR 0004. `src/components/avatar.tsx` affiche la photo de profil (URL contrôlée par `safeAvatarUrl`) ou les initiales, en carré arrondi (`rounded-control`, comme les boutons) ; seules les pastilles (`.chip`) restent rondes. **Polices** (deux familles, toutes variables, chargées avec `next/font`) : **Inter** pour le texte (`--font-sans`, police par défaut de `body`) et **Archivo** pour l'affichage (`--font-display`, utilitaire `font-display`) : la marque « BLOCUS. » et tous les titres `h1` à `h3`, via une règle de la couche `base` de `globals.css` ; `.section-title` (petite étiquette en majuscules) reste en Inter. Geist Mono sert aux écrans de données (`font-mono`, chargée à la demande). **Graisses** : 400 pour le texte, 500 pour le texte secondaire, 600 pour les étiquettes et les boutons, 600 à 800 pour l'affichage (`.page-title` et la marque en 800). Une seule police variable par famille : changer de graisse ne coûte aucun fichier de plus.
 
-**Liste déroulante réutilisable.** `src/components/select.tsx` (`<Select label options name? defaultValue? value? onChange? size?>`) : feuille en bas d'écran sur mobile (fermable en la glissant vers le bas, `use-sheet-swipe.ts`), popover dès `sm`, motif ARIA listbox (flèches, Début/Fin, Entrée/Espace, Échap). Dans un formulaire, la valeur part par un `<input type="hidden" name>` : utilisable avec les Server Actions et les formulaires GET. Remplace les `<select>` natifs de l'administration (rôle, durée de ban, filtre du journal).
+**Onglets en pastilles réutilisables.** `src/components/chip-tabs.tsx` (`<ChipTabs label tabs activeKey>`) : une navigation entre pages (des liens, donc chaque onglet est une vraie URL) en pastilles ; la liste défile sur le côté sur petit écran et l'onglet courant est recentré. Utilisée par le sélecteur de rôles et le filtre du journal.
+
+**Liste déroulante réutilisable.** `src/components/select.tsx` (`<Select label options name? defaultValue? value? onChange? size?>`) : feuille en bas d'écran sur mobile (fermable en la glissant vers le bas, `use-sheet-swipe.ts`), popover dès `sm`, motif ARIA listbox (flèches, Début/Fin, Entrée/Espace, Échap). Dans un formulaire, la valeur part par un `<input type="hidden" name>` : utilisable avec les Server Actions et les formulaires GET. Remplace les `<select>` natifs de l'administration (rôle, durée de ban).
 
 ## Santé de l'application (`/admin/health`, ADR 0006)
 

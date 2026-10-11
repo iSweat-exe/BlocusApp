@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import { adminLinksFor } from "./admin-links";
 import {
   AUDIT_ACTIONS,
+  AUDIT_CATEGORIES,
+  auditDayKey,
+  categoryOfAction,
   describeAuditEntry,
+  describeAuditEntryParts,
+  formatAuditDay,
+  formatAuditTime,
+  groupAuditByDay,
   parseJournalParams,
   type AuditEntryView,
   type AuditNames,
@@ -31,21 +38,96 @@ const entry = (over: Partial<AuditEntryView>): AuditEntryView => ({
 });
 
 describe("parseJournalParams", () => {
-  it("keeps a known action and a positive integer cursor", () => {
-    expect(parseJournalParams({ action: "user.banned", before: "42" })).toEqual({
-      action: "user.banned",
+  it("keeps a known category and a positive integer cursor", () => {
+    expect(parseJournalParams({ category: "sanctions", before: "42" })).toEqual({
+      category: "sanctions",
       before: 42,
     });
   });
 
+  it("still understands the former single-action parameter, as the family of that action", () => {
+    expect(parseJournalParams({ action: "user.banned" })).toEqual({
+      category: "sanctions",
+      before: null,
+    });
+    expect(parseJournalParams({ action: "user.banned", category: "map" }).category).toBe("map");
+  });
+
   it.each([
-    [{ action: "drop.table", before: "0" }],
-    [{ action: 3, before: "-1" }],
-    [{ action: undefined, before: "1; drop" }],
+    [{ category: "drop.table", before: "0" }],
+    [{ category: 3, action: "drop.table", before: "-1" }],
+    [{ category: undefined, before: "1; drop" }],
     [{ before: "9".repeat(20) }],
     [{}],
   ])("ignores invalid values (%j)", (raw) => {
-    expect(parseJournalParams(raw)).toEqual({ action: null, before: null });
+    expect(parseJournalParams(raw)).toEqual({ category: null, before: null });
+  });
+});
+
+describe("audit categories", () => {
+  it("puts every known action in exactly one category", () => {
+    for (const action of Object.keys(AUDIT_ACTIONS)) {
+      const owners = AUDIT_CATEGORIES.filter((category) =>
+        (category.actions as readonly string[]).includes(action),
+      );
+      expect(owners, action).toHaveLength(1);
+    }
+    for (const category of AUDIT_CATEGORIES) {
+      for (const action of category.actions) expect(AUDIT_ACTIONS[action], action).toBeDefined();
+    }
+  });
+
+  it("names the family of an action, and `other` for an action it does not know", () => {
+    expect(categoryOfAction("role_permission.revoked")).toBe("permissions");
+    expect(categoryOfAction("map.route_saved")).toBe("map");
+    expect(categoryOfAction("future.thing")).toBe("other");
+  });
+});
+
+describe("days of the journal", () => {
+  // 10 October 2026, 21:30 in Paris (UTC+2).
+  const NOW = new Date("2026-10-10T19:30:00Z");
+
+  it("labels today and yesterday, then the weekday and date, with the year only when it differs", () => {
+    expect(formatAuditDay("2026-10-10T08:00:00Z", NOW)).toBe("Aujourd'hui");
+    expect(formatAuditDay("2026-10-09T08:00:00Z", NOW)).toBe("Hier");
+    expect(formatAuditDay("2026-10-03T08:00:00Z", NOW)).toBe("samedi 3 octobre");
+    expect(formatAuditDay("2025-12-24T08:00:00Z", NOW)).toBe("mercredi 24 décembre 2025");
+  });
+
+  it("counts the day in Paris, not in UTC", () => {
+    // 22:30 UTC on the 9th is 00:30 on the 10th in Paris.
+    expect(auditDayKey("2026-10-09T22:30:00Z")).toBe("2026-10-10");
+    expect(formatAuditDay("2026-10-09T22:30:00Z", NOW)).toBe("Aujourd'hui");
+  });
+
+  it("finds yesterday across the change to winter time (a 25-hour day)", () => {
+    // Winter time starts on Sunday 25 October 2026 at 03:00 (Paris).
+    const monday = new Date("2026-10-26T10:00:00Z");
+    expect(formatAuditDay("2026-10-25T10:00:00Z", monday)).toBe("Hier");
+    expect(formatAuditDay("2026-10-24T10:00:00Z", monday)).toBe("samedi 24 octobre");
+  });
+
+  it("formats the time of day in Paris", () => {
+    expect(formatAuditTime("2026-10-10T21:24:00Z")).toBe("23:24");
+  });
+
+  it("groups entries by day, keeping their order", () => {
+    const days = groupAuditByDay(
+      [
+        { id: 4, created_at: "2026-10-10T18:00:00Z" },
+        { id: 3, created_at: "2026-10-10T08:00:00Z" },
+        { id: 2, created_at: "2026-10-09T20:00:00Z" },
+        { id: 1, created_at: "2026-10-03T09:00:00Z" },
+      ],
+      NOW,
+    );
+    expect(days.map((day) => [day.label, day.entries.map((item) => item.id)])).toEqual([
+      ["Aujourd'hui", [4, 3]],
+      ["Hier", [2]],
+      ["samedi 3 octobre", [1]],
+    ]);
+    expect(groupAuditByDay([], NOW)).toEqual([]);
   });
 });
 
@@ -165,6 +247,23 @@ describe("describeAuditEntry", () => {
     expect(describeAuditEntry(entry({ actor_id: null, action: "future.thing" }), NAMES)).toBe(
       "Système : future.thing (bob).",
     );
+  });
+
+  it("marks the names as strong, and only them", () => {
+    const parts = describeAuditEntryParts(
+      entry({ details: { from: "user", to: "manager" } }),
+      NAMES,
+    );
+    expect(parts.filter((part) => part.strong).map((part) => part.text)).toEqual([
+      "alice",
+      "bob",
+      "Utilisateur",
+      "Gérant",
+    ]);
+    expect(parts.map((part) => part.text).join("")).toBe(
+      "alice a changé le rôle de bob : Utilisateur → Gérant.",
+    );
+    expect(parts.find((part) => part.text.includes("a changé"))?.strong).toBeUndefined();
   });
 
   it("lists every action it knows how to describe", () => {

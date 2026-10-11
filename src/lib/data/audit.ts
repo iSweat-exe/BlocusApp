@@ -18,11 +18,11 @@ export type AuditPage = { entries: AuditEntry[]; nextCursor: number | null };
 /**
  * Reads one page of the audit log, newest first (keyset pagination on the identity `id`).
  * RLS only returns rows to holders of `audit.read`; anyone else gets an empty page.
- * @param options.action - Only entries of this action.
+ * @param options.actions - Only entries of one of these actions (an empty list means no filter).
  * @param options.before - Cursor: only entries with a smaller id than this one.
  */
 export async function listAuditLogs(
-  options: { action?: string | null; before?: number | null } = {},
+  options: { actions?: readonly string[] | null; before?: number | null } = {},
 ): Promise<Result<AuditPage, "load_failed">> {
   try {
     const supabase = createClient(await requestCookies());
@@ -32,7 +32,8 @@ export async function listAuditLogs(
       .order("id", { ascending: false })
       // One extra row tells whether another page exists.
       .limit(AUDIT_PAGE_SIZE + 1);
-    if (options.action) query = query.eq("action", options.action);
+    if (options.actions && options.actions.length > 0)
+      query = query.in("action", [...options.actions]);
     if (options.before) query = query.lt("id", options.before);
 
     const { data, error } = await query;

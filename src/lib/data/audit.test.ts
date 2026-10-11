@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AUDIT_PAGE_SIZE, listAuditLogs } from "./audit";
 
 const lt = vi.fn();
-const eq = vi.fn();
+const inFilter = vi.fn();
 const limit = vi.fn();
 const order = vi.fn();
 const select = vi.fn();
@@ -11,13 +11,13 @@ const from = vi.fn();
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: () => ({ from }) }));
 
-// The query is awaited directly or after `.eq()` / `.lt()`, so it must be thenable and chainable.
+// The query is awaited directly or after `.in()` / `.lt()`, so it must be thenable and chainable.
 const query = (result: unknown) => {
   const chain: Record<string, unknown> = Promise.resolve(result) as unknown as Record<
     string,
     unknown
   >;
-  chain.eq = eq.mockReturnValue(chain);
+  chain.in = inFilter.mockReturnValue(chain);
   chain.lt = lt.mockReturnValue(chain);
   return chain;
 };
@@ -49,11 +49,18 @@ describe("listAuditLogs", () => {
     expect(result.ok && result.value.nextCursor).toBe(2);
   });
 
-  it("applies the action filter and the cursor", async () => {
+  it("applies the filter on a family of actions and the cursor", async () => {
     limit.mockReturnValue(query({ data: [], error: null }));
-    await listAuditLogs({ action: "user.banned", before: 10 });
-    expect(eq).toHaveBeenCalledWith("action", "user.banned");
+    await listAuditLogs({ actions: ["user.banned", "sanction.revoked"], before: 10 });
+    expect(inFilter).toHaveBeenCalledWith("action", ["user.banned", "sanction.revoked"]);
     expect(lt).toHaveBeenCalledWith("id", 10);
+  });
+
+  it("does not filter without actions, or with an empty list", async () => {
+    limit.mockReturnValue(query({ data: [], error: null }));
+    await listAuditLogs({ actions: [] });
+    await listAuditLogs({ actions: null });
+    expect(inFilter).not.toHaveBeenCalled();
   });
 
   it("returns load_failed on error or exception", async () => {
