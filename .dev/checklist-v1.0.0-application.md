@@ -43,6 +43,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 
 - [~] **A-030** Modèle RBAC en tables : `roles`, `permissions` (clé unique ex. `message.send`, `user.ban`), `role_permissions` — _aucune permission codée en dur dans le front_
 - [~] **A-031** Liste initiale des rôles (à valider avec toi) : `user`, `manager` (gérant de la manifestation, nom à valider), `moderator`, `admin`, `super_admin` (développeurs) — _documentée dans `docs/permissions.md`_
+- [~] **A-031b** Rôles supplémentaires au moindre privilège : `relay` « Relais » (15, déclare la position), `editor` « Rédacteur » (18, publie des annonces), `developer` « Développeur » (35, santé + statistiques + journal en lecture, aucun pouvoir sur les comptes) ; description de chaque rôle sur `/admin/roles`, pastille de couleur par rôle, `user.mute` n'ouvre plus l'administration (le mute n'a pas de backend), un compte de seed par rôle 🆕 — _fait (migration `20261011130000_more_roles.sql`, pgTAP `roles_catalogue`), à valider en production_
 - [~] **A-032** Catalogue exhaustif des permissions (nomenclature `ressource.action`, dont `announcement.publish`, `map.route.edit`, `map.position.declare`) — _fichier unique source de vérité_
 - [~] **A-033** Fonction SQL `has_permission(user_id, 'perm.key')` (`SECURITY DEFINER`, `search_path` fixé) utilisée par les politiques RLS — _testée_
 - [~] **A-034** Permissions injectées dans le JWT via **Custom Access Token Hook** (évite une requête BDD par action) ⚡ — _claims présents dans le token_

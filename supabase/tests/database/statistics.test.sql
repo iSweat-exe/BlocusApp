@@ -73,8 +73,8 @@ insert into public.moderation_actions (target_id, kind, reason, revoked_at) valu
 
 select is(
   (select array_agg(role order by role) from public.role_permissions where permission = 'statistics.view'),
-  array['admin'],
-  'statistics.view is granted to admin only');
+  array['admin', 'developer'],
+  'statistics.view is granted to admin and developer');
 
 -- Plain user, manager and anon: refused.
 set local role authenticated;

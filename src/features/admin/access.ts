@@ -1,8 +1,11 @@
-/** Permissions that open the admin area (each section then checks its own permission). */
+/**
+ * Permissions that open the admin area (each section then checks its own permission). `user.mute` is not one of
+ * them for now: muting has no backend yet, so it would only open a screen with nothing to do for a moderator, who
+ * deletes and closes content right where it is shown. Add it back with the messaging.
+ */
 export const ADMIN_AREA_PERMISSIONS = [
   "role.assign",
   "user.ban",
-  "user.mute",
   "permission.manage",
   "audit.read",
   "monitoring.view",

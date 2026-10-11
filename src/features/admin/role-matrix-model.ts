@@ -1,6 +1,7 @@
 import type { RoleInfo } from "./hierarchy";
 import { groupPermissions } from "./permission-groups";
 import { canEditRolePermission, permissionLabel } from "./permission-rules";
+import { roleDescription } from "./role-descriptions";
 
 /** The role that holds every permission and cannot be edited (locked in the database). */
 export const SUPER_ADMIN_ROLE = "super_admin";
@@ -36,6 +37,8 @@ export type RoleMatrixModel = {
   selected: {
     key: string;
     label: string;
+    /** What the role is for, `null` for a role this version does not know. */
+    description: string | null;
     status: RoleStatus;
     note: string;
     grantedCount: number;
@@ -126,6 +129,7 @@ export function buildRoleMatrixModel(input: {
     selected: {
       key: selectedRole.key,
       label: selectedRole.label,
+      description: roleDescription(selectedRole.key),
       status,
       note: NOTES[status],
       grantedCount: sections.reduce((sum, section) => sum + section.grantedCount, 0),

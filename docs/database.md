@@ -282,7 +282,7 @@ Docker requis. Les secrets Discord locaux viennent de l'environnement (`.env.exa
 
 ```bash
 npm run db:start   # Supabase local (supabase start)
-npm run db:reset   # rejoue migrations + seed (un compte par rôle : seed_user … seed_super_admin)
+npm run db:reset   # rejoue migrations + seed (un compte par rôle : seed_user, seed_relay, seed_editor, seed_manager, seed_moderator, seed_developer, seed_admin, seed_super_admin)
 npm run db:test    # tests pgTAP (supabase/tests/database)
 npm run db:types   # régénère src/lib/database.types.ts
 ```

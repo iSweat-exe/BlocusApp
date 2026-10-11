@@ -95,6 +95,19 @@ describe("buildRoleMatrixModel", () => {
     ]);
   });
 
+  it("describes the role it shows, and says nothing about a role it does not know", () => {
+    expect(build({ requestedRole: "moderator" })?.selected.description).toMatch(/gérants/);
+    const roles = [...ROLES, { key: "something_new", label: "Nouveau", rank: 50 }];
+    const model = buildRoleMatrixModel({
+      roles,
+      permissions: PERMISSIONS,
+      held: HELD,
+      caller: { role: "super_admin", permissions: [] },
+      requestedRole: "something_new",
+    });
+    expect(model?.selected.description).toBeNull();
+  });
+
   it("opens the role asked for, or the default one when it is unknown", () => {
     expect(build({ requestedRole: "manager" })?.selected.key).toBe("manager");
     expect(build({ requestedRole: "nope" })?.selected.key).toBe("moderator");

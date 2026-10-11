@@ -85,6 +85,7 @@ export function RoleMatrixView({
             {status.label}
           </span>
         </div>
+        {selected.description && <p className="text-sm">{selected.description}</p>}
         <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-foreground/10">
           <div className="h-full rounded-full bg-accent" style={{ width: `${percent}%` }} />
         </div>

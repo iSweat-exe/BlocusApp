@@ -17,38 +17,51 @@
 
 Table `roles` (`key`, `label`, `rank`). Rang plus élevé = plus de pouvoir (hiérarchie, A-037).
 
-| Rôle          | Rang | Description                                                 |
-| ------------- | ---- | ----------------------------------------------------------- |
-| `guest`       | —    | Non connecté (`anon`) : lecture seule, aucun droit en base  |
-| `user`        | 10   | Utilisateur standard (rôle par défaut à l'inscription)      |
-| `manager`     | 20   | Gérant de la manifestation : annonces, tracé, position      |
-| `moderator`   | 30   | Modération (mute, suppression d'annonces)                   |
-| `admin`       | 40   | Administration                                              |
-| `super_admin` | 100  | Développeurs : toutes les permissions, créé par SQL/migration |
+| Rôle          | Rang | Métier                                                                                   |
+| ------------- | ---- | ---------------------------------------------------------------------------------------- |
+| `guest`       | —    | Non connecté (`anon`) : lecture seule, aucun droit en base                               |
+| `user`        | 10   | Utilisateur standard (rôle par défaut à l'inscription) : consulte le fil, le calendrier, la carte |
+| `relay`       | 15   | **Relais** : bénévole sur le terrain, déclare la position de la manifestation, rien d'autre |
+| `editor`      | 18   | **Rédacteur** : publie des annonces, sans les outils de la carte                          |
+| `manager`     | 20   | **Gérant** : conduit la manifestation (annonces, tracé, position, événements)             |
+| `moderator`   | 30   | **Modérateur** : supervise le contenu des gérants (supprime annonces et événements, clôt les événements), sans accès à l'administration |
+| `developer`   | 35   | **Développeur** : équipe technique, lit la santé, les statistiques et le journal, aucun pouvoir sur les comptes |
+| `admin`       | 40   | **Administrateur** : comptes, rôles, permissions, sanctions et tout le suivi              |
+| `super_admin` | 100  | Toutes les permissions, non modifiable ; créé uniquement par SQL/migration (le moins de comptes possible) |
+
+**Pourquoi ces rôles.** Un rôle n'existe que s'il a un ensemble de permissions qu'aucun autre n'a ; pour un cas isolé on
+utilise les exceptions par utilisateur (`permission_overrides`). `relay`, `editor` et `developer` (migration
+`20261011130000_more_roles.sql`) suivent le **moindre privilège** : l'équipe technique n'a plus besoin d'être
+`super_admin` pour surveiller l'application, et ceux qui publient ou déclarent la position n'ont pas les outils des
+gérants. Les rangs laissent des trous pour en insérer d'autres sans rien renuméroter. Un rôle n'agit que sur des rangs
+strictement inférieurs : le `developer` (35) est au-dessus du `moderator` mais n'a aucun pouvoir sur les comptes
+(ni `role.assign` ni `user.ban`), et un admin (40) peut lui attribuer ou retirer ce rôle. On ne crée un rôle que
+par migration (relue en PR), jamais depuis l'interface ; ses permissions se règlent ensuite dans `/admin/roles`.
+Les descriptions affichées sur cet écran sont dans `src/features/admin/role-descriptions.ts`.
 
 ## Catalogue des permissions
 
 Source de vérité : table `permissions` (migration `20261007130000_create_rbac.sql`). Liens dans
 `role_permissions`. `super_admin` reçoit toute permission du catalogue via `has_permission()`.
 
-| Permission             | user | manager | moderator | admin | super_admin |
-| ---------------------- | :--: | :-----: | :-------: | :---: | :---------: |
-| `announcement.publish` |  -   |   ✅    |     -     |  ✅   |     ✅      |
-| `announcement.delete`  |  -   |    -    |    ✅     |  ✅   |     ✅      |
-| `map.route.edit`       |  -   |   ✅    |     -     |  ✅   |     ✅      |
-| `map.position.declare` |  -   |   ✅    |     -     |  ✅   |     ✅      |
-| `map.position.remove`  |  -   |    -    |     -     |  ✅   |     ✅      |
-| `user.mute`            |  -   |    -    |    ✅     |  ✅   |     ✅      |
-| `user.ban`             |  -   |    -    |     -     |  ✅   |     ✅      |
-| `role.assign`          |  -   |    -    |     -     |  ✅   |     ✅      |
-| `audit.read`           |  -   |    -    |     -     |  ✅   |     ✅      |
-| `permission.manage`    |  -   |    -    |     -     |  ✅   |     ✅      |
-| `monitoring.view`      |  -   |    -    |     -     |  ✅   |     ✅      |
-| `statistics.view`      |  -   |    -    |     -     |  ✅   |     ✅      |
-| `user.origin.view`     |  -   |    -    |     -     |  ✅   |     ✅      |
-| `event.create`         |  -   |   ✅    |     -     |  ✅   |     ✅      |
-| `event.delete`         |  -   |    -    |    ✅     |  ✅   |     ✅      |
-| `event.finish`         |  -   |   ✅    |    ✅     |  ✅   |     ✅      |
+| Permission             | user | relay | editor | manager | moderator | developer | admin | super_admin |
+| ---------------------- | :--: | :---: | :----: | :-----: | :-------: | :-------: | :---: | :---------: |
+| `announcement.publish` |   -  |   -   |    ✅   |    ✅    |     -     |     -     |   ✅   |      ✅      |
+| `announcement.delete`  |   -  |   -   |    -   |    -    |     ✅     |     -     |   ✅   |      ✅      |
+| `map.route.edit`       |   -  |   -   |    -   |    ✅    |     -     |     -     |   ✅   |      ✅      |
+| `map.position.declare` |   -  |   ✅   |    -   |    ✅    |     -     |     -     |   ✅   |      ✅      |
+| `map.position.remove`  |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |
+| `user.mute`            |   -  |   -   |    -   |    -    |     ✅     |     -     |   ✅   |      ✅      |
+| `user.ban`             |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |
+| `role.assign`          |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |
+| `audit.read`           |   -  |   -   |    -   |    -    |     -     |     ✅     |   ✅   |      ✅      |
+| `permission.manage`    |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |
+| `monitoring.view`      |   -  |   -   |    -   |    -    |     -     |     ✅     |   ✅   |      ✅      |
+| `statistics.view`      |   -  |   -   |    -   |    -    |     -     |     ✅     |   ✅   |      ✅      |
+| `user.origin.view`     |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |
+| `event.create`         |   -  |   -   |    -   |    ✅    |     -     |     -     |   ✅   |      ✅      |
+| `event.delete`         |   -  |   -   |    -   |    -    |     ✅     |     -     |   ✅   |      ✅      |
+| `event.finish`         |   -  |   -   |    -   |    ✅    |     ✅     |     -     |   ✅   |      ✅      |
 
 ## Implémentation
 
@@ -86,8 +99,9 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   `forbidden`, `hierarchy_violation` (42501), `unknown_role`/`unknown_user` (22023). Le trigger
   `profiles_keep_last_super_admin` empêche de retirer ou supprimer le dernier `super_admin` (`last_super_admin`).
 - **Panneau admin** (`/admin`, `src/features/admin/`) : accessible avec **au moins une** permission
-  d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`, `monitoring.view`,
-  `statistics.view`) ; chaque section vérifie la sienne. Navigation de la section : onglets soulignés avec icône
+  d'administration (`role.assign`, `user.ban`, `permission.manage`, `audit.read`, `monitoring.view`,
+  `statistics.view` ; **pas `user.mute`**, le mute n'ayant pas encore de backend : le modérateur supprime et clôt le
+  contenu là où il s'affiche, il n'a pas d'écran d'administration vide) ; chaque section vérifie la sienne. Navigation de la section : onglets soulignés avec icône
   (Utilisateurs, Rôles, Journal, Statistiques, Santé selon les permissions). `/admin` : liste (recherche de pseudo avec loupe et bouton d'effacement, filtre par **rôle** en
   pastilles, badge de rôle coloré selon le rang, « Toi » sur son propre compte, 50 comptes max) ; chaque ligne
   mène à la fiche. Le **changement de rôle** se fait sur la fiche (section « Rôle ») : il exige `role.assign` et

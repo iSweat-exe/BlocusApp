@@ -139,4 +139,10 @@ describe("roleTone", () => {
     expect(roleTone("admin")).not.toBe(roleTone("user"));
     expect(roleTone("something_new")).toBe(roleTone("user"));
   });
+
+  it("gives every role of the technical and field teams a badge of its own", () => {
+    const tones = ["developer", "editor", "relay", "manager", "moderator"].map(roleTone);
+    expect(new Set(tones).size).toBe(tones.length);
+    expect(tones).not.toContain(roleTone("user"));
+  });
 });
