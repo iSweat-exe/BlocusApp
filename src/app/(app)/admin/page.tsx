@@ -2,43 +2,31 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { canAccessAdmin } from "@/features/admin/access";
 import { UserList } from "@/features/admin/user-list";
+import { UsersSkeleton } from "@/features/admin/users-skeleton";
 import { getSessionPermissions } from "@/server/session";
 
-async function AdminContent({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+type AdminSearchParams = { q?: string; role?: string };
+
+async function AdminContent({ searchParams }: { searchParams: Promise<AdminSearchParams> }) {
   const session = await getSessionPermissions();
   if (!session) redirect("/login");
   // Admin pages are hidden (404) from users without the permission; actions re-check in the database.
   if (!canAccessAdmin(session.permissions)) notFound();
 
-  const { q } = await searchParams;
-  const search = typeof q === "string" ? q : "";
-
-  return (
-    <>
-      <form role="search" className="flex gap-2">
-        <input
-          type="search"
-          name="q"
-          defaultValue={search}
-          maxLength={32}
-          placeholder="Rechercher un pseudo"
-          aria-label="Rechercher un pseudo"
-          className="field min-w-0 flex-1"
-        />
-        <button type="submit" className="btn btn-secondary text-sm">
-          Rechercher
-        </button>
-      </form>
-      <UserList search={search} />
-    </>
-  );
+  return <UserList rawParams={await searchParams} />;
 }
 
 export default function AdminPage({ searchParams }: PageProps<"/admin">) {
   return (
     <div className="flex flex-col gap-section">
-      <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
-        <AdminContent searchParams={searchParams as Promise<{ q?: string }>} />
+      <header className="flex flex-col gap-1">
+        <h2 className="text-xl font-bold tracking-tight">Utilisateurs</h2>
+        <p className="text-sm text-muted">
+          Trouve un compte pour consulter sa fiche, changer son rôle ou le sanctionner.
+        </p>
+      </header>
+      <Suspense fallback={<UsersSkeleton />}>
+        <AdminContent searchParams={searchParams as Promise<AdminSearchParams>} />
       </Suspense>
     </div>
   );

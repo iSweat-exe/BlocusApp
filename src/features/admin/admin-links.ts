@@ -4,7 +4,7 @@ import type { AdminLink } from "./admin-nav";
 export function adminLinksFor(permissions: readonly string[]): AdminLink[] {
   const links: AdminLink[] = [{ href: "/admin", label: "Utilisateurs" }];
   if (permissions.includes("permission.manage")) {
-    links.push({ href: "/admin/roles", label: "Rôles et permissions" });
+    links.push({ href: "/admin/roles", label: "Rôles" });
   }
   if (permissions.includes("audit.read")) {
     links.push({ href: "/admin/journal", label: "Journal" });

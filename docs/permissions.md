@@ -85,16 +85,19 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   `profiles_keep_last_super_admin` empêche de retirer ou supprimer le dernier `super_admin` (`last_super_admin`).
 - **Panneau admin** (`/admin`, `src/features/admin/`) : accessible avec **au moins une** permission
   d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`) ; chaque
-  section vérifie la sienne. Liste et recherche de pseudo (50 max) ; le sélecteur de rôle exige
-  `role.assign` et un rang strictement inférieur (`hierarchy.ts` reflète `assign_role`, qui reste
-  l'autorité). Les actions appellent `requirePermission(..., { fresh: true })` puis la RPC.
+  section vérifie la sienne. Navigation de la section : onglets soulignés avec icône (Utilisateurs, Rôles, Journal, Santé selon les
+  permissions). `/admin` : liste (recherche de pseudo avec loupe et bouton d'effacement, filtre par **rôle** en
+  pastilles, badge de rôle coloré selon le rang, « Toi » sur son propre compte, 50 comptes max) ; chaque ligne
+  mène à la fiche. Le **changement de rôle** se fait sur la fiche (section « Rôle ») : il exige `role.assign` et
+  un rang strictement inférieur, jamais sur soi-même (`hierarchy.ts` reflète `assign_role`, qui reste
+  l'autorité). Paramètres d'URL validés (`parseUserListParams` : `q`, `role`, un rôle inconnu est ignoré). Les actions appellent `requirePermission(..., { fresh: true })` puis la RPC.
 - **Fiche utilisateur** (`/admin/users/[id]`) : identité, **ban en cours** (motif, expiration, bouton
   « Lever le ban »), formulaire de **ban** (motif, durée 1 h / 24 h / 7 j / 30 j / permanent ou date
   personnalisée, max 5 ans ; l'expiration est recalculée côté serveur), historique des sanctions, et bouton
   **Mute désactivé** (« bientôt disponible », aucun backend). Le formulaire n'apparaît que si l'appelant a
   `user.ban` **et** un rang supérieur à la cible ; sinon un message l'explique.
-- **Gestion des permissions dans le panneau** : sous-navigation de `/admin` (Utilisateurs · Rôles et
-  permissions). `/admin/roles` (permission `permission.manage`) : **un rôle à la fois** (onglets, du plus élevé au plus bas,
+- **Gestion des permissions dans le panneau** : sous-navigation de `/admin` (Utilisateurs · Rôles ·
+  Journal · Santé). `/admin/roles` (permission `permission.manage`) : **un rôle à la fois** (onglets, du plus élevé au plus bas,
   avec le nombre de permissions ; le rôle est dans l'URL, `?role=`), un résumé (statut « Modifiable », « Lecture
   seule » ou « Verrouillé », jauge) puis les permissions **groupées** (Annonces, Calendrier, Carte, Modération,
   Administration). Un **interrupteur** (qui bascule aussitôt et revient en arrière si le serveur refuse)

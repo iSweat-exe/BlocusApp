@@ -23,8 +23,12 @@ export function escapeLike(value: string): string {
 /**
  * Lists users ordered by pseudo, optionally filtered by a pseudo search.
  * @param search - Free text matched anywhere in the pseudo (trimmed, max 32 characters).
+ * @param role - Only users holding this role (a key of `roles`); `null` for every role.
  */
-export async function listProfiles(search = ""): Promise<Result<AdminProfile[], "load_failed">> {
+export async function listProfiles(
+  search = "",
+  role: string | null = null,
+): Promise<Result<AdminProfile[], "load_failed">> {
   try {
     const supabase = createClient(await requestCookies());
     let query = supabase
@@ -34,6 +38,7 @@ export async function listProfiles(search = ""): Promise<Result<AdminProfile[], 
       .limit(PROFILE_PAGE_SIZE);
     const term = search.trim().slice(0, 32);
     if (term) query = query.ilike("pseudo", `%${escapeLike(term)}%`);
+    if (role) query = query.eq("role", role);
     const { data, error } = await query;
     return error ? err("load_failed", error.message) : ok(data);
   } catch (cause) {
