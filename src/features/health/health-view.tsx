@@ -113,7 +113,7 @@ function ServiceRow({
           </div>
         )}
       </div>
-      <p className="shrink-0 text-sm font-semibold tabular-nums">
+      <p className="shrink-0 text-right text-sm font-semibold whitespace-nowrap tabular-nums">
         {value}
         <span className="sr-only"> ({TONE_WORDS[tone]})</span>
       </p>
@@ -198,7 +198,7 @@ function TableSizes({ tables }: { tables: { name: string; bytes: number }[] }) {
         <li key={table.name} className="flex flex-col gap-2 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <code className="min-w-0 truncate font-mono text-xs">{table.name}</code>
-            <span className="shrink-0 text-sm font-semibold tabular-nums">
+            <span className="shrink-0 text-sm font-semibold whitespace-nowrap tabular-nums">
               {formatBytes(table.bytes)}
             </span>
           </div>
