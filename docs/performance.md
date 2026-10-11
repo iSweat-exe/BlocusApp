@@ -138,6 +138,19 @@ déjà les changements d'onglet gratuits.
 | Écritures en base | 1 upsert de `user_activity` par utilisateur et par heure (la clause `WHERE` rend les répétitions sans effet) et 1 incrément de la ligne de l'heure. Les deux tables restent minuscules (≈ 9 000 lignes par an pour `activity_hours`, une ligne par utilisateur) : aucune purge. |
 | Lecture des statistiques | Trois fonctions SQL appelées à l'ouverture de `/admin/statistics` par un administrateur (720 lignes de séries, quelques `count(*)` sur des tables de quelques milliers de lignes) : ni cache ni index de plus. |
 
+## Chiffres de contribution sur `/credits`
+
+| Sujet | Décision |
+|---|---|
+| Appeler l'API GitHub sans dépasser sa limite (60 requêtes par heure et par IP sans jeton, IP de Vercel partagées) | Lecture dans une fonction en cache (`stale` 5 min, `revalidate` 15 min, `expire` 1 jour) : au plus **4 appels par heure et par instance**, aucun par visite. Attente bornée à 8 s, 3 tentatives si GitHub répond 202 (calcul en cours). Une limite atteinte ne casse rien : la page s'affiche sans les chiffres jusqu'à la prochaine actualisation. Un jeton (`GITHUB_TOKEN`, 5 000 requêtes par heure) n'est pas nécessaire à ce volume ; l'ajouter serait la solution si la limite était souvent atteinte. |
+
+## Nombre d'inscrits sur `/login`
+
+| Sujet | Décision |
+|---|---|
+| Afficher le total sans rendre `/login` dynamique | `/login` **reste statique** (`○`, servie par le CDN) : la lecture `public_user_count()` est dans une fonction en cache (profil `feed`), la page est regénérée au plus toutes les 2 min (build : `Revalidate 2m / Expire 10m`). Une lecture en base par fenêtre et par instance, aucune invocation de fonction de plus par visite. |
+| Lecture qui échoue | Renvoie `null` (ligne masquée) et ne lève jamais : une erreur levée dans une fonction en cache fait échouer le build qui pré-rend `/login`. Attente bornée à 4 s. |
+
 ## Mesures (Supabase local, build de production, Pixel 7 émulé, 60 utilisateurs, 15 annonces, 20 événements)
 
 « Requêtes réseau » = requêtes vers notre serveur réellement émises (hors ressources servies par le cache du

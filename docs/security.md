@@ -101,6 +101,23 @@ pas cette clé : elle passe par la session de l'administrateur (`monitoring.view
 ne renvoie que le statut (jamais de mesure, de compteur ni de configuration) ; son résultat est gardé 10 s. Le jeton
 Vercel (`VERCEL_API_TOKEN`) reste côté serveur.
 
+## Données publiques volontaires et thèmes de profil
+
+- **Nombre d'inscrits** : `public_user_count()` est lisible sans compte (page `/login`). C'est un total, rien de plus ; il est
+  lu au plus une fois toutes les 2 min par instance (cache partagé), donc l'appel direct de la fonction par un tiers ne coûte
+  qu'un `count(*)` sur une petite table.
+- **Thèmes de profil** : l'id d'un compte à thème est écrit dans le code (`src/features/profile/profile-theme.ts`), donc dans
+  un **dépôt public**. Un identifiant seul n'identifie personne, mais on n'y associe ni nom, ni pseudo, ni commentaire
+  personnel (ni dans le code, ni dans les docs, ni dans les PR). Pour ne pas exposer l'id du tout, il faudrait le lire
+  depuis la base ou une variable d'environnement.
+- **Crédits** : uniquement des identifiants GitHub publics, jamais d'e-mail. Les chiffres de contribution viennent de l'API
+  publique de GitHub, appelée **par le serveur** (aucune donnée de visiteur n'y part, aucun jeton, aucun secret), puis lus
+  et validés comme des données externes (`parseContributorStats()`). La page affiche la **photo de profil GitHub**
+  de chaque développeur : le navigateur du visiteur la charge depuis `avatars.githubusercontent.com` (hôte ajouté à `img-src`
+  et à la liste des hôtes d'avatars), sans en-tête *referrer*. GitHub voit donc l'adresse IP des visiteurs de `/credits`,
+  comme Discord et Google voient celle des utilisateurs dont l'avatar s'affiche ; aucune photo n'est copiée dans le dépôt.
+  Chaque développeur listé doit être d'accord pour que sa photo publique y figure.
+
 ## Signalement d'une vulnérabilité
 
 Ne pas ouvrir d'issue publique : contacter directement les mainteneurs.

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { EmptyState } from "@/components/empty-state";
 import { FullScreenDialog } from "@/components/full-screen-dialog";
+import { CalendarIcon } from "@/components/icons";
 import { EventForm } from "./event-form";
 import { monthGrid, shiftMonth } from "./month-grid";
 import { formatDayKeyLong, formatMonthLabel, monthKeyOf } from "./time";
@@ -164,7 +166,9 @@ export function MonthView({
           {formatDayKeyLong(day)}
         </h3>
         {selected.length === 0 ? (
-          <p className="text-sm text-muted">Aucun événement ce jour-là.</p>
+          <EmptyState compact icon={<CalendarIcon className="size-5" />} title="Journée tranquille">
+            Rien de prévu ce jour-là.
+          </EmptyState>
         ) : (
           <ul className="flex flex-col gap-2">
             {selected.map((event) => (

@@ -9,6 +9,9 @@ describe("safeAvatarUrl", () => {
     expect(safeAvatarUrl("https://cdn.discordapp.com/avatars/1/abc.png")).toBe(
       "https://cdn.discordapp.com/avatars/1/abc.png",
     );
+    expect(safeAvatarUrl("https://avatars.githubusercontent.com/iSweat-exe?s=96")).toBe(
+      "https://avatars.githubusercontent.com/iSweat-exe?s=96",
+    );
   });
 
   it.each([
@@ -19,6 +22,8 @@ describe("safeAvatarUrl", () => {
     "http://cdn.discordapp.com/avatars/1/abc.png",
     "https://evil.example/pixel.png",
     "https://cdn.discordapp.com.evil.example/a.png",
+    "https://avatars.githubusercontent.com.evil.example/a.png",
+    "https://github.com/iSweat-exe.png",
     "javascript:alert(1)",
   ])("rejects %j", (value) => {
     expect(safeAvatarUrl(value)).toBeNull();

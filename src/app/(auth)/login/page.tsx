@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { DiscordButton } from "@/features/auth/discord-button";
 import { GoogleButton } from "@/features/auth/google-button";
 import { GuestLink } from "@/features/auth/guest-link";
 import { LoginBackground } from "@/features/auth/login-background";
 import { LoginError } from "@/features/auth/login-error";
+import { MemberCount } from "@/features/auth/member-count";
 
 export default function LoginPage() {
   return (
@@ -40,6 +42,20 @@ export default function LoginPage() {
 
           <GuestLink />
         </div>
+
+        <footer className="flex flex-col items-center pb-2 text-center">
+          <Suspense>
+            <MemberCount />
+          </Suspense>
+          {/* Discreet on purpose: easy to find for the curious, never in the way of the sign-in buttons. */}
+          <Link
+            href="/credits"
+            prefetch={false}
+            className="inline-flex min-h-tap items-center px-3 text-xs text-faint underline-offset-2 [@media(hover:hover)]:hover:underline"
+          >
+            Crédits
+          </Link>
+        </footer>
       </div>
     </>
   );

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { CreditsLink } from "@/features/credits/credits-link";
 import { AccentPicker } from "@/features/settings/accent-picker";
 import { ThemePicker } from "@/features/settings/theme-picker";
 import { AccountSection } from "@/features/settings/account-section";
@@ -28,6 +29,14 @@ export default function SettingsPage() {
       <Suspense fallback={null}>
         <AccountSection />
       </Suspense>
+
+      {/* Outside of the account section on purpose: Guests and signed-in users both see it. */}
+      <section aria-labelledby="about-title" className="flex flex-col gap-2">
+        <h2 id="about-title" className="section-title">
+          À propos
+        </h2>
+        <CreditsLink />
+      </section>
 
       <p className="px-1 text-center text-xs text-faint">
         Ces réglages sont enregistrés sur cet appareil.

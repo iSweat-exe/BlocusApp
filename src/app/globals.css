@@ -379,3 +379,58 @@ label {
     opacity: 0;
   }
 }
+
+/* Profile theme "love" (see features/profile/profile-theme.ts): a heartbeat frame around the avatar, and hearts
+   rising behind the header. Decoration only; with reduced motion the frame stays still and the hearts are hidden. */
+.love-ring {
+  padding: 4px;
+  border-radius: calc(var(--radius-control) + 4px);
+  background: linear-gradient(135deg, #ff9ac1, #ec4899 55%, #be185d);
+  box-shadow: 0 0 28px rgb(236 72 153 / 0.45);
+  animation: love-beat 2.4s ease-in-out infinite;
+}
+.love-heart {
+  position: absolute;
+  bottom: -28px;
+  opacity: 0;
+  animation: love-float linear infinite;
+}
+@keyframes love-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.05);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.04);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+@keyframes love-float {
+  0% {
+    transform: translate(0, 0) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate(var(--sway, 12px), -300px) scale(1.15);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .love-ring {
+    animation: none;
+  }
+  .love-heart {
+    display: none;
+  }
+}

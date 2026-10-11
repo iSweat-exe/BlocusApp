@@ -1,5 +1,12 @@
-/** Hosts allowed to serve avatars (must match `img-src` in `next.config.ts`). */
-const AVATAR_HOSTS = new Set(["cdn.discordapp.com", "lh3.googleusercontent.com"]);
+/**
+ * Hosts allowed to serve avatars (must match `img-src` in `next.config.ts`). Discord and Google serve the avatars
+ * of the sign-in providers; GitHub serves the team photos of the credits page.
+ */
+const AVATAR_HOSTS = new Set([
+  "cdn.discordapp.com",
+  "lh3.googleusercontent.com",
+  "avatars.githubusercontent.com",
+]);
 
 /**
  * Returns the avatar URL only when it is an https URL on an allowed host, otherwise `null`.
