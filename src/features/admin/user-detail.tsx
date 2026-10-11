@@ -6,7 +6,9 @@ import { listSanctions } from "@/lib/data/sanctions";
 import type { SessionPermissions } from "@/server/session";
 import { BanForm } from "./ban-form";
 import { UserPermissions } from "./user-permissions";
-import { canManageUser, rankOf } from "./hierarchy";
+import { assignableRoles, canManageUser, rankOf } from "./hierarchy";
+import { RoleBadge } from "./role-badge";
+import { RoleForm } from "./role-form";
 import { liftSanction } from "./sanction-actions";
 import { isSanctionActive } from "./sanctions";
 
@@ -38,11 +40,14 @@ export async function UserDetail({ id, session }: { id: string; session: Session
   const now = new Date();
   const user = profile.value;
   const roleLabel = roles.value.find((role) => role.key === user.role)?.label ?? user.role;
+  const callerRank = rankOf(roles.value, session.role);
   const canManage = canManageUser(
-    rankOf(roles.value, session.role),
+    callerRank,
     rankOf(roles.value, user.role),
     user.id === session.userId,
   );
+  // Same rule as the database (`assign_role`): the permission, and a user ranking strictly below the caller.
+  const canAssignRole = canManage && session.permissions.includes("role.assign");
   const history = sanctions.ok ? sanctions.value : [];
   const activeBan = history.find(
     (sanction) => sanction.kind === "ban" && isSanctionActive(sanction, now),
@@ -59,12 +64,30 @@ export async function UserDetail({ id, session }: { id: string; session: Session
       <header className="flex flex-col items-center gap-2 text-center">
         <Avatar pseudo={user.pseudo} url={user.avatar_url} size="lg" ring />
         <h2 className="max-w-full truncate text-xl font-semibold tracking-tight">{user.pseudo}</h2>
-        <span className="chip chip-accent text-sm">{roleLabel}</span>
+        <RoleBadge roleKey={user.role} label={roleLabel} className="text-sm" />
         <p className="text-sm text-muted">
           Inscrit le {dateFormat.format(new Date(user.created_at))}
         </p>
         <code className="break-all font-mono text-xs text-faint">{user.id}</code>
       </header>
+
+      {canAssignRole && (
+        <section aria-labelledby="role-title" className="card flex flex-col gap-3 p-4">
+          <div>
+            <h3 id="role-title" className="font-semibold">
+              Rôle
+            </h3>
+            <p className="text-sm text-muted">
+              Tu peux attribuer un rôle situé en dessous du tien.
+            </p>
+          </div>
+          <RoleForm
+            targetId={user.id}
+            currentRole={user.role}
+            options={assignableRoles(roles.value, callerRank)}
+          />
+        </section>
+      )}
 
       {activeBan && (
         <section

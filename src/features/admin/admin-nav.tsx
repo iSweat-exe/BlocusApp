@@ -1,40 +1,40 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
+import { ChipTabs } from "@/components/chip-tabs";
+import { ListIcon, PulseIcon, ShieldIcon, UserIcon } from "@/components/icons";
 
 /** A section of the admin area. */
 export type AdminLink = { href: string; label: string };
 
-/** Sub-navigation of the admin area; the current section is marked with `aria-current`. */
+// Icons are picked here, by section, so the links stay plain data when the server hands them over.
+const ICONS: Record<string, ReactNode> = {
+  "/admin": <UserIcon className="size-[18px]" />,
+  "/admin/roles": <ShieldIcon className="size-[18px]" />,
+  "/admin/journal": <ListIcon className="size-[18px]" />,
+  "/admin/health": <PulseIcon className="size-[18px]" />,
+};
+
+/** The section a path belongs to: the user pages belong to "Utilisateurs". */
+export function activeAdminHref(pathname: string, links: AdminLink[]): string | undefined {
+  const own = links.find(
+    ({ href }) => href !== "/admin" && (pathname === href || pathname.startsWith(`${href}/`)),
+  );
+  if (own) return own.href;
+  return pathname === "/admin" || pathname.startsWith("/admin/users") ? "/admin" : undefined;
+}
+
+/** Main navigation of the admin area; the current section is underlined and marked with `aria-current`. */
 export function AdminNav({ links }: { links: AdminLink[] }) {
   const pathname = usePathname();
-  // The user pages belong to the "Utilisateurs" section.
-  const isActive = (href: string) =>
-    href === "/admin"
-      ? pathname === "/admin" || pathname.startsWith("/admin/users")
-      : pathname.startsWith(href);
 
   return (
-    <nav aria-label="Sections de l'administration">
-      <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-        {links.map(({ href, label }) => (
-          <li key={href}>
-            <Link
-              href={href}
-              prefetch={false}
-              aria-current={isActive(href) ? "page" : undefined}
-              className={`flex min-h-control-sm items-center whitespace-nowrap rounded-full px-5 text-sm font-medium ${
-                isActive(href)
-                  ? "bg-accent text-accent-ink shadow-sm"
-                  : "bg-foreground/10 active:bg-foreground/15"
-              }`}
-            >
-              {label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <ChipTabs
+      variant="underline"
+      label="Sections de l'administration"
+      activeKey={activeAdminHref(pathname, links) ?? ""}
+      tabs={links.map(({ href, label }) => ({ key: href, label, href, icon: ICONS[href] }))}
+    />
   );
 }

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { escapeLike, getProfile, getPseudos, listProfiles, listRoles } from "./profiles";
 
 const ilike = vi.fn();
+const eq = vi.fn();
 const limit = vi.fn();
 const orderProfiles = vi.fn();
 const orderRoles = vi.fn();
@@ -11,9 +12,16 @@ const from = vi.fn();
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: () => ({ from }) }));
 
-// The profiles query is awaited directly or after `.ilike()`, so it must be thenable and chainable.
-const profilesQuery = (result: unknown) =>
-  Object.assign(Promise.resolve(result), { ilike: ilike.mockResolvedValue(result) });
+// The profiles query is awaited directly or after `.ilike()` / `.eq()`, so it must be thenable and chainable.
+const profilesQuery = (result: unknown) => {
+  const chain: Record<string, unknown> = Promise.resolve(result) as unknown as Record<
+    string,
+    unknown
+  >;
+  chain.ilike = ilike.mockReturnValue(chain);
+  chain.eq = eq.mockReturnValue(chain);
+  return chain;
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -39,6 +47,22 @@ describe("listProfiles", () => {
     limit.mockReturnValue(profilesQuery({ data: [], error: null }));
     await listProfiles(" a%b ");
     expect(ilike).toHaveBeenCalledWith("pseudo", "%a\\%b%");
+  });
+
+  it("filters by role, alone or with a search", async () => {
+    limit.mockReturnValue(profilesQuery({ data: [], error: null }));
+    await listProfiles("", "moderator");
+    expect(eq).toHaveBeenCalledWith("role", "moderator");
+    expect(ilike).not.toHaveBeenCalled();
+    await listProfiles("lynx", "admin");
+    expect(ilike).toHaveBeenCalledWith("pseudo", "%lynx%");
+    expect(eq).toHaveBeenLastCalledWith("role", "admin");
+  });
+
+  it("does not filter by role without one", async () => {
+    limit.mockReturnValue(profilesQuery({ data: [], error: null }));
+    await listProfiles("lynx", null);
+    expect(eq).not.toHaveBeenCalled();
   });
 
   it("returns load_failed on error or exception", async () => {

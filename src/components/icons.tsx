@@ -155,6 +155,44 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+/** Magnifying glass: search. */
+export function SearchIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4.5 4.5" />
+    </Icon>
+  );
+}
+
+/** Chevron pointing right: opens something. */
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m9.5 6 6 6-6 6" />
+    </Icon>
+  );
+}
+
+/** Bulleted list: a log, a journal. */
+export function ListIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M9 6h11M9 12h11M9 18h11" />
+      <path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
+    </Icon>
+  );
+}
+
+/** Heartbeat line: health, monitoring. */
+export function PulseIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3 12h4l2.5-6 4 12 2.5-6H21" />
+    </Icon>
+  );
+}
+
 /** Circle with a slash: forbidden, banned. */
 export function BanIcon(props: IconProps) {
   return (
