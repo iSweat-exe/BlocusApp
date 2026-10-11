@@ -41,12 +41,12 @@ function RowControl({
     );
   }
   return row.granted ? (
-    <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-success">
+    <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium whitespace-nowrap text-success">
       <CheckIcon className="h-4 w-4" />
       Accordée
     </span>
   ) : (
-    <span className="shrink-0 text-sm text-faint">Non accordée</span>
+    <span className="shrink-0 text-sm whitespace-nowrap text-faint">Non accordée</span>
   );
 }
 

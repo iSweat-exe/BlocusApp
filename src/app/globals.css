@@ -253,7 +253,7 @@
 
   /* Small labels. */
   .chip {
-    @apply inline-flex items-center rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold;
+    @apply inline-flex items-center rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold whitespace-nowrap;
   }
   .chip-accent {
     @apply bg-accent/15 text-accent;
