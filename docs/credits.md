@@ -1,5 +1,8 @@
 # Crédits des images
 
+> Les crédits de l'équipe (développeurs et leur GitHub) sont dans l'application, page `/credits` : liste dans
+> `src/features/credits/team.ts`.
+
 Toute image du dépôt qui n'a pas été produite par l'équipe est listée ici, avec sa source, son auteur et sa
 licence, **avant** d'être mergée. Pas de personne reconnaissable (surtout si elle semble mineure) sans son
 consentement : c'est ce qui a fait retirer les premières photos de fond de `/login` (source et licence inconnues).

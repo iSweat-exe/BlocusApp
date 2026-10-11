@@ -15,7 +15,18 @@ vi.mock("@/features/auth/discord-button", () => ({
   DiscordButton: () => <a href="/auth/login/discord">Continuer avec Discord</a>,
 }));
 
+// The count reads the database through a shared cache: its own test covers that.
+vi.mock("@/features/auth/member-count", () => ({
+  MemberCount: () => <p>Déjà 842 personnes ont rejoint BLOCUS.</p>,
+}));
+
 describe("LoginPage", () => {
+  it("shows how many people joined, and a discreet way to the credits", () => {
+    render(<LoginPage />);
+    expect(screen.getByText(/Déjà 842 personnes ont rejoint BLOCUS/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Crédits" })).toHaveAttribute("href", "/credits");
+  });
+
   it("is titled « Connexion » for assistive technologies, while the visible brand is hidden from them", () => {
     render(<LoginPage />);
     expect(screen.getByRole("heading", { level: 1, name: "Connexion" })).toHaveClass("sr-only");

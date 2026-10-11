@@ -170,6 +170,35 @@ test.describe("app shell", () => {
     await expect(page.getByText("Ajouter un événement")).toHaveCount(0);
   });
 
+  test("the credits page is public and links to the team's GitHub profiles", async ({ page }) => {
+    await page.goto("/credits");
+    await expect(page.getByRole("heading", { level: 1, name: "Crédits" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /iSweat/ })).toHaveAttribute(
+      "href",
+      "https://github.com/iSweat-exe",
+    );
+    // The photo comes from GitHub's avatar host, the only origin the CSP allows for it.
+    await expect(
+      page.locator('img[src^="https://avatars.githubusercontent.com/iSweat-exe"]'),
+    ).toHaveCount(1);
+  });
+
+  test("the credits are reachable from the login page and from the settings tab, without an account", async ({
+    page,
+  }) => {
+    for (const path of ["/login", "/settings"]) {
+      await page.goto(path);
+      await page.getByRole("link", { name: "Crédits" }).click();
+      await page.waitForURL("**/credits");
+    }
+  });
+
+  test("the not-found page leaves a way out", async ({ page }) => {
+    const response = await page.goto("/page-qui-n-existe-pas");
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole("link", { name: "Retour à l'accueil" })).toBeVisible();
+  });
+
   test("an invalid event id shows the not-found page", async ({ page }) => {
     await page.goto("/calendar/not-a-uuid");
     await expect(page.getByRole("heading", { name: "Page introuvable" })).toBeVisible();

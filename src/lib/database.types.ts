@@ -526,6 +526,7 @@ export type Database = {
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       is_valid_route: { Args: { p_points: Json }; Returns: boolean };
       is_banned: { Args: { p_user_id: string }; Returns: boolean };
+      public_user_count: { Args: never; Returns: number };
       record_health_snapshot: {
         Args: {
           p_auth_ms?: number;

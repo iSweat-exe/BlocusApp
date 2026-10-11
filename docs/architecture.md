@@ -49,6 +49,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/admin/users/[id]` | Fiche utilisateur : origine d'inscription (`user.origin.view`), rôle, sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/roles` | Rôles et permissions : un rôle à la fois (onglets), permissions groupées, interrupteurs | Permission `permission.manage` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/journal` | Journal d'audit : par jour, filtre par catégorie, pagination | Permission `audit.read` (sinon 404 ; Guest → `/login`) |
+| `(app)`  | `/credits`    | Crédits : l'équipe de développement avec son GitHub, les technologies utilisées | Public (Guests et connectés) ; ligne « Crédits » dans `/settings` (À propos) et `/profil`, petit lien sur `/login` |
 | `(app)`  | `/settings`   | Réglages : couleur de l'application (préréglages + couleur libre), raccourci profil/connexion | Public (réglages stockés sur l'appareil) |
 | `(app)`  | `/profil`     | Profil (lecture) : carte identité, compte, permissions, déconnexion| Connecté (Guest → `/login`)                |
 
@@ -200,6 +201,41 @@ ignorée. La base compte chaque utilisateur une seule fois par heure. « En lign
 **utilisateurs distincts vus pendant l'heure**, pas des connexions simultanées (la présence Realtime est écartée :
 ADR 0006). Les heures d'avant le déploiement ne sont pas mesurées (`tracked = false`) : la courbe y est vide, et les
 moyennes les ignorent. L'heure en cours n'est pas terminée : elle n'entre pas dans le profil par heure de la journée.
+
+## Petites attentions : 404, états vides, crédits, thème de profil, compteur d'inscrits
+
+- **404** (`src/app/not-found.tsx`) : un grand « 404 », le titre **Page introuvable** (le test e2e s'appuie dessus), une phrase
+  légère (« Cette page s'est perdue dans le cortège ») et toujours une sortie (accueil, carte).
+- **États vides** : composant `EmptyState` (`src/components/empty-state.tsx` : icône ronde décorative, titre, aide ; variante
+  `compact` dans une liste), utilisé pour le fil sans annonce et un jour sans événement. L'administration garde des textes
+  factuels.
+- **Crédits** (`/credits`, `src/features/credits/`) : page publique et statique. La liste des développeurs est dans
+  `team.ts` (**uniquement des identifiants GitHub publics**, jamais d'e-mail ; en ajouter un = une ligne) ; liens
+  externes en `target="_blank" rel="noopener noreferrer"`. Chaque développeur a **sa photo de profil GitHub**
+  (`githubAvatarUrl()` : `https://avatars.githubusercontent.com/<login>?s=96`, via le composant `Avatar`, sans optimisation
+  d'image Vercel ni *referrer*) : cet hôte est autorisé dans `img-src` (`next.config.ts`) et dans `AVATAR_HOSTS`. Sous chaque développeur, ses chiffres comme dans
+  l'onglet *Contributors* de GitHub (« 91 commits **49 776 ++** **3 007 --** », en vert et en rouge) : `getContributorStats()`
+  (`src/lib/data/github-stats.ts`) lit `GET /repos/iSweat-exe/BlocusApp/stats/contributors` **côté serveur**, à travers le
+  cache partagé (un appel au plus toutes les 15 min par instance), avec une nouvelle tentative si GitHub répond 202
+  (calcul en cours). Si GitHub ne répond pas (limite de débit, panne), la fonction renvoie `null` et **la page reste
+  complète sans les chiffres** (elle ne lève jamais : une erreur dans une fonction en cache fait échouer le build). Les
+  chiffres sont ceux de GitHub : branche par défaut, commits de fusion exclus, fichiers générés (verrous, types) inclus,
+  donc plus gros que du code écrit à la main. La page est
+  la même pour tout le monde, **connecté ou non** (aucune garde)  ; **accès pour tout le monde, dans l'application** :
+  une ligne « Crédits · Qui a développé BLOCUS. » (`CreditsLink`) dans la section **À propos** de `/settings` (onglet
+  Réglages, que les invités ont aussi) et sur `/profil`, plus un petit lien en bas de `/login`.
+- **Thème de profil** (`src/features/profile/profile-theme.ts`) : certains comptes ont un look à eux, repéré par l'**id du
+  profil affiché** (jamais par une valeur fournie par un utilisateur). Le thème « love » recolore toute la page de `/profil`
+  (variables CSS `--accent*` locales, comme les réglages de couleur), entoure l'avatar d'un cadre qui bat (`.love-ring`) et
+  fait monter des cœurs derrière la page (`LoveHearts`, décoratif, `aria-hidden`). Animations en CSS pur ; avec
+  `prefers-reduced-motion` le cadre reste immobile et les cœurs disparaissent. Visible par la personne sur son propre
+  `/profil` seulement. Ajouter un thème = une ligne dans `THEMED_PROFILES` et un déploiement.
+- **Nombre d'inscrits sur `/login`** : `MemberCount` affiche « Déjà N personnes ont rejoint BLOCUS. » sous les boutons, depuis
+  `getPublicUserCount()` (`src/lib/data/user-count.ts`) qui appelle `public_user_count()` (un entier, lisible par `anon`)
+  à travers le cache partagé (profil `feed` : une lecture toutes les 2 min au plus par instance). **`/login` reste
+  statique** (servie par le CDN, regénérée toutes les 2 min). La lecture **renvoie `null` au lieu de lever** : une erreur
+  levée par une fonction en cache pendant le pré-rendu fait échouer tout le build (par exemple quand le build précède la
+  migration). Sans le chiffre (migration absente, base en panne) ou à 0, la ligne n'est pas affichée.
 
 ## Calendrier
 

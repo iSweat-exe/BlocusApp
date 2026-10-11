@@ -65,7 +65,8 @@ describe("MonthView", () => {
     const grid = screen.getByRole("grid");
     await user.click(within(grid).getByRole("gridcell", { name: /^jeudi 8 octobre 2026/ }));
     expect(screen.getByRole("heading", { name: "jeudi 8 octobre 2026" })).toBeInTheDocument();
-    expect(screen.getByText("Aucun événement ce jour-là.")).toBeInTheDocument();
+    expect(screen.getByText("Journée tranquille")).toBeInTheDocument();
+    expect(screen.getByText("Rien de prévu ce jour-là.")).toBeInTheDocument();
     expect(window.location.search).toBe("?month=2026-10&day=2026-10-08");
 
     await user.click(within(grid).getByRole("gridcell", { name: /^mercredi 7 octobre 2026/ }));

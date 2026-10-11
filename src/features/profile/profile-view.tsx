@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { Avatar } from "@/components/avatar";
 import { canAccessAdmin } from "@/features/admin/access";
+import { HeartIcon } from "@/components/icons";
+import { CreditsLink } from "@/features/credits/credits-link";
 import { getProfile, listRoles } from "@/lib/data/profiles";
 import type { SessionPermissions } from "@/server/session";
+import { LoveHearts, LoveRing } from "./love-theme";
+import { profileThemeOf, profileThemeStyle } from "./profile-theme";
 
 const dateFormat = new Intl.DateTimeFormat("fr-FR", {
   dateStyle: "long",
@@ -42,14 +46,28 @@ export async function ProfileView({ session }: { session: SessionPermissions }) 
   const roleLabel =
     (roles.ok ? roles.value.find((item) => item.key === role)?.label : null) ?? role;
   const providers = session.providers.map((name) => PROVIDER_LABELS[name] ?? name);
+  // A few profiles have a look of their own: the accent changes for the whole page, plus some decoration.
+  const theme = profileThemeOf(id);
+  const avatar = <Avatar pseudo={pseudo} url={avatar_url} size="xl" ring={!theme} />;
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col items-center gap-3 text-center">
-        <Avatar pseudo={pseudo} url={avatar_url} size="xl" ring />
+    <div
+      className="relative isolate flex flex-col gap-6"
+      style={theme ? profileThemeStyle(theme) : undefined}
+      data-profile-theme={theme?.key}
+    >
+      {theme && <LoveHearts />}
+      <header className="relative flex flex-col items-center gap-3 text-center">
+        {theme ? <LoveRing>{avatar}</LoveRing> : avatar}
         <div className="flex min-w-0 max-w-full flex-col items-center gap-2">
           <p className="max-w-full truncate text-xl font-semibold tracking-tight">{pseudo}</p>
           <span className="chip chip-accent text-sm">{roleLabel}</span>
+          {theme && (
+            <p className="flex items-center gap-1.5 text-sm font-medium text-accent">
+              <HeartIcon className="size-4" fill="currentColor" />
+              {theme.message}
+            </p>
+          )}
         </div>
       </header>
 
@@ -106,6 +124,8 @@ export async function ProfileView({ session }: { session: SessionPermissions }) 
           </span>
         </Link>
       )}
+
+      <CreditsLink />
 
       <form action="/auth/logout" method="post">
         <button type="submit" className="btn btn-danger w-full">

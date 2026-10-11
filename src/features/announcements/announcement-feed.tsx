@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { EmptyState } from "@/components/empty-state";
 import { FullScreenDialog } from "@/components/full-screen-dialog";
+import { SpeakerIcon } from "@/components/icons";
 import {
   type Announcement,
   listAnnouncements,
@@ -114,9 +116,12 @@ export async function AnnouncementFeed({ limit }: { limit: number }) {
           Impossible de charger les annonces pour le moment.
         </p>
       ) : announcements.length === 0 ? (
-        <p className="rounded-card border border-dashed border-line-strong p-6 text-center text-sm text-muted">
-          Aucune annonce pour le moment.
-        </p>
+        <EmptyState
+          icon={<SpeakerIcon className="size-7" />}
+          title="Rien à signaler pour l'instant"
+        >
+          Les annonces des gérants apparaîtront ici dès qu&apos;il y en aura. Reviens vite !
+        </EmptyState>
       ) : (
         <ul className="flex flex-col gap-3">
           {announcements.map((announcement) => (

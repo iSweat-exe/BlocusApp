@@ -255,6 +255,13 @@ Migration `20261011120000_statistics.sql` (A-067). Permission `statistics.view` 
 
 Test : `supabase/tests/database/statistics.test.sql`.
 
+## Nombre d'inscrits public (`public_user_count()`)
+
+Migration `20261011140000_public_user_count.sql`. `profiles` est fermée à `anon` ; cette fonction (`SECURITY DEFINER`,
+`search_path` vide, exécutable par `anon` et `authenticated`) renvoie **un seul entier**, le nombre de comptes, affiché sur
+`/login`. Aucun nom, aucune date, aucun identifiant. L'application la lit à travers un cache partagé (une lecture toutes
+les 2 min par instance) et tolère son absence. Test : `supabase/tests/database/public_user_count.test.sql`.
+
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 
 Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées
