@@ -1,12 +1,162 @@
+import Link from "next/link";
+import { CheckIcon, LockIcon } from "@/components/icons";
 import { listRolePermissions, listPermissions } from "@/lib/data/permissions";
 import { listRoles } from "@/lib/data/profiles";
 import type { SessionPermissions } from "@/server/session";
-import { rankOf } from "./hierarchy";
-import { canEditRolePermission, permissionLabel } from "./permission-rules";
-import { RolePermissionToggle } from "./permission-forms";
+import { RolePermissionSwitch } from "./permission-forms";
+import { RoleSelector } from "./role-selector";
+import {
+  buildRoleMatrixModel,
+  type PermissionRow,
+  type RoleMatrixModel,
+  type RoleStatus,
+} from "./role-matrix-model";
 
-/** Role x permission matrix, one card per role (mobile-first). Editable within the hierarchy. */
-export async function RoleMatrix({ session }: { session: SessionPermissions }) {
+const STATUS: Record<RoleStatus, { label: string; className: string; locked: boolean }> = {
+  editable: { label: "Modifiable", className: "bg-success/15 text-success", locked: false },
+  readonly: { label: "Lecture seule", className: "bg-foreground/10 text-muted", locked: true },
+  locked: { label: "Verrouillé", className: "bg-foreground/10 text-muted", locked: true },
+};
+
+const plural = (count: number, word: string) => `${count} ${word}${count > 1 ? "s" : ""}`;
+
+/** Right side of a row: a switch when the caller may flip it, else what the role holds. */
+function RowControl({
+  row,
+  roleKey,
+  roleLabel,
+}: {
+  row: PermissionRow;
+  roleKey: string;
+  roleLabel: string;
+}) {
+  if (row.editable) {
+    return (
+      <RolePermissionSwitch
+        role={roleKey}
+        permission={row.key}
+        currentlyGranted={row.granted}
+        label={`${row.label} (${roleLabel})`}
+      />
+    );
+  }
+  return row.granted ? (
+    <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-success">
+      <CheckIcon className="h-4 w-4" />
+      Accordée
+    </span>
+  ) : (
+    <span className="shrink-0 text-sm text-faint">Non accordée</span>
+  );
+}
+
+/** The page, from a model: pure, so it renders the same with any data. */
+export function RoleMatrixView({
+  model,
+  canReadJournal = false,
+}: {
+  model: RoleMatrixModel;
+  canReadJournal?: boolean;
+}) {
+  const { selected } = model;
+  const status = STATUS[selected.status];
+  const percent =
+    selected.total > 0 ? Math.round((selected.grantedCount / selected.total) * 100) : 0;
+
+  return (
+    <div className="flex flex-col gap-section">
+      <RoleSelector roles={model.roles} selectedKey={selected.key} />
+
+      <section aria-labelledby="role-title" className="card flex flex-col gap-3 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 id="role-title" className="truncate text-xl font-extrabold tracking-tight">
+              {selected.label}
+            </h3>
+            <p className="text-sm text-muted">
+              <span className="font-semibold tabular-nums text-foreground">
+                {selected.grantedCount}
+              </span>{" "}
+              sur {plural(selected.total, "permission")}
+            </p>
+          </div>
+          <span className={`chip shrink-0 gap-1.5 ${status.className}`}>
+            {status.locked && <LockIcon className="h-3.5 w-3.5" />}
+            {status.label}
+          </span>
+        </div>
+        <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-foreground/10">
+          <div className="h-full rounded-full bg-accent" style={{ width: `${percent}%` }} />
+        </div>
+        <p className="text-xs text-muted">{selected.note}</p>
+      </section>
+
+      {selected.sections.length === 0 && (
+        <p className="text-sm text-muted">Aucune permission dans le catalogue.</p>
+      )}
+
+      {selected.sections.map((section) => (
+        <section
+          key={section.id}
+          aria-labelledby={`group-${section.id}`}
+          className="flex flex-col gap-2"
+        >
+          <div className="flex items-baseline justify-between">
+            <h4 id={`group-${section.id}`} className="section-title">
+              {section.label}
+            </h4>
+            <span className="px-1 text-xs tabular-nums text-faint">
+              {section.grantedCount}/{section.rows.length}
+            </span>
+          </div>
+          <ul className="card divide-y divide-line overflow-hidden">
+            {section.rows.map((row) => (
+              <li key={row.key} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{row.label}</p>
+                  <p className="truncate font-mono text-xs text-faint">{row.key}</p>
+                  {row.hint && (
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
+                      <LockIcon className="h-3 w-3 shrink-0" />
+                      {row.hint}
+                    </p>
+                  )}
+                </div>
+                <RowControl row={row} roleKey={selected.key} roleLabel={selected.label} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+
+      <p className="px-1 text-xs text-faint">
+        Chaque modification est enregistrée dans le journal d&apos;audit
+        {canReadJournal && (
+          <>
+            {" · "}
+            <Link
+              href="/admin/journal"
+              prefetch={false}
+              className="font-medium text-muted underline underline-offset-2"
+            >
+              Voir le journal
+            </Link>
+          </>
+        )}
+        .
+      </p>
+    </div>
+  );
+}
+
+/** Role x permission screen: one role at a time, permissions grouped, editable within the hierarchy. */
+export async function RoleMatrix({
+  session,
+  requestedRole,
+}: {
+  session: SessionPermissions;
+  requestedRole?: string;
+}) {
   const [roles, permissions, links] = await Promise.all([
     listRoles(),
     listPermissions(),
@@ -21,64 +171,26 @@ export async function RoleMatrix({ session }: { session: SessionPermissions }) {
     );
   }
 
-  const callerRank = rankOf(roles.value, session.role);
-  const granted = new Set(links.value.map((link) => `${link.role}:${link.permission}`));
-  // Highest roles first: the most powerful ones are the most important to review.
-  const orderedRoles = [...roles.value].sort((a, b) => b.rank - a.rank);
+  const model = buildRoleMatrixModel({
+    roles: roles.value,
+    permissions: permissions.value.map((permission) => ({
+      key: permission.key,
+      description: permission.description,
+    })),
+    held: new Set(links.value.map((link) => `${link.role}:${link.permission}`)),
+    caller: { role: session.role, permissions: session.permissions },
+    requestedRole,
+  });
+
+  if (!model) {
+    return (
+      <p role="alert" className="alert alert-error">
+        Aucun rôle n&apos;est défini.
+      </p>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      {orderedRoles.map((role) => (
-        <section
-          key={role.key}
-          aria-labelledby={`role-${role.key}`}
-          className="flex flex-col gap-2 card p-4"
-        >
-          <h2 id={`role-${role.key}`} className="font-semibold">
-            {role.label}
-          </h2>
-          {role.key === "super_admin" && (
-            <p className="text-xs text-muted">
-              Toutes les permissions, non modifiable (verrou en base de données).
-            </p>
-          )}
-          <ul className="divide-y divide-foreground/10">
-            {permissions.value.map((permission) => {
-              const has =
-                role.key === "super_admin" || granted.has(`${role.key}:${permission.key}`);
-              const editable =
-                role.key !== "super_admin" &&
-                canEditRolePermission({
-                  callerRank,
-                  roleRank: role.rank,
-                  currentlyGranted: has,
-                  callerHolds: session.permissions.includes(permission.key),
-                });
-              return (
-                <li key={permission.key} className="flex items-center justify-between gap-3 py-3">
-                  <div className="min-w-0">
-                    <p className="text-sm">
-                      {permissionLabel(permission.key, permission.description)}
-                    </p>
-                    <p className="font-mono text-xs text-muted">{permission.key}</p>
-                  </div>
-                  {editable ? (
-                    <RolePermissionToggle
-                      role={role.key}
-                      permission={permission.key}
-                      currentlyGranted={has}
-                    />
-                  ) : (
-                    <span className={`shrink-0 text-sm ${has ? "text-success" : "text-faint"}`}>
-                      {has ? "Accordée" : "Non accordée"}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
-    </div>
+    <RoleMatrixView model={model} canReadJournal={session.permissions.includes("audit.read")} />
   );
 }

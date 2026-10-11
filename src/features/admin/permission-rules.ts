@@ -12,6 +12,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   "event.create": "Créer des événements",
   "event.delete": "Supprimer des événements",
   "event.finish": "Marquer des événements comme terminés",
+  "monitoring.view": "Consulter la santé de l'application",
 };
 
 /** Label shown for a permission, falling back to its description, then its key. */

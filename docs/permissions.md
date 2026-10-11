@@ -94,9 +94,14 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   **Mute désactivé** (« bientôt disponible », aucun backend). Le formulaire n'apparaît que si l'appelant a
   `user.ban` **et** un rang supérieur à la cible ; sinon un message l'explique.
 - **Gestion des permissions dans le panneau** : sous-navigation de `/admin` (Utilisateurs · Rôles et
-  permissions). `/admin/roles` (permission `permission.manage`) : une carte par rôle (le plus élevé en
-  premier) listant les permissions ; bouton **Accorder / Retirer** seulement pour un rôle de rang strictement
-  inférieur et, pour accorder, une permission que l'appelant possède ; `super_admin` verrouillé. La fiche
+  permissions). `/admin/roles` (permission `permission.manage`) : **un rôle à la fois** (onglets, du plus élevé au plus bas,
+  avec le nombre de permissions ; le rôle est dans l'URL, `?role=`), un résumé (statut « Modifiable », « Lecture
+  seule » ou « Verrouillé », jauge) puis les permissions **groupées** (Annonces, Calendrier, Carte, Modération,
+  Administration). Un **interrupteur** (qui bascule aussitôt et revient en arrière si le serveur refuse)
+  n'apparaît que pour un rôle de rang strictement inférieur et, pour accorder, une permission que l'appelant
+  possède ; sinon la ligne indique « Accordée / Non accordée » et, si besoin, pourquoi (« Tu ne possèdes pas
+  cette permission »). `super_admin` est verrouillé. Les règles sont dans `role-matrix-model.ts` (pur, testé) et
+  restent doublées par la base. La fiche
   utilisateur affiche l'**état effectif** de chaque permission (« Via le rôle », « Accordée / Refusée à cet
   utilisateur ») avec **Accorder / Refuser / Réinitialiser** (Accorder seulement pour une permission détenue).
   Actions : `toggleRolePermission` et `setUserPermission` (`requirePermission("permission.manage", { fresh:
