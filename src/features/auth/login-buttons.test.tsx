@@ -21,6 +21,22 @@ describe("GoogleButton", () => {
   });
 });
 
+describe("icons of the login buttons", () => {
+  it("gives the Google and guest buttons a decorative icon that does not change their name", () => {
+    render(
+      <>
+        <GoogleButton />
+        <GuestLink />
+      </>,
+    );
+    for (const name of [/^Continuer avec Google$/, /^Continuer en tant qu'invité$/]) {
+      const icon = screen.getByRole("link", { name }).querySelector("svg");
+      expect(icon).toHaveAttribute("aria-hidden", "true");
+      expect(icon).toHaveAttribute("focusable", "false");
+    }
+  });
+});
+
 describe("GuestLink", () => {
   it("lets visitors browse the app read-only from the home page", () => {
     render(<GuestLink />);
