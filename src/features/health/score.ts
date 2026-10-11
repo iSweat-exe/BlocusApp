@@ -1,6 +1,23 @@
 /** Size limit of the free Supabase database (see `.dev/constraints.md`). */
 export const DB_QUOTA_BYTES = 500 * 1024 * 1024;
 
+/**
+ * Limits of each measure: `good` is the value up to which it earns full marks, `bad` the value from which it
+ * earns none. The score and the colors of the page both read them, so they never disagree.
+ */
+export const THRESHOLDS = {
+  /** Database round trip, in ms. */
+  dbMs: { good: 200, bad: 1500 },
+  /** Auth round trip, in ms. */
+  authMs: { good: 300, bad: 2000 },
+  /** Database size, as a share of the quota. */
+  dbSize: { good: 0.7, bad: 1 },
+  /** Hours since the daily cron last ran. */
+  cronHours: { good: 36, bad: 72 },
+  /** Open connections, as a share of the server limit. */
+  connections: { good: 0.6, bad: 0.9 },
+} as const;
+
 /** Measures the global score is computed from. `null` = the measure could not be taken. */
 export type ScoreInput = {
   /** Round trip of a tiny read through PostgREST, in ms (`null` = the database does not answer). */
@@ -50,20 +67,42 @@ function ramp(value: number, good: number, bad: number): number {
  */
 export function computeHealthScore(input: ScoreInput): number {
   const parts: { weight: number; share: number }[] = [
-    { weight: 30, share: input.dbMs === null ? 0 : ramp(input.dbMs, 200, 1500) },
-    { weight: 20, share: input.authMs === null ? 0 : ramp(input.authMs, 300, 2000) },
+    {
+      weight: 30,
+      share: input.dbMs === null ? 0 : ramp(input.dbMs, THRESHOLDS.dbMs.good, THRESHOLDS.dbMs.bad),
+    },
+    {
+      weight: 20,
+      share:
+        input.authMs === null
+          ? 0
+          : ramp(input.authMs, THRESHOLDS.authMs.good, THRESHOLDS.authMs.bad),
+    },
   ];
   if (input.dbSizeBytes !== null) {
-    parts.push({ weight: 15, share: ramp(input.dbSizeBytes / DB_QUOTA_BYTES, 0.7, 1) });
+    parts.push({
+      weight: 15,
+      share: ramp(
+        input.dbSizeBytes / DB_QUOTA_BYTES,
+        THRESHOLDS.dbSize.good,
+        THRESHOLDS.dbSize.bad,
+      ),
+    });
   }
   if (input.vercelState !== null) {
     parts.push({ weight: 10, share: VERCEL_SHARE[input.vercelState] ?? 0.5 });
   }
   if (input.cronAgeHours != null) {
-    parts.push({ weight: 10, share: ramp(input.cronAgeHours, 36, 72) });
+    parts.push({
+      weight: 10,
+      share: ramp(input.cronAgeHours, THRESHOLDS.cronHours.good, THRESHOLDS.cronHours.bad),
+    });
   }
   if (input.connectionsRatio != null) {
-    parts.push({ weight: 10, share: ramp(input.connectionsRatio, 0.6, 0.9) });
+    parts.push({
+      weight: 10,
+      share: ramp(input.connectionsRatio, THRESHOLDS.connections.good, THRESHOLDS.connections.bad),
+    });
   }
   if (input.configShare != null) {
     parts.push({ weight: 5, share: Math.min(1, Math.max(0, input.configShare)) });

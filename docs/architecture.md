@@ -44,7 +44,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/calendar/[id]` | Détail d'un événement                 | Lecture : Guest                            |
 | `(app)`  | `/map`        | Carte : fond OpenFreeMap (MapLibre, ADR 0005), tracé (lecture et édition au doigt), « Me localiser » et position déclarée | Lecture : Guest ; tracé : `map.route.edit` ; position : `map.position.declare` |
 | `(app)`  | `/admin`      | Administration : utilisateurs (recherche, filtre par rôle, liste) | Une permission d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`) ; sinon 404, Guest → `/login` |
-| `(app)`  | `/admin/health` | Santé de l'application : score global, base, Auth, Vercel, stockage, utilisateurs, historique | `monitoring.view` (sinon 404 ; Guest → `/login`) |
+| `(app)`  | `/admin/health` | Santé de l'application : score en jauge, services avec état coloré, tables, utilisateurs, historique, configuration | `monitoring.view` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/users/[id]` | Fiche utilisateur : rôle, sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/roles` | Rôles et permissions : un rôle à la fois (onglets), permissions groupées, interrupteurs | Permission `permission.manage` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/journal` | Journal d'audit : par jour, filtre par catégorie, pagination | Permission `audit.read` (sinon 404 ; Guest → `/login`) |
@@ -172,6 +172,8 @@ seulement), puis calcule le score (`score.ts`, 7 facteurs, pondérations dans sa
 un toutes les 10 min) et dessine l'historique des 30 jours. La page est dynamique (`connection()`), derrière
 `monitoring.view` (404 sinon) ; les fonctions SQL revérifient la permission. Le cron quotidien de `/api/keep-alive`
 enregistre aussi un instantané avec la clé `service_role` (`cron-snapshot.ts`, sans effet si la clé manque).
+**Présentation** : `HealthView` mesure puis délègue à `HealthDashboard` (pur : un rapport et un historique, testable avec n'importe quelles données). Le score est une **jauge circulaire** colorée par l'état (Opérationnel, Dégradé, Critique) ; les services sont des **lignes** avec une pastille d'état (vert, orange, rouge, gris si la mesure n'existe pas) et, pour le stockage et les connexions, une barre de la part utilisée ; les tables sont dessinées face à la plus lourde, l'historique prend la couleur de l'état courant (le rouge de la marque est évité : ici le rouge veut dire « critique »). Les couleurs viennent de `health-tones.ts`, qui lit les **mêmes seuils que le score** (`THRESHOLDS` dans `score.ts`) : la page et le score ne peuvent pas diverger. La couleur ne porte jamais seule l'information : chaque valeur est suivie d'un mot pour les lecteurs d'écran (« état bon », « à surveiller », « état critique », « non mesuré »).
+
 `GET /api/health` (public, statut seul, 503 si la base ou Auth ne répond pas, réponse gardée 10 s) sert à un
 moniteur externe.
 

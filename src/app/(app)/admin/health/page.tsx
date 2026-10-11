@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { HealthSkeleton } from "@/features/health/health-skeleton";
 import { HealthView } from "@/features/health/health-view";
 import { requirePermission } from "@/server/require-permission";
 import { getSessionPermissions } from "@/server/session";
@@ -20,12 +21,14 @@ async function HealthContent() {
 export default function AdminHealthPage() {
   return (
     <div className="flex flex-col gap-section">
-      <h2 className="text-xl font-semibold tracking-tight">Santé de l&apos;application</h2>
-      <p className="text-sm text-muted">
-        État de la base de données, de l&apos;authentification et du déploiement, avec
-        l&apos;historique du score.
-      </p>
-      <Suspense fallback={<p className="text-sm text-muted">Mesure en cours…</p>}>
+      <header className="flex flex-col gap-1">
+        <h2 className="text-xl font-bold tracking-tight">Santé de l&apos;application</h2>
+        <p className="text-sm text-muted">
+          État de la base de données, de l&apos;authentification et du déploiement, avec
+          l&apos;historique du score.
+        </p>
+      </header>
+      <Suspense fallback={<HealthSkeleton />}>
         <HealthContent />
       </Suspense>
     </div>
