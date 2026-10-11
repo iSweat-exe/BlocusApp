@@ -25,7 +25,7 @@ export function checkConfiguration(env: Env = process.env): ConfigCheck[] {
     {
       key: "SUPABASE_SERVICE_ROLE_KEY",
       label: "Clé service Supabase",
-      hint: "Sans elle, le cron n'enregistre pas d'historique.",
+      hint: "Sans elle, le cron n'enregistre pas d'historique et l'origine d'inscription n'est pas notée.",
       ok: has("SUPABASE_SERVICE_ROLE_KEY"),
       required: true,
     },

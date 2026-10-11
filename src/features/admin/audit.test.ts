@@ -281,6 +281,18 @@ describe("adminLinksFor", () => {
     ]);
   });
 
+  it("adds the statistics section for statistics.view, before the health one", () => {
+    expect(adminLinksFor(["statistics.view"]).map((link) => link.href)).toEqual([
+      "/admin",
+      "/admin/statistics",
+    ]);
+    expect(adminLinksFor(["monitoring.view", "statistics.view"]).map((link) => link.href)).toEqual([
+      "/admin",
+      "/admin/statistics",
+      "/admin/health",
+    ]);
+  });
+
   it("adds the health section for monitoring.view", () => {
     expect(adminLinksFor(["monitoring.view"]).map((link) => link.href)).toEqual([
       "/admin",

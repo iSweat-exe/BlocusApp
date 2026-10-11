@@ -19,6 +19,7 @@ const LINKS: AdminLink[] = adminLinksFor([
   "role.assign",
   "permission.manage",
   "audit.read",
+  "statistics.view",
   "monitoring.view",
 ]);
 
@@ -28,6 +29,7 @@ describe("activeAdminHref", () => {
     ["/admin/users/abc", "/admin"],
     ["/admin/roles", "/admin/roles"],
     ["/admin/journal", "/admin/journal"],
+    ["/admin/statistics", "/admin/statistics"],
     ["/admin/health", "/admin/health"],
     ["/admin/journal/anything", "/admin/journal"],
   ])("puts %s under %s", (pathname, expected) => {
@@ -54,6 +56,7 @@ describe("AdminNav", () => {
       "Utilisateurs",
       "Rôles",
       "Journal",
+      "Statistiques",
       "Santé",
     ]);
     for (const link of links) expect(link.querySelector("svg")).not.toBeNull();

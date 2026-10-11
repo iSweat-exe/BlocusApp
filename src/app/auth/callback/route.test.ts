@@ -2,10 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./route";
 
 const exchangeCodeForSession = vi.fn();
+const recordSignupOrigin = vi.fn();
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: () => ({ auth: { exchangeCodeForSession } }),
+}));
+
+vi.mock("@/features/auth/signup-origin", () => ({
+  recordSignupOrigin: (...args: unknown[]) => recordSignupOrigin(...args),
 }));
 
 const callback = (query: string) => new Request(`https://blocus.app/auth/callback?${query}`);
@@ -23,6 +28,24 @@ describe("GET /auth/callback", () => {
 
     expect(exchangeCodeForSession).toHaveBeenCalledWith("abc", { flowId: "flow12345678" });
     expect(response.headers.get("location")).toBe("https://blocus.app/events");
+  });
+
+  it("notes where a new account comes from, with the request headers", async () => {
+    const user = { id: "u1", created_at: "2026-10-11T12:00:00Z" };
+    exchangeCodeForSession.mockResolvedValue({ data: { user }, error: null });
+
+    const request = callback("code=abc");
+    await GET(request);
+
+    expect(recordSignupOrigin).toHaveBeenCalledWith(user, request.headers);
+  });
+
+  it("does not note anything when the exchange fails", async () => {
+    exchangeCodeForSession.mockResolvedValue({ data: { user: null }, error: { message: "x" } });
+
+    await GET(callback("code=abc"));
+
+    expect(recordSignupOrigin).not.toHaveBeenCalled();
   });
 
   it("falls back to the latest verifier when the callback carries no flow id", async () => {

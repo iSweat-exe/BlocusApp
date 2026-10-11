@@ -130,6 +130,14 @@ déjà les changements d'onglet gratuits.
 | Journal d'audit de la carte : une ligne par position déclarée ou tracé enregistré, sans purge (50 à 80 Mo par an) | Migration `20261008230000_prune_map_audit.sql` : entrées `map.*` de plus de 90 jours supprimées par un trigger, 500 lignes au plus par insertion, **sans `pg_cron`** (voir `docs/database.md`). Toutes les tables de l'application ensemble restent sous 20 Mo par an : avec le journal d'audit d'Auth désactivé (lot 1), la base n'approche pas 500 Mo |
 | Bouton Discord : un appel à Supabase Auth par affichage de `/login` | **Laissé tel quel.** Une vue de `/login` coûte une invocation et un appel Auth ; au rythme d'environ une connexion par utilisateur et par mois, cela fait de l'ordre de 1 000 invocations sur 1 M (0,1 %), alors que résoudre l'adresse au toucher risque de casser l'ouverture directe de l'application Discord sur mobile (la navigation doit partir du geste de l'utilisateur) |
 
+## Mesure de l'activité (A-066, ADR 0008)
+
+| Sujet | Décision |
+|---|---|
+| Compter les utilisateurs actifs par heure sans websocket (la présence Realtime consommerait les ~200 connexions gratuites) | Le proxy, qui tourne déjà pour chaque page d'un connecté, appelle `touch_activity()` **au plus une fois par heure et par navigateur** (cookie `blocus-seen`), en arrière-plan (`event.waitUntil`) : aucune invocation Vercel de plus, aucune attente pour la page. Au pire (un utilisateur actif 24 h sur 24), 24 appels par jour et par utilisateur ; en pratique 2 à 4. |
+| Écritures en base | 1 upsert de `user_activity` par utilisateur et par heure (la clause `WHERE` rend les répétitions sans effet) et 1 incrément de la ligne de l'heure. Les deux tables restent minuscules (≈ 9 000 lignes par an pour `activity_hours`, une ligne par utilisateur) : aucune purge. |
+| Lecture des statistiques | Trois fonctions SQL appelées à l'ouverture de `/admin/statistics` par un administrateur (720 lignes de séries, quelques `count(*)` sur des tables de quelques milliers de lignes) : ni cache ni index de plus. |
+
 ## Mesures (Supabase local, build de production, Pixel 7 émulé, 60 utilisateurs, 15 annonces, 20 événements)
 
 « Requêtes réseau » = requêtes vers notre serveur réellement émises (hors ressources servies par le cache du

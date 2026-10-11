@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, type NextFetchEvent } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AUTH_COOKIE_NAME } from "@/lib/supabase/cookie";
 import { config, proxy } from "./proxy";
@@ -17,6 +17,16 @@ describe("proxy", () => {
   it("refreshes the session on a normal page request", () => {
     proxy(new NextRequest("http://localhost/calendar"));
     expect(updateSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("hands background work to the platform so the page does not wait for it", () => {
+    const waitUntil = vi.fn();
+    proxy(new NextRequest("http://localhost/calendar"), { waitUntil } as unknown as NextFetchEvent);
+
+    const defer = updateSession.mock.calls[0]?.[1] as (work: Promise<unknown>) => void;
+    const work = Promise.resolve();
+    defer(work);
+    expect(waitUntil).toHaveBeenCalledWith(work);
   });
 
   it("does not touch the session for link prefetches", () => {

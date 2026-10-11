@@ -6,6 +6,7 @@ import { UserDetail } from "./user-detail";
 const getProfile = vi.fn();
 const listRoles = vi.fn();
 const listSanctions = vi.fn();
+const getSignupOrigin = vi.fn();
 
 vi.mock("@/lib/data/profiles", () => ({
   getProfile: (...args: unknown[]) => getProfile(...args),
@@ -13,6 +14,9 @@ vi.mock("@/lib/data/profiles", () => ({
 }));
 vi.mock("@/lib/data/sanctions", () => ({
   listSanctions: (...args: unknown[]) => listSanctions(...args),
+}));
+vi.mock("@/lib/data/signup-origins", () => ({
+  getSignupOrigin: (...args: unknown[]) => getSignupOrigin(...args),
 }));
 vi.mock("next/navigation", () => ({
   notFound: () => {
@@ -61,6 +65,8 @@ beforeEach(() => {
   getProfile.mockReset();
   listRoles.mockResolvedValue({ ok: true, value: ROLES });
   listSanctions.mockResolvedValue({ ok: true, value: [] });
+  getSignupOrigin.mockReset();
+  getSignupOrigin.mockResolvedValue({ ok: true, value: null });
 });
 
 describe("UserDetail: changing the role", () => {
@@ -98,5 +104,44 @@ describe("UserDetail: changing the role", () => {
     profile("user", "admin-1");
     await show({}, "admin-1");
     expect(screen.queryByRole("button", { name: "Appliquer" })).toBeNull();
+  });
+});
+
+describe("UserDetail: sign-up origin", () => {
+  const withOrigin = { permissions: ["role.assign", "user.origin.view"] };
+
+  it("shows where the user signed up from to someone holding user.origin.view", async () => {
+    profile("user");
+    getSignupOrigin.mockResolvedValue({
+      ok: true,
+      value: { country: "FR", region: "ARA", city: "Lyon" },
+    });
+    await show(withOrigin);
+    expect(getSignupOrigin).toHaveBeenCalledWith("target-1");
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Origine de l'inscription" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Lyon, France")).toBeInTheDocument();
+    expect(screen.getByText("Région : ARA")).toBeInTheDocument();
+  });
+
+  it("says so when the origin is unknown", async () => {
+    profile("user");
+    await show(withOrigin);
+    expect(screen.getByText(/Inconnue/)).toBeInTheDocument();
+  });
+
+  it("reports a failed read", async () => {
+    profile("user");
+    getSignupOrigin.mockResolvedValue({ ok: false, error: "load_failed" });
+    await show(withOrigin);
+    expect(screen.getByRole("alert")).toHaveTextContent("Impossible de charger l'origine");
+  });
+
+  it("neither shows nor reads it without the permission", async () => {
+    profile("user");
+    await show();
+    expect(getSignupOrigin).not.toHaveBeenCalled();
+    expect(screen.queryByRole("heading", { name: "Origine de l'inscription" })).toBeNull();
   });
 });
