@@ -123,6 +123,19 @@ describe("HealthDashboard", () => {
     );
   });
 
+  it("keeps every value on one line: a value must never be squeezed down to its smallest word", () => {
+    render(<HealthDashboard report={report} snapshots={[]} />);
+    const services = screen.getByRole("region", { name: "Services" });
+    const values = within(services)
+      .getAllByRole("listitem")
+      .map((item) => item.querySelector(":scope > p"));
+    expect(values).toHaveLength(6);
+    for (const value of values) expect(value?.className).toContain("whitespace-nowrap");
+    expect(row("audit_logs").querySelector("span.font-semibold")?.className).toContain(
+      "whitespace-nowrap",
+    );
+  });
+
   it("keeps the score readable as a figure next to its ring", () => {
     render(<HealthDashboard report={report} snapshots={[]} />);
     const section = screen.getByRole("region", { name: "Score global" });

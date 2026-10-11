@@ -62,6 +62,8 @@ hauteur de bouton : utiliser les tokens et classes partagées.
 | Titres                | `.page-title`, `.section-title`                                               |
 | Composants            | `Select` (liste déroulante, feuille swipeable sur mobile), `Avatar`, `FullScreenDialog` |
 
+**Valeurs et pastilles : une seule ligne.** Dans une ligne `flex` (libellé à gauche, valeur à droite), la valeur et les pastilles (`.chip`, qui ne se coupe jamais) portent `whitespace-nowrap` en plus de `shrink-0` : sans lui, un navigateur peut réduire la colonne à son plus petit mot (« 30 ms » devenait « 30 » / « ms » sur iPhone). C'est le texte d'aide qui se replie, jamais la valeur. Vérifier les écrans à **320 px** (le plus petit téléphone).
+
 ## TypeScript / qualité
 
 - `strict`, `noUncheckedIndexedAccess`, pas de `any` (erreur ESLint), pas de `@ts-ignore` sans

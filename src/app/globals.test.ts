@@ -40,3 +40,10 @@ describe("typography", () => {
     expect(layout).toMatch(/Geist_Mono\(\{[^}]*preload: false/);
   });
 });
+
+describe("short labels", () => {
+  it("never breaks a chip over two lines", () => {
+    const chip = /\.chip\s*\{[^}]*\}/.exec(css)?.[0] ?? "";
+    expect(chip).toContain("whitespace-nowrap");
+  });
+});

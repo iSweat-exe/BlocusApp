@@ -75,6 +75,15 @@ describe("RoleMatrixView", () => {
     expect(screen.getByText("Tu ne possèdes pas cette permission.")).toBeInTheDocument();
   });
 
+  it("keeps « Accordée » and « Non accordée » on one line", () => {
+    view("moderator");
+    expect(screen.getByText("Non accordée").className).toContain("whitespace-nowrap");
+    view("super_admin");
+    for (const granted of screen.getAllByText("Accordée")) {
+      expect(granted.className).toContain("whitespace-nowrap");
+    }
+  });
+
   it("shows a role at or above the caller's without any switch", () => {
     view("admin");
     expect(screen.getByText("Lecture seule")).toBeInTheDocument();
