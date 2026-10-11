@@ -108,9 +108,12 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   true })` puis RPC ; erreurs traduites). `permission-rules.ts` reflète les règles de la base pour l'affichage.
 - **Journal d'audit dans le panneau** : `/admin/journal` (permission `audit.read`), lecture seule. Chaque
   entrée est décrite en une phrase (« boss a banni victim définitivement — motif : … »), les pseudos sont
-  résolus (compte supprimé = identifiant tronqué), filtre par type d'action, pagination par curseur sur
-  `id` (25 par page, « Plus anciennes → » / « ← Plus récentes »). Paramètres d'URL validés
-  (`parseJournalParams`). Rien n'est écrit depuis l'interface : le journal est alimenté par les RPC.
+  résolus (compte supprimé = identifiant tronqué), entrées **regroupées par jour** (« Aujourd'hui », « Hier », puis la date ; le jour est celui de Paris), une
+  icône colorée par catégorie et les noms en gras, filtre par **catégorie** (Tout, Rôles, Permissions, Sanctions,
+  Calendrier, Carte : `AUDIT_CATEGORIES`, chaque action connue appartient à une seule ; une action inconnue de
+  cette version s'affiche sous « Autre »), pagination par curseur sur `id` (25 par page, « Voir les entrées plus
+  anciennes » / « Revenir aux plus récentes »). Paramètres d'URL validés (`parseJournalParams` : `category`,
+  `before` ; l'ancien paramètre `action` ouvre la catégorie de cette action). Rien n'est écrit depuis l'interface : le journal est alimenté par les RPC.
 - **Calendrier** : `event.create` (créer, et modifier ses propres événements), `event.delete` (supprimer
   n'importe lequel ; supprimer les siens suffit avec `event.create`). Boutons affichés d'après les claims,
   vérification `fresh` côté serveur, RLS en base.

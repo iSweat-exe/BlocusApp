@@ -155,6 +155,16 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+/** Circle with a slash: forbidden, banned. */
+export function BanIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m6 6 12 12" />
+    </Icon>
+  );
+}
+
 /** Closed padlock: locked, cannot be changed. */
 export function LockIcon(props: IconProps) {
   return (
