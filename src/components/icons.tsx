@@ -193,6 +193,18 @@ export function PulseIcon(props: IconProps) {
   );
 }
 
+/** Three bars on a baseline: statistics. */
+export function ChartIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 20h16" />
+      <path d="M7 20v-6" />
+      <path d="M12 20V6" />
+      <path d="M17 20v-9" />
+    </Icon>
+  );
+}
+
 /** Circle with a slash: forbidden, banned. */
 export function BanIcon(props: IconProps) {
   return (

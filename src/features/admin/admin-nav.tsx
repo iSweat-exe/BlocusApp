@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { ChipTabs } from "@/components/chip-tabs";
-import { ListIcon, PulseIcon, ShieldIcon, UserIcon } from "@/components/icons";
+import { ChartIcon, ListIcon, PulseIcon, ShieldIcon, UserIcon } from "@/components/icons";
 
 /** A section of the admin area. */
 export type AdminLink = { href: string; label: string };
@@ -13,6 +13,7 @@ const ICONS: Record<string, ReactNode> = {
   "/admin": <UserIcon className="size-[18px]" />,
   "/admin/roles": <ShieldIcon className="size-[18px]" />,
   "/admin/journal": <ListIcon className="size-[18px]" />,
+  "/admin/statistics": <ChartIcon className="size-[18px]" />,
   "/admin/health": <PulseIcon className="size-[18px]" />,
 };
 

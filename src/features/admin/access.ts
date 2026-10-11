@@ -6,6 +6,7 @@ export const ADMIN_AREA_PERMISSIONS = [
   "permission.manage",
   "audit.read",
   "monitoring.view",
+  "statistics.view",
 ] as const;
 
 /** Whether at least one of the given permissions is held. For display: the database enforces. */

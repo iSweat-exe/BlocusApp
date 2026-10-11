@@ -10,7 +10,7 @@ const GROUPS = [
   {
     id: "administration",
     label: "Administration",
-    prefixes: ["role", "permission", "audit", "monitoring"],
+    prefixes: ["role", "permission", "audit", "monitoring", "statistics"],
   },
 ] as const;
 

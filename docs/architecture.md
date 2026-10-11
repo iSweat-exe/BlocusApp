@@ -44,8 +44,9 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/calendar/[id]` | Détail d'un événement                 | Lecture : Guest                            |
 | `(app)`  | `/map`        | Carte : fond OpenFreeMap (MapLibre, ADR 0005), tracé (lecture et édition au doigt), « Me localiser » et position déclarée | Lecture : Guest ; tracé : `map.route.edit` ; position : `map.position.declare` |
 | `(app)`  | `/admin`      | Administration : utilisateurs (recherche, filtre par rôle, liste) | Une permission d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`) ; sinon 404, Guest → `/login` |
+| `(app)`  | `/admin/statistics` | Statistiques : chiffres clés, activité et inscriptions par heure (24 h / 7 j / 30 j), heures de pointe, répartition des comptes, contenu | `statistics.view` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/health` | Santé de l'application : score en jauge, services avec état coloré, tables, utilisateurs, historique, configuration | `monitoring.view` (sinon 404 ; Guest → `/login`) |
-| `(app)`  | `/admin/users/[id]` | Fiche utilisateur : rôle, sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
+| `(app)`  | `/admin/users/[id]` | Fiche utilisateur : origine d'inscription (`user.origin.view`), rôle, sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/roles` | Rôles et permissions : un rôle à la fois (onglets), permissions groupées, interrupteurs | Permission `permission.manage` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/journal` | Journal d'audit : par jour, filtre par catégorie, pagination | Permission `audit.read` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/settings`   | Réglages : couleur de l'application (préréglages + couleur libre), raccourci profil/connexion | Public (réglages stockés sur l'appareil) |
@@ -62,7 +63,7 @@ préchargements ni pour les fichiers statiques : voir `docs/performance.md` (« 
 posé du verifier PKCE puis redirection vers Supabase → Discord ; un simple lien fonctionne sans JavaScript, avant
 l'hydratation et dans une PWA installée) → Discord → Supabase →
 `/auth/callback` (Route Handler : échange PKCE `code` → session en cookies httpOnly, `next` validé par
-`safeRedirectPath`) → retour à l'app. La déconnexion est un `<form method="post" action="/auth/logout">` (Route Handler `src/app/auth/logout/route.ts`, redirection 303 vers `/login`) : pas de Server Action, donc rien qui dépende des identifiants d'actions du build. Google = même flux (`src/app/auth/login/google/route.ts`), sans l'étape mobile propre à Discord.
+`safeRedirectPath` ; pour un compte qui vient d'être créé, le pays, la région et la ville annoncés par Vercel sont aussi notés, voir « Origine d'inscription » dans `docs/security.md`) → retour à l'app. La déconnexion est un `<form method="post" action="/auth/logout">` (Route Handler `src/app/auth/logout/route.ts`, redirection 303 vers `/login`) : pas de Server Action, donc rien qui dépende des identifiants d'actions du build. Google = même flux (`src/app/auth/login/google/route.ts`), sans l'étape mobile propre à Discord.
 
 **Verifier PKCE par flux.** Chaque démarrage OAuth (lien Discord pré-chargé, lien Google, autre onglet) stocke son propre
 verifier dans un cookie `blocus-auth-flow-<id>-code-verifier` (5 au maximum) et ajoute `sb_flow_id=<id>` au `redirectTo`
@@ -176,6 +177,29 @@ enregistre aussi un instantané avec la clé `service_role` (`cron-snapshot.ts`,
 
 `GET /api/health` (public, statut seul, 503 si la base ou Auth ne répond pas, réponse gardée 10 s) sert à un
 moniteur externe.
+
+## Statistiques (`/admin/statistics`, ADR 0008)
+
+`StatisticsView` (`src/features/statistics/statistics-view.tsx`) lit en parallèle `stats_overview()`, `stats_activity(720)`,
+`stats_breakdown()` et les rôles, chaque lecture pouvant échouer seule, puis délègue à `StatisticsDashboard` (pur : des
+données et une période, testable avec n'importe quelles données). La page est dynamique (`connection()`), derrière
+`statistics.view` (404 sinon) ; les fonctions SQL revérifient la permission. Sections : **vue d'ensemble** (inscrits,
+inscriptions, actifs sur 24 h / 7 j / 30 j avec leur part des inscrits, bannis), **évolution** (onglets de période
+`?period=24h|7d|30d`, validé par `parsePeriod` ; courbe des utilisateurs actifs par heure avec pic et moyenne, barres des
+inscriptions par heure), **heures de pointe** (moyenne par heure de la journée, heure de Paris, sur 30 jours,
+`hourOfDayProfile`), **répartition** (rôles, méthode d'inscription, pays) et **contenu** (posts, événements, positions).
+
+Les graphiques sont des **SVG écrits à la main** (`charts.tsx`, géométrie pure et testée dans `chart.ts`), sans
+bibliothèque : une courbe de 720 points pèse ~9 Ko, les barres des inscriptions ne dessinent que les heures non nulles.
+Chaque graphique porte un `aria-label` (pic, total) ; le profil par heure a une liste lisible par les lecteurs d'écran.
+
+**Comment l'activité est mesurée.** Le proxy (`src/lib/supabase/middleware.ts`) appelle `touch_activity()` après le
+rafraîchissement de la session, **au plus une fois par heure et par navigateur** (cookie `blocus-seen`, qui porte
+l'heure UTC et l'utilisateur : un second compte sur le même navigateur est compté), via `event.waitUntil` : la page n'attend pas, et une erreur (migration pas encore appliquée, réseau) est
+ignorée. La base compte chaque utilisateur une seule fois par heure. « En ligne par heure » veut donc dire
+**utilisateurs distincts vus pendant l'heure**, pas des connexions simultanées (la présence Realtime est écartée :
+ADR 0006). Les heures d'avant le déploiement ne sont pas mesurées (`tracked = false`) : la courbe y est vide, et les
+moyennes les ignorent. L'heure en cours n'est pas terminée : elle n'entre pas dans le profil par heure de la journée.
 
 ## Calendrier
 

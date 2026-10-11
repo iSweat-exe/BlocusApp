@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Avatar } from "@/components/avatar";
 import { getProfile, listRoles } from "@/lib/data/profiles";
 import { listSanctions } from "@/lib/data/sanctions";
+import { getSignupOrigin } from "@/lib/data/signup-origins";
 import type { SessionPermissions } from "@/server/session";
 import { BanForm } from "./ban-form";
 import { UserPermissions } from "./user-permissions";
@@ -11,6 +12,7 @@ import { RoleBadge } from "./role-badge";
 import { RoleForm } from "./role-form";
 import { liftSanction } from "./sanction-actions";
 import { isSanctionActive } from "./sanctions";
+import { SignupOriginCard } from "./signup-origin-card";
 
 const dateFormat = new Intl.DateTimeFormat("fr-FR", {
   dateStyle: "medium",
@@ -20,12 +22,15 @@ const dateFormat = new Intl.DateTimeFormat("fr-FR", {
 
 const KIND_LABELS: Record<string, string> = { ban: "Ban", mute: "Mute" };
 
-/** Admin page of one user: identity, active ban, sanction history and sanction controls. */
+/** Admin page of one user: identity, sign-up origin, active ban, sanction history and sanction controls. */
 export async function UserDetail({ id, session }: { id: string; session: SessionPermissions }) {
-  const [profile, roles, sanctions] = await Promise.all([
+  // The origin is read only for holders of `user.origin.view`; RLS returns nothing to anyone else anyway.
+  const canViewOrigin = session.permissions.includes("user.origin.view");
+  const [profile, roles, sanctions, origin] = await Promise.all([
     getProfile(id),
     listRoles(),
     listSanctions(id),
+    canViewOrigin ? getSignupOrigin(id) : null,
   ]);
 
   if (!profile.ok || !roles.ok) {
@@ -70,6 +75,8 @@ export async function UserDetail({ id, session }: { id: string; session: Session
         </p>
         <code className="break-all font-mono text-xs text-faint">{user.id}</code>
       </header>
+
+      {origin && <SignupOriginCard origin={origin} />}
 
       {canAssignRole && (
         <section aria-labelledby="role-title" className="card flex flex-col gap-3 p-4">

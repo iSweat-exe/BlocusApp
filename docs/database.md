@@ -212,6 +212,49 @@ les fonctions présentes et futures (les entrées `event.*` sont ignorées, le t
 **Les suppressions ne sont pas comptées.** Test : `supabase/tests/database/rate_limits.test.sql`. La table n'est pas
 dans `database.types.ts` : le client ne la lit jamais.
 
+## Origine d'inscription (`signup_origins`)
+
+Migration `20261011100000_signup_origin.sql` (A-065, ADR 0008). Table `signup_origins` : `user_id` (PK, FK `profiles`
+`on delete cascade`), `country` (code ISO à deux lettres en capitales), `region` (≤ 64), `city` (≤ 96), `created_at` ;
+au moins une des trois colonnes de lieu est renseignée. **Jamais l'adresse IP.** Une ligne par compte, écrite une fois,
+à la création du compte, par `record_signup_origin(user, country, region, city)` : `SECURITY DEFINER`, **réservée au
+`service_role`** (la valeur vient d'un en-tête que seul le serveur peut croire, un client ne choisit donc pas son
+origine), « le premier écrit gagne », et seulement pour un compte créé il y a moins de 15 minutes (le lieu d'une
+connexion ultérieure n'est pas le lieu d'inscription). RLS : lecture avec la permission `user.origin.view` (admin, et
+super_admin via `has_permission`), aucune écriture cliente ; l'utilisateur ne voit pas sa propre ligne. Index sur
+`country` (statistiques). Test : `supabase/tests/database/signup_origins.test.sql`.
+
+## Activité horaire (`user_activity`, `activity_hours`, `touch_activity()`)
+
+Migration `20261011110000_activity_tracking.sql` (A-066, ADR 0008). `user_activity(user_id, last_seen_at)` garde la
+dernière heure où chaque utilisateur a été vu ; `activity_hours(hour, active_users)` compte les utilisateurs **distincts**
+vus pendant chaque heure UTC pleine (`hour` doit être une heure pleine). `touch_activity()` (`SECURITY DEFINER`,
+exécutable par `authenticated`) ne compte un utilisateur qu'**une fois par heure** : l'upsert de `user_activity` ne
+fait rien si la dernière visite est déjà dans l'heure en cours, et seul un vrai changement incrémente le compteur de
+l'heure. Rappeler la fonction est donc inoffensif ; le proxy l'appelle de toute façon au plus une fois par heure et par
+navigateur (cookie `blocus-seen`). Volume : 1 ligne par heure (≈ 9 000 par an) et 1 par utilisateur : **aucune purge**
+nécessaire. RLS activée, **aucune politique ni droit** (comme `rate_limits`) ; les deux tables ne sont pas dans
+`database.types.ts` (le client ne les lit jamais). Les heures d'avant la migration ne sont pas mesurées : l'historique
+commence au déploiement. Test : `supabase/tests/database/activity_tracking.test.sql`.
+
+## Statistiques (`stats_overview()`, `stats_activity()`, `stats_breakdown()`)
+
+Migration `20261011120000_statistics.sql` (A-067). Permission `statistics.view` (admin, super_admin via
+`has_permission`) et trois fonctions `SECURITY DEFINER` en lecture seule, qui **revérifient la permission** (`forbidden`,
+42501) et ne renvoient que des comptages :
+
+- `stats_overview()` : inscrits, inscriptions sur 24 h / 7 j / 30 j, actifs sur 24 h / 7 j / 30 j (d'après
+  `user_activity`), bans en cours (utilisateurs distincts), posts publics, événements (total et à venir), positions
+  non retirées, et `tracking_since` (première heure mesurée, `null` tant qu'aucune).
+- `stats_activity(p_hours)` : une ligne par heure UTC pleine sur les `p_hours` dernières heures (1 à 720, borné), l'heure
+  en cours comprise : utilisateurs actifs, inscriptions, et `tracked` (**faux avant le début de la mesure** : « 0 »
+  veut alors dire « inconnu », pas « personne »).
+- `stats_breakdown()` : lignes `(kind, key, total)` : `role` (par rôle), `provider` (premier fournisseur du compte,
+  d'après `auth.users.raw_app_meta_data`, `unknown` sinon) et `country` (10 premiers pays d'inscription, plus
+  `unknown` pour les comptes sans pays).
+
+Test : `supabase/tests/database/statistics.test.sql`.
+
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 
 Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées

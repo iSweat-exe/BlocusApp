@@ -437,6 +437,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      signup_origins: {
+        Row: {
+          city: string | null;
+          country: string | null;
+          created_at: string;
+          region: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          city?: string | null;
+          country?: string | null;
+          created_at?: string;
+          region?: string | null;
+          user_id: string;
+        };
+        Update: {
+          city?: string | null;
+          country?: string | null;
+          created_at?: string;
+          region?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "signup_origins_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       announcement_feed: {
@@ -506,6 +539,10 @@ export type Database = {
         };
         Returns: number;
       };
+      record_signup_origin: {
+        Args: { p_city?: string; p_country?: string; p_region?: string; p_user_id: string };
+        Returns: boolean;
+      };
       remove_map_position: { Args: { p_id: string }; Returns: undefined };
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };
@@ -519,6 +556,42 @@ export type Database = {
         Args: { p_effect: string; p_permission: string; p_target: string };
         Returns: undefined;
       };
+      stats_activity: {
+        Args: { p_hours?: number };
+        Returns: {
+          active_users: number;
+          hour: string;
+          signups: number;
+          tracked: boolean;
+        }[];
+      };
+      stats_breakdown: {
+        Args: never;
+        Returns: {
+          key: string;
+          kind: string;
+          total: number;
+        }[];
+      };
+      stats_overview: {
+        Args: never;
+        Returns: {
+          active_24h: number;
+          active_30d: number;
+          active_7d: number;
+          banned_now: number;
+          events_total: number;
+          events_upcoming: number;
+          positions_active: number;
+          posts_public: number;
+          signups_24h: number;
+          signups_30d: number;
+          signups_7d: number;
+          tracking_since: string | null;
+          users_total: number;
+        }[];
+      };
+      touch_activity: { Args: never; Returns: undefined };
       write_audit: {
         Args: { p_action: string; p_details?: Json; p_target: string };
         Returns: undefined;

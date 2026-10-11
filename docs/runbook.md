@@ -74,6 +74,23 @@ cron (en retard après 36 h : vérifier Vercel → Settings → Cron Jobs, `CRON
 La carte « Configuration » signale les variables manquantes. « Actifs » = sessions renouvelées ces 15 dernières
 minutes (approximation, invités exclus).
 
+## Statistiques et origine d'inscription (`/admin/statistics`, A-065 à A-067, ADR 0008)
+
+- **Migrations** : `20261011100000_signup_origin.sql`, `20261011110000_activity_tracking.sql` et
+  `20261011120000_statistics.sql` sont additives et passent par le workflow habituel. Tant que la deuxième n'est pas
+  appliquée, le proxy ignore l'échec de `touch_activity()` ; tant que la troisième manque, la page affiche « Impossible
+  de charger… » au lieu de planter.
+- **Première mesure** : l'activité n'est mesurée qu'à partir de l'application de la migration. Les courbes d'activité
+  sont vides avant (« Mesure en attente »), puis se remplissent heure par heure ; les inscriptions par heure sont
+  complètes dès le premier jour (elles viennent de `profiles.created_at`). Compter quelques jours avant de lire les
+  heures de pointe : le profil se fait sur les heures mesurées des 30 derniers jours.
+- **Origine d'inscription** : demande `SUPABASE_SERVICE_ROLE_KEY` (la même que pour le cron, voir plus haut) et ne
+  fonctionne que **sur Vercel** (les en-têtes `x-vercel-ip-*` n'existent pas en local : la fiche affiche « Inconnue »).
+  Seuls les comptes créés après le déploiement ont une origine. Pour vérifier : créer un compte de test sur la
+  production, puis ouvrir sa fiche (`/admin/users/<id>`) avec un compte `admin`.
+- **Vie privée** : pays, région et ville approximatifs, jamais l'adresse IP ; supprimés avec le compte. Voir
+  `docs/security.md`.
+
 ## Claims JWT de permissions (A-034)
 
 En local le hook est activé par `supabase/config.toml`. **Sur un projet hébergé**, activer à la main :

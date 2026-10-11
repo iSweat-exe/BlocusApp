@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /**
@@ -11,10 +11,12 @@ import { updateSession } from "@/lib/supabase/middleware";
  *    refreshes it. Without the proxy, a prefetch of a static shell is served by the CDN with no function at all;
  *  - static files and metadata files.
  * The prefetch check in the body stays as a safety net for requests the header filter would miss.
+ *
+ * The hourly activity report (statistics) runs through `event.waitUntil`, after the response is sent.
  */
-export function proxy(request: NextRequest) {
+export function proxy(request: NextRequest, event?: NextFetchEvent) {
   if (request.headers.get("next-router-prefetch")) return NextResponse.next();
-  return updateSession(request);
+  return updateSession(request, event ? (work) => event.waitUntil(work) : undefined);
 }
 
 // A Next.js matcher must be made of literals (no imports, no variables): `src/proxy.test.ts` checks that the cookie

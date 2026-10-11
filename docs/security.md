@@ -70,10 +70,32 @@ repère local sur l'écran de l'utilisateur seul. Le gérant qui utilise « Ma p
 validé : le bouton déplace seulement la carte. L'accès à la géolocalisation de l'appareil est limité à notre origine
 (`Permissions-Policy: geolocation=(self)`) et n'est demandé qu'au toucher d'un de ces boutons.
 
+## Origine d'inscription (A-065)
+
+À la création d'un compte, le callback OAuth (`/auth/callback`, `src/features/auth/signup-origin.ts`) note **d'où** la
+requête vient : le **pays, la région et la ville** que Vercel déduit de l'adresse IP et ajoute aux requêtes (en-têtes
+`x-vercel-ip-country`, `x-vercel-ip-country-region`, `x-vercel-ip-city` ; absents en local, donc rien n'est noté). Ce
+sont des **données personnelles** (localisation approximative) :
+
+- **L'adresse IP n'est ni lue ni stockée** ; seules ces trois valeurs, validées (pays = 2 lettres, longueurs bornées,
+  caractères de contrôle retirés) puis contraintes par la base.
+- Une seule fois, au moment du premier compte (comptes de moins de 10 min côté serveur, 15 min côté base) : une
+  connexion ultérieure ne modifie rien.
+- **Écriture par le `service_role` uniquement** (`record_signup_origin()` lui est réservée) : l'en-tête est la seule
+  source fiable, et un utilisateur ne peut pas choisir son origine en appelant PostgREST avec son propre jeton. Sans
+  `SUPABASE_SERVICE_ROLE_KEY`, l'origine n'est simplement pas notée (l'inscription n'est jamais bloquée).
+- **Lecture limitée** à la permission `user.origin.view` (admin, super_admin) : RLS sur `signup_origins`, l'utilisateur
+  lui-même ne voit pas sa ligne. Les statistiques n'affichent que des **totaux par pays** (`stats_breakdown()`).
+- Supprimée avec le compte (`on delete cascade`). À mentionner dans la politique de confidentialité (A-113 : export et
+  suppression des données).
+- Limite : la valeur est celle que la plateforme annonce (VPN, réseau mobile, entreprise faussent la ville) : à lire
+  comme une indication, jamais comme une preuve ni un critère de sécurité ou de sanction.
+
 ## Clé `service_role` et surveillance (A-061 à A-064)
 
-Le code serveur lit `SUPABASE_SERVICE_ROLE_KEY` à un seul endroit : `src/lib/supabase/service.ts`, utilisé par
-`src/features/health/cron-snapshot.ts` (cron quotidien, sans utilisateur). Les fonctions SQL appelées
+Le code serveur lit `SUPABASE_SERVICE_ROLE_KEY` à deux endroits, tous deux via `src/lib/supabase/service.ts` :
+`src/features/health/cron-snapshot.ts` (cron quotidien, sans utilisateur) et `src/features/auth/signup-origin.ts`
+(origine d'inscription, voir ci-dessus ; une seule fonction SQL, `record_signup_origin()`). Les fonctions SQL appelées
 (`health_stats`, `record_health_snapshot`) revérifient le rôle (`can_monitor()`). La page `/admin/health` n'utilise
 pas cette clé : elle passe par la session de l'administrateur (`monitoring.view`, RLS). `/api/health` est public et
 ne renvoie que le statut (jamais de mesure, de compteur ni de configuration) ; son résultat est gardé 10 s. Le jeton

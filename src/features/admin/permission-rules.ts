@@ -6,6 +6,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   "map.position.declare": "Déclarer la position de la manifestation",
   "user.mute": "Rendre muet un utilisateur",
   "user.ban": "Bannir un utilisateur",
+  "user.origin.view": "Voir d'où un utilisateur s'est inscrit",
   "role.assign": "Attribuer des rôles",
   "audit.read": "Consulter le journal d'audit",
   "permission.manage": "Gérer les permissions",
@@ -13,6 +14,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   "event.delete": "Supprimer des événements",
   "event.finish": "Marquer des événements comme terminés",
   "monitoring.view": "Consulter la santé de l'application",
+  "statistics.view": "Consulter les statistiques de l'application",
 };
 
 /** Label shown for a permission, falling back to its description, then its key. */

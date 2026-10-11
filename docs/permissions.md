@@ -44,6 +44,8 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
 | `audit.read`           |  -   |    -    |     -     |  ✅   |     ✅      |
 | `permission.manage`    |  -   |    -    |     -     |  ✅   |     ✅      |
 | `monitoring.view`      |  -   |    -    |     -     |  ✅   |     ✅      |
+| `statistics.view`      |  -   |    -    |     -     |  ✅   |     ✅      |
+| `user.origin.view`     |  -   |    -    |     -     |  ✅   |     ✅      |
 | `event.create`         |  -   |   ✅    |     -     |  ✅   |     ✅      |
 | `event.delete`         |  -   |    -    |    ✅     |  ✅   |     ✅      |
 | `event.finish`         |  -   |   ✅    |    ✅     |  ✅   |     ✅      |
@@ -84,9 +86,9 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   `forbidden`, `hierarchy_violation` (42501), `unknown_role`/`unknown_user` (22023). Le trigger
   `profiles_keep_last_super_admin` empêche de retirer ou supprimer le dernier `super_admin` (`last_super_admin`).
 - **Panneau admin** (`/admin`, `src/features/admin/`) : accessible avec **au moins une** permission
-  d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`) ; chaque
-  section vérifie la sienne. Navigation de la section : onglets soulignés avec icône (Utilisateurs, Rôles, Journal, Santé selon les
-  permissions). `/admin` : liste (recherche de pseudo avec loupe et bouton d'effacement, filtre par **rôle** en
+  d'administration (`role.assign`, `user.ban`, `user.mute`, `permission.manage`, `audit.read`, `monitoring.view`,
+  `statistics.view`) ; chaque section vérifie la sienne. Navigation de la section : onglets soulignés avec icône
+  (Utilisateurs, Rôles, Journal, Statistiques, Santé selon les permissions). `/admin` : liste (recherche de pseudo avec loupe et bouton d'effacement, filtre par **rôle** en
   pastilles, badge de rôle coloré selon le rang, « Toi » sur son propre compte, 50 comptes max) ; chaque ligne
   mène à la fiche. Le **changement de rôle** se fait sur la fiche (section « Rôle ») : il exige `role.assign` et
   un rang strictement inférieur, jamais sur soi-même (`hierarchy.ts` reflète `assign_role`, qui reste
@@ -96,8 +98,13 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
   personnalisée, max 5 ans ; l'expiration est recalculée côté serveur), historique des sanctions, et bouton
   **Mute désactivé** (« bientôt disponible », aucun backend). Le formulaire n'apparaît que si l'appelant a
   `user.ban` **et** un rang supérieur à la cible ; sinon un message l'explique.
+- **Origine d'inscription (A-065)** : `user.origin.view` (admin, super_admin) affiche sur la fiche utilisateur d'où le
+  compte a été créé (pays, région, ville : approximation déduite de l'IP, jamais l'IP elle-même). Sans la permission,
+  la section n'est pas affichée et la base ne renvoie rien (RLS sur `signup_origins`). Voir `docs/security.md`.
+- **Statistiques (A-067)** : `/admin/statistics`, permission `statistics.view` (404 sans elle). Les fonctions SQL
+  `stats_*` revérifient la permission.
 - **Gestion des permissions dans le panneau** : sous-navigation de `/admin` (Utilisateurs · Rôles ·
-  Journal · Santé). `/admin/roles` (permission `permission.manage`) : **un rôle à la fois** (onglets, du plus élevé au plus bas,
+  Journal · Statistiques · Santé). `/admin/roles` (permission `permission.manage`) : **un rôle à la fois** (onglets, du plus élevé au plus bas,
   avec le nombre de permissions ; le rôle est dans l'URL, `?role=`), un résumé (statut « Modifiable », « Lecture
   seule » ou « Verrouillé », jauge) puis les permissions **groupées** (Annonces, Calendrier, Carte, Modération,
   Administration). Un **interrupteur** (qui bascule aussitôt et revient en arrière si le serveur refuse)

@@ -114,6 +114,11 @@ test.describe("app shell", () => {
     await page.waitForURL("**/login");
   });
 
+  test("sends Guests away from the statistics page", async ({ page }) => {
+    await page.goto("/admin/statistics");
+    await page.waitForURL("**/login");
+  });
+
   test("the Discord login link redirects to the OAuth provider without JavaScript", async ({
     request,
   }) => {
