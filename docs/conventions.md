@@ -3,7 +3,7 @@
 ## Langue
 
 Code, commentaires, TSDoc, identifiants, messages de commit et titres de PR : **anglais**. Les textes
-affichés à l'utilisateur sont en français pour l'instant (décision i18n en attente).
+affichés à l'utilisateur sont en français ; l'i18n est facultative et non prioritaire.
 
 ## Nommage
 

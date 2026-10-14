@@ -26,7 +26,7 @@ Also read [AGENTS.md](./AGENTS.md): this Next.js version has breaking changes, c
 ## Language
 
 - **All code, comments, TSDoc, identifiers, commit messages and PR titles are in English.**
-- User-facing UI text is French for now (i18n decision pending, see `.dev/decisions-a-valider.md`).
+- User-facing UI text is French. i18n is optional and not a priority (see `.dev/decisions-a-valider.md`).
 - Project documentation (`.dev/`, `docs/`) is in French; code snippets and identifiers stay English.
 
 ## Commands
