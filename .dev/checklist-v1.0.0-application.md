@@ -15,27 +15,27 @@ L'application sert à **gérer une manifestation dans une ville X** :
 ---
 
 ## Étape 1.1 — Schéma de base & fondations BDD
-- [~] **A-001** Migrations Supabase versionnées dans `supabase/migrations/` (jamais d'édition manuelle en prod) — _`supabase db reset` rejoue tout_
-- [~] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription — _inscription crée un profil_
-- [ ] **A-003** Tables de rôles/permissions (voir 1.3) et table `moderation_actions` (ban, mute, historique) — _schéma documenté dans `docs/database.md`_
-- [~] **A-004** Index sur toutes les colonnes filtrées/jointes (pseudo, user_id, created_at) ⚡ — _`EXPLAIN` sur requêtes clés_ (plans mesurés dans `docs/database.md`)
+- [x] **A-001** Migrations Supabase versionnées dans `supabase/migrations/` (jamais d'édition manuelle en prod) — _`supabase db reset` rejoue tout_ — _fait : 27 migrations, rejouées depuis zéro par la CI à chaque PR (`supabase start` + `supabase test db`, #56) et appliquées en production par `supabase db push` après fusion_
+- [x] **A-002** Table `profiles` liée à `auth.users` (id, pseudo unique, avatar_url, rôle courant, created_at, updated_at) + trigger de création à l'inscription — _inscription crée un profil_ — _fait (#14) : migration `20261007120000_create_profiles.sql` (pseudo unique insensible à la casse, trigger `handle_new_user`), test `profiles.test.sql`_
+- [x] **A-003** Tables de rôles/permissions (voir 1.3) et table `moderation_actions` (ban, mute, historique) — _schéma documenté dans `docs/database.md`_ — _fait (#15, #24, #25) : `roles`, `permissions`, `role_permissions`, `permission_overrides` et `moderation_actions` (`kind` ban ou mute, levée et expiration), décrites dans `docs/database.md`_
+- [x] **A-004** Index sur toutes les colonnes filtrées/jointes (pseudo, user_id, created_at) ⚡ — _`EXPLAIN` sur requêtes clés_ (plans mesurés dans `docs/database.md`) — _fait (#44) : plans `EXPLAIN ANALYZE` mesurés dans `docs/database.md` ; seule la recherche de pseudo en `ilike '%q%'` reste sans index (acceptée sous quelques milliers de profils)_
 - [~] **A-005** Génération des types TS depuis le schéma (`supabase gen types`) — _types importés partout, zéro type écrit à la main_
-- [~] **A-006** Seed de dev (`supabase/seed.sql`) avec un compte par rôle — _documenté_
+- [x] **A-006** Seed de dev (`supabase/seed.sql`) avec un compte par rôle — _documenté_ — _fait : 8 comptes, un par rôle (#96) ; procédure dans `docs/database.md` § Développement local_
 
 ## Étape 1.2 — Authentification sécurisée 🔒
-- [ ] **A-010** Supabase Auth via `@supabase/ssr` (cookies httpOnly, pas de token en localStorage) — _session SSR fonctionnelle_
-- [ ] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_
-- [ ] **A-012** SMTP custom configuré (limite e-mails du free tier) — _e-mails reçus_
-- [ ] **A-013** Politique de mot de passe + protection contre fuites (leaked password protection si dispo) + CAPTCHA (Turnstile/hCaptcha) sur signup/login 🆕 — _bots bloqués_
+- [~] **A-010** Supabase Auth via `@supabase/ssr` (cookies httpOnly, pas de token en localStorage) — _session SSR fonctionnelle_ — _session SSR en place (`@supabase/ssr`, `src/proxy.ts`, aucun jeton en `localStorage`) ; reste : les cookies de session ne sont **pas** `httpOnly` (`@supabase/ssr` les écrit avec `httpOnly: false` par défaut et `authCookieOptions` ne le surcharge pas) alors que `docs/security.md` l'affirme ; le client navigateur n'est utilisé nulle part, donc le passage à `httpOnly` est à étudier_
+- [ ] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_ · Issue [#100](https://github.com/iSweat-exe/BlocusApp/issues/100)
+- [ ] **A-012** SMTP custom configuré (limite e-mails du free tier) — _e-mails reçus_ · Issue [#101](https://github.com/iSweat-exe/BlocusApp/issues/101)
+- [ ] **A-013** Politique de mot de passe + protection contre fuites (leaked password protection si dispo) + CAPTCHA (Turnstile/hCaptcha) sur signup/login 🆕 — _bots bloqués_ · Issue [#102](https://github.com/iSweat-exe/BlocusApp/issues/102)
 - [~] **A-014** Middleware Next.js : rafraîchit la session (fait, `src/proxy.ts`), protège les routes privées (reste, cf. A-121) — _route privée inaccessible déconnecté_
-- [~] **A-015** **RLS activée sur TOUTES les tables du schéma `public`**, politique « deny by default » (test pgTAP écrit ; reste à le brancher en CI) — _test CI qui échoue si une table n'a pas RLS_
-- [ ] **A-016** Politiques RLS écrites par table (select/insert/update/delete séparées), avec `(select auth.uid())` pour la perf ⚡ — _tests pgTAP accès OK/KO_
-- [ ] **A-017** `service_role` utilisée uniquement côté serveur (Route Handlers/Server Actions), jamais exposée — _grep CI sur `NEXT_PUBLIC_`_
-- [ ] **A-018** Vérifier que `anon` n'a aucun droit inattendu (`REVOKE` explicite) — _audit des grants_
-- [ ] **A-019** Rate limit sur les endpoints d'auth (login, reset) — _429 après N essais_
-- [ ] **A-020** Utiliser le Supabase Security Advisor (lints) et corriger tous les warnings 🆕 — _0 warning_
+- [x] **A-015** **RLS activée sur TOUTES les tables du schéma `public`**, politique « deny by default » (test pgTAP `rls_enabled.test.sql`, rejoué à chaque PR par la CI, #56) — _test CI qui échoue si une table n'a pas RLS_
+- [x] **A-016** Politiques RLS écrites par table (select/insert/update/delete séparées), avec `(select auth.uid())` pour la perf ⚡ — _tests pgTAP accès OK/KO_ — _fait : chaque table a ses politiques par opération (`select` / `insert` / `update` / `delete`) avec `(select auth.uid())` (aucun `auth.uid()` nu dans les migrations), ou aucune politique quand l'accès passe par une fonction `SECURITY DEFINER` ; tests pgTAP accès autorisé / refusé dans `supabase/tests/database/`_
+- [~] **A-017** `service_role` utilisée uniquement côté serveur (Route Handlers/Server Actions), jamais exposée — _grep CI sur `NEXT_PUBLIC_`_ — _vérifié : la clé n'est lue que par `src/lib/supabase/service.ts` (usages serveur listés dans `docs/security.md`) et n'est jamais préfixée `NEXT_PUBLIC_` ; reste : un garde-fou en CI (grep sur `NEXT_PUBLIC_*SERVICE_ROLE*`)_
+- [~] **A-018** Vérifier que `anon` n'a aucun droit inattendu (`REVOKE` explicite) — _audit des grants_ — _vérifié : chaque migration retire explicitement les droits de `anon` / `public` (`REVOKE`) sur ses tables et fonctions, et des tests pgTAP vérifient le refus pour `anon` table par table ; reste : un audit global des droits (un test qui liste ce que `anon` peut faire)_
+- [ ] **A-019** Rate limit sur les endpoints d'auth (login, reset) — _429 après N essais_ · Issue [#103](https://github.com/iSweat-exe/BlocusApp/issues/103)
+- [ ] **A-020** Utiliser le Supabase Security Advisor (lints) et corriger tous les warnings 🆕 — _0 warning_ · Issue [#104](https://github.com/iSweat-exe/BlocusApp/issues/104)
 - [~] **A-021** **Priorité** : connexion / inscription via **Discord** (code fait ; reste : test réel, cf. `runbook.md`) et **Google** (code fait : bouton + route `/auth/login/google` ; Supabase OAuth, redirect URLs, callback PKCE) pour accéder à l'application 🆕 🔒 — _login OAuth E2E OK sur les 2 providers_
-- [ ] **A-022** **Priorité** : mode **Guest** = consultation sans interaction (accueil, carte, actualités) ; toute action renvoie vers le login ; `anon` en SELECT limité aux données publiques 🆕 🔒 — _un guest ne peut rien écrire (test RLS)_
+- [~] **A-022** **Priorité** : mode **Guest** = consultation sans interaction (accueil, carte, actualités) ; toute action renvoie vers le login ; `anon` en SELECT limité aux données publiques 🆕 🔒 — _un guest ne peut rien écrire (test RLS)_ — _fait : bouton « Continuer en tant qu'invité », `(app)` ouvert en lecture, `anon` limité aux données publiques (RLS, vue `announcement_feed`), tests pgTAP d'écriture refusée et E2E (aucun outil d'édition visible) ; reste : « toute action renvoie vers le login » (aujourd'hui un message « Connecte-toi pour continuer. »), voir A-121_
 > Note : A-011 (e-mail / mot de passe) est conservé tant que non tranché, cf. [`decisions-a-valider.md`](./decisions-a-valider.md).
 
 ## Étape 1.3 — Permissions granulaires par rôle 🔒
@@ -45,28 +45,28 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-031** Liste initiale des rôles (à valider avec toi) : `user`, `manager` (gérant de la manifestation, nom à valider), `moderator`, `admin`, `super_admin` (développeurs) — _documentée dans `docs/permissions.md`_
 - [~] **A-031b** Rôles supplémentaires au moindre privilège : `relay` « Relais » (15, déclare la position), `editor` « Rédacteur » (18, publie des annonces), `developer` « Développeur » (35, santé + statistiques + journal en lecture, aucun pouvoir sur les comptes) ; description de chaque rôle sur `/admin/roles`, pastille de couleur par rôle, `user.mute` n'ouvre plus l'administration (le mute n'a pas de backend), un compte de seed par rôle 🆕 — _fait (migration `20261011130000_more_roles.sql`, pgTAP `roles_catalogue`), à valider en production_
 - [~] **A-032** Catalogue exhaustif des permissions (nomenclature `ressource.action`, dont `announcement.publish`, `map.route.edit`, `map.position.declare`) — _fichier unique source de vérité_
-- [~] **A-033** Fonction SQL `has_permission(user_id, 'perm.key')` (`SECURITY DEFINER`, `search_path` fixé) utilisée par les politiques RLS — _testée_
+- [x] **A-033** Fonction SQL `has_permission(user_id, 'perm.key')` (`SECURITY DEFINER`, `search_path` fixé) utilisée par les politiques RLS — _testée_ — _fait (#15) : `search_path` vide, `REVOKE` pour `anon`, tests dans `rbac.test.sql`_
 - [~] **A-034** Permissions injectées dans le JWT via **Custom Access Token Hook** (évite une requête BDD par action) ⚡ — _claims présents dans le token_
 - [~] **A-035** Matrice rôle × permission éditable depuis le panneau admin (écrit en BDD) — _changer une permission d'un rôle prend effet sans redéploiement_ (BDD + UI faites, à valider en production)
 - [~] **A-036** Overrides par utilisateur (grant/deny ciblé) 🆕 — _un deny prime sur un grant_ (BDD + UI faites, à valider en production)
 - [~] **A-036b** Les changements de rôle / permission / override / sanction sont pris en compte **tout de suite** (époque `permission_epoch` + réémission du token par le proxy) au lieu d'attendre l'expiration du JWT — _correctif ; migration à appliquer sur le projet hébergé_
-- [~] **A-037** Hiérarchie de rôles : on ne peut pas agir sur un rôle ≥ au sien — _modo ne peut pas ban un admin (test)_
-- [~] **A-038** Vérification des permissions côté serveur sur chaque Server Action/Route Handler **en plus** de la RLS (helper fait, reste à l'utiliser dans les actions) — _helper unique `requirePermission()`_
+- [x] **A-037** Hiérarchie de rôles : on ne peut pas agir sur un rôle ≥ au sien — _modo ne peut pas ban un admin (test)_ — _fait (#19) : `assign_role()` exige un rang strictement inférieur ; tests `role_hierarchy.test.sql` et `bans.test.sql` (un admin ne peut agir ni sur un admin ni sur un `super_admin`)_
+- [x] **A-038** Vérification des permissions côté serveur sur chaque Server Action/Route Handler **en plus** de la RLS (helper `requirePermission()` fait, #16) — _helper unique `requirePermission()`_ — _fait : toutes les Server Actions d'écriture (administration, sanctions, permissions, annonces, calendrier, carte) l'appellent en premier, avec `fresh: true` pour les actions sensibles ; seules `refreshPublicData` (données publiques) et les routes publiques (`/api/health`, `/api/keep-alive` protégée par `CRON_SECRET`, `/auth/*`) n'en ont pas besoin_
 - [~] **A-039** Audit log : toute modification de rôle/permission est tracée (qui, quoi, quand) 🆕 — _table `audit_logs` en lecture seule pour non-admins_ (BDD, journalisation de toutes les actions d'administration et page `/admin/journal` faites, à valider en production)
-- [ ] **A-040** Tests automatisés : pour chaque rôle, chaque permission autorisée/refusée — _matrice testée en CI_
+- [~] **A-040** Tests automatisés : pour chaque rôle, chaque permission autorisée/refusée — _matrice testée en CI_ — _partiel : `rbac.test.sql` teste « quelques cellules clés » par rôle et `roles_catalogue.test.sql` les permissions exactes de `relay`, `editor` et `developer` ; reste : la matrice complète rôle × permission (8 rôles × 16 permissions) dans un test unique_
 
 ## Étape 1.4 — Contrôle total des Admins absolus (développeurs) 🔒
-- [ ] **A-050** Rôle `super_admin` : toutes les permissions, non retirables par un autre rôle — _verrou en BDD_
+- [x] **A-050** Rôle `super_admin` : toutes les permissions, non retirables par un autre rôle — _verrou en BDD_ — _fait (#19, #24) : `has_permission()` accorde tout le catalogue à `super_admin` et ignore les overrides, personne ne peut modifier son rôle (`set_role_permission('super_admin', …)` refusé, `assign_role` exige un rang strictement inférieur) ; tests `permission_management.test.sql` et `role_hierarchy.test.sql`_
 - [~] **A-051** **Bannissement** ciblé : durée (temporaire/permanent), raison, bannissement effectif immédiat (révocation des sessions + blocage RLS) — _user banni déconnecté et bloqué_ (BDD + UI faites, à valider en production)
 - [~] **A-052** **Mute** ciblé : durée + raison, bloque l'envoi de messages mais pas la lecture — _vérifié côté BDD_ (seul le bouton désactivé existe ; backend avec la messagerie)
 - [~] **A-053** Expiration automatique des sanctions temporaires (vérif à la lecture, pas de cron lourd) ⚡ — _sanction expirée = levée_ (BDD faite ; reste l'UI)
 - [~] **A-054** Levée manuelle d'une sanction + historique complet — _audit_ (BDD + UI faites, à valider en production)
-- [~] **A-055** Panneau admin `/admin` : liste/recherche des users et changement de rôle (fait, accès `role.assign` = admin et super_admin) ; reste : sanctions, logs — _accès sans permission = 404_
-- [ ] **A-056** Actions supplémentaires : suspendre/supprimer un compte, forcer la déconnexion, reset du profil (pseudo/avatar), shadow-ban 🆕 — _à GARDER ou RETIRER_
-- [ ] **A-057** Mode « maintenance / lecture seule globale » activable par un admin (kill switch) 🆕 — _bascule sans redéploiement_
-- [~] **A-058** Protection anti-lockout : impossible de retirer le dernier `super_admin` 🆕 — _contrainte en BDD_
-- [~] **A-059** Les super_admins sont créés uniquement via migration/SQL manuel, jamais via l'UI publique 🔒 — _documenté dans `runbook.md`_
-- [ ] **A-060** 2FA (TOTP) obligatoire pour les rôles admin 🆕 🔒 — _non contournable_
+- [~] **A-055** Panneau admin `/admin` : liste/recherche des users et changement de rôle (fait, accès `role.assign` = admin et super_admin) ; sanctions (fiche utilisateur) et journal (`/admin/journal`) sont faits aussi, voir A-051, A-054 et A-039 ; reste : un test de l'accès authentifié sans permission (404), seul le renvoi des invités vers `/login` est testé en E2E — _accès sans permission = 404_
+- [ ] **A-056** Actions supplémentaires : suspendre/supprimer un compte, forcer la déconnexion, reset du profil (pseudo/avatar), shadow-ban 🆕 — _à GARDER ou RETIRER_ · Issue [#107](https://github.com/iSweat-exe/BlocusApp/issues/107)
+- [ ] **A-057** Mode « maintenance / lecture seule globale » activable par un admin (kill switch) 🆕 — _bascule sans redéploiement_ · Issue [#108](https://github.com/iSweat-exe/BlocusApp/issues/108)
+- [x] **A-058** Protection anti-lockout : impossible de retirer le dernier `super_admin` 🆕 — _contrainte en BDD_ — _fait (#19) : trigger `profiles_keep_last_super_admin` (rétrogradation et suppression refusées, y compris en SQL manuel), testé dans `role_hierarchy.test.sql`_
+- [x] **A-059** Les super_admins sont créés uniquement via migration/SQL manuel, jamais via l'UI publique 🔒 — _documenté dans `runbook.md`_ — _fait (#19) : `assign_role()` refuse de créer un `super_admin` (testé) ; procédure SQL manuelle dans `docs/runbook.md` § Création d'un `super_admin`_
+- [ ] **A-060** 2FA (TOTP) obligatoire pour les rôles admin 🆕 🔒 — _non contournable_ · Issue [#105](https://github.com/iSweat-exe/BlocusApp/issues/105)
 - [~] **A-061** Permission `monitoring.view` (admin, super_admin) + fonctions SQL `can_monitor()` / `health_stats()` + RLS et tests pgTAP 🆕 🔒 — _matrice testée_ (fait, ADR 0006)
 - [~] **A-062** Page `/admin/health` : score global (0-100), base de données, Auth, déploiement Vercel, stockage face au quota, utilisateurs inscrits et actifs (≈ 15 min), fraîcheur du cron, connexions à la base, tables les plus lourdes, configuration d'environnement, onglet « Santé » de l'administration 🆕 — _accès sans permission = 404_ (fait, à valider en production)
 - [~] **A-063** Historique `health_snapshots` sur 30 jours (un instantané par visite, ≤ 1 / 10 min, et un par jour via le cron de `/api/keep-alive`), purge sans `pg_cron`, graphique du score, disponibilité et p95 sur 7 jours 🆕 ⚡ — _purge testée_ (fait ; l'historique du cron demande `SUPABASE_SERVICE_ROLE_KEY`)
@@ -78,53 +78,53 @@ L'application sert à **gérer une manifestation dans une ville X** :
 ## Étape 1.5 — Compression des données avant envoi à la BDD ⚡
 > ⚠️ La compression rend un champ **illisible/non filtrable par SQL**. À réserver aux gros champs non requêtés (contenu long, payload JSON, historique). Les colonnes filtrées/triées/protégées par RLS restent en clair.
 
-- [ ] **A-070** Décision documentée (ADR) : quels champs sont compressés, lesquels restent en clair — _ADR validé_
-- [ ] **A-071** Module `src/lib/compression/` : compress/decompress (CompressionStream gzip côté client, `zlib` côté serveur), format versionné (`v1:` + base64 ou `bytea`) — _tests aller-retour_
-- [ ] **A-072** Seuil minimal : ne pas compresser les petits payloads (gain négatif) ⚡ — _seuil configurable_
-- [ ] **A-073** Limite de taille avant ET après décompression (protection contre « zip bomb ») 🔒 — _rejet au-delà du max_
-- [ ] **A-074** Validation du contenu **après décompression** côté serveur (Zod) — _jamais de confiance au client_
-- [ ] **A-075** Mesure du gain réel (taille avant/après, CPU) sur données représentatives — _résultat consigné dans la doc_
+- [~] **A-070** Décision documentée (ADR) : quels champs sont compressés, lesquels restent en clair — _ADR validé_ — _ADR 0002 écrit (périmètre : gros champs non requêtés, format versionné, seuils) mais au statut **Proposed** ; reste : le valider et lister les champs concernés (voir A-075)_
+- [ ] **A-071** Module `src/lib/compression/` : compress/decompress (CompressionStream gzip côté client, `zlib` côté serveur), format versionné (`v1:` + base64 ou `bytea`) — _tests aller-retour_ · Issue [#109](https://github.com/iSweat-exe/BlocusApp/issues/109)
+- [ ] **A-072** Seuil minimal : ne pas compresser les petits payloads (gain négatif) ⚡ — _seuil configurable_ · Issue [#110](https://github.com/iSweat-exe/BlocusApp/issues/110)
+- [ ] **A-073** Limite de taille avant ET après décompression (protection contre « zip bomb ») 🔒 — _rejet au-delà du max_ · Issue [#111](https://github.com/iSweat-exe/BlocusApp/issues/111)
+- [ ] **A-074** Validation du contenu **après décompression** côté serveur (Zod) — _jamais de confiance au client_ · Issue [#112](https://github.com/iSweat-exe/BlocusApp/issues/112)
+- [ ] **A-075** Mesure du gain réel (taille avant/après, CPU) sur données représentatives — _résultat consigné dans la doc_ · Issue [#113](https://github.com/iSweat-exe/BlocusApp/issues/113)
 
 ## Étape 1.6 — Cache ⚡
-- [ ] **A-080** Cartographie des données lues fréquemment et de leur TTL (profils, rôles/permissions, listes) — _tableau dans `docs/architecture.md`_
+- [~] **A-080** Cartographie des données lues fréquemment et de leur TTL (profils, rôles/permissions, listes) — _tableau dans `docs/architecture.md`_ — _squelette dans `docs/architecture.md` § Cache (TTL « TBD ») ; les durées réelles (cache partagé 2 min, position de la carte 30 s, routeur 30 s) sont dans `docs/performance.md` ; reste : compléter le tableau_
 - [~] **A-081** Cache client (TanStack Query / SWR) : `staleTime`, déduplication des requêtes identiques, pas de refetch au focus inutile — _vérifié dans l'onglet réseau_ (cache du routeur 30 s, rafraîchissement au retour sur l'app, encart imminent sans rechargement : fait ; React Query/SWR non retenu)
 - [~] **A-082** Cache serveur Next.js (`unstable_cache`/`use cache`/`revalidateTag`) pour les données partagées — _invalidation par tag testée_ (annonces et événements : cache partagé 30 s fait, voir `docs/performance.md`)
-- [ ] **A-083** Cache des permissions (JWT claims + cache court) — _0 requête BDD par vérification de permission courante_
+- [~] **A-083** Cache des permissions (JWT claims + cache court) — _0 requête BDD par vérification de permission courante_ — _vérifié : `requirePermission()` lit les claims du JWT sans requête en base (test `require-permission.test.ts`), `fresh: true` est réservé aux actions sensibles, l'epoch de permissions est mémorisée 10 s ; reste : valider en production avec A-034_
 - [~] **A-084** Invalidation propre : toute écriture invalide les clés concernées — _pas de donnée périmée visible_ (`updateTag` après chaque écriture sur annonces et événements)
 - [~] **A-085** Headers HTTP (`Cache-Control`, ETag) pour les assets/avatars ; avatars servis via CDN/Supabase Storage avec cache long + nom de fichier versionné — _bande passante réduite_ (icônes : cache 1 jour fait)
 - [~] **A-087** Politique de préchargement et rendus : `prefetch={false}` sur les liens rarement utilisés, session lue une fois par requête, proxy qui ignore les préchargements — _mesuré dans `docs/performance.md` (−16 à −31 % de requêtes)_ ⚡
 - [~] **A-088** Charge utile et base : annonces paginées (10, « Voir plus », plafond 50), `EXPLAIN` des requêtes chaudes consigné, index du journal d'audit, keep-alive quotidien — _`docs/performance.md`, `docs/database.md`_ ⚡
-- [ ] **A-086** Option : Redis gratuit (Upstash) si le cache en mémoire serverless s'avère insuffisant 🆕 — _à décider après mesure_
+- [ ] **A-086** Option : Redis gratuit (Upstash) si le cache en mémoire serverless s'avère insuffisant 🆕 — _à décider après mesure_ · Issue [#114](https://github.com/iSweat-exe/BlocusApp/issues/114)
 
 ## Étape 1.7 — Mises à jour groupées (batching des changements de profil) ⚡
-- [ ] **A-090** Couche « write queue » côté client : les changements (pseudo, avatar, préférences…) sont **accumulés** localement (dernier état gagne par champ) — _10 modifs = 1 requête_
-- [ ] **A-091** Flush déclenché par : délai d'inactivité (ex. 5–10 s), taille max, fermeture/masquage de page (`visibilitychange` + `sendBeacon`) — _aucune perte à la fermeture_
-- [ ] **A-092** Envoi en **une seule requête** vers une fonction RPC SQL qui applique tout en une transaction — _atomique_
-- [ ] **A-093** Persistance temporaire de la file (localStorage/IndexedDB) pour survivre à un refresh/crash — _reprise testée_
-- [ ] **A-094** Retry avec backoff exponentiel + gestion de conflits (version/`updated_at`) — _pas d'écrasement silencieux_
-- [ ] **A-095** Validation serveur identique à l'instantané (pseudo unique, taille avatar, permissions) et retour d'erreurs par champ — _erreur claire à l'UI_
-- [ ] **A-096** Upload d'avatar : redimensionnement/compression côté client avant envoi, limite de taille & types MIME, stockage Supabase Storage — _avatar ≤ taille max_
-- [ ] **A-097** UI optimiste : l'utilisateur voit le changement immédiatement avant la synchro 🆕 — _indicateur « synchronisé »_
+- [ ] **A-090** Couche « write queue » côté client : les changements (pseudo, avatar, préférences…) sont **accumulés** localement (dernier état gagne par champ) — _10 modifs = 1 requête_ · Issue [#115](https://github.com/iSweat-exe/BlocusApp/issues/115)
+- [ ] **A-091** Flush déclenché par : délai d'inactivité (ex. 5–10 s), taille max, fermeture/masquage de page (`visibilitychange` + `sendBeacon`) — _aucune perte à la fermeture_ · Issue [#116](https://github.com/iSweat-exe/BlocusApp/issues/116)
+- [ ] **A-092** Envoi en **une seule requête** vers une fonction RPC SQL qui applique tout en une transaction — _atomique_ · Issue [#117](https://github.com/iSweat-exe/BlocusApp/issues/117)
+- [ ] **A-093** Persistance temporaire de la file (localStorage/IndexedDB) pour survivre à un refresh/crash — _reprise testée_ · Issue [#118](https://github.com/iSweat-exe/BlocusApp/issues/118)
+- [ ] **A-094** Retry avec backoff exponentiel + gestion de conflits (version/`updated_at`) — _pas d'écrasement silencieux_ · Issue [#119](https://github.com/iSweat-exe/BlocusApp/issues/119)
+- [ ] **A-095** Validation serveur identique à l'instantané (pseudo unique, taille avatar, permissions) et retour d'erreurs par champ — _erreur claire à l'UI_ · Issue [#120](https://github.com/iSweat-exe/BlocusApp/issues/120)
+- [ ] **A-096** Upload d'avatar : redimensionnement/compression côté client avant envoi, limite de taille & types MIME, stockage Supabase Storage — _avatar ≤ taille max_ · Issue [#121](https://github.com/iSweat-exe/BlocusApp/issues/121)
+- [ ] **A-097** UI optimiste : l'utilisateur voit le changement immédiatement avant la synchro 🆕 — _indicateur « synchronisé »_ · Issue [#122](https://github.com/iSweat-exe/BlocusApp/issues/122)
 
 ## Étape 1.8 — Ralentissement contrôlé / anti-surcharge (messages) ⚡
 > Pas de messagerie en v1.0.0 : ces règles s'appliquent aux écritures (annonces, positions déclarées) et aux envois de notifications push. Les items « messages » ci-dessous se lisent en ce sens.
 
 - [~] **A-100** Rate limit **par utilisateur** (ex. N msgs / fenêtre glissante) appliqué côté serveur ET en BDD — _contournement client impossible_ (fait pour les écritures actuelles : posts, événements, administration, carte, dans la base ; les Server Actions affichent le message ; reste à cocher avec le lien de la PR)
-- [ ] **A-101** Rate limit **par IP** pour les non-authentifiés (Vercel Firewall rules / Upstash Ratelimit) — _429 + `Retry-After`_
-- [ ] **A-102** Ralentissement progressif (throttle/backpressure) plutôt que blocage brutal : file d'envoi côté client avec cadence adaptative — _l'UI informe « envoi ralenti »_
-- [ ] **A-103** Limite globale de débit alignée sur les quotas Realtime Supabase ; au-dessus : mise en file + dégradation (ex. messages groupés) — _test de charge ≥ 200 users simulés_
-- [ ] **A-104** Anti-flood : détection de doublons/rafales, taille max de message, cooldown après rafale — _spam bloqué_
-- [ ] **A-105** Un seul canal Realtime par client, désabonnement propre au démontage — _≤ 1 connexion/onglet_
-- [ ] **A-106** Réception : regrouper l'affichage (batch de rendu toutes les X ms) pour ne pas figer le navigateur 🆕 ⚡ — _200 msgs/s sans freeze_
+- [ ] **A-101** Rate limit **par IP** pour les non-authentifiés (Vercel Firewall rules / Upstash Ratelimit) — _429 + `Retry-After`_ · Issue [#123](https://github.com/iSweat-exe/BlocusApp/issues/123)
+- [ ] **A-102** Ralentissement progressif (throttle/backpressure) plutôt que blocage brutal : file d'envoi côté client avec cadence adaptative — _l'UI informe « envoi ralenti »_ · Issue [#124](https://github.com/iSweat-exe/BlocusApp/issues/124)
+- [ ] **A-103** Limite globale de débit alignée sur les quotas Realtime Supabase ; au-dessus : mise en file + dégradation (ex. messages groupés) — _test de charge ≥ 200 users simulés_ · Issue [#125](https://github.com/iSweat-exe/BlocusApp/issues/125)
+- [ ] **A-104** Anti-flood : détection de doublons/rafales, taille max de message, cooldown après rafale — _spam bloqué_ · Issue [#126](https://github.com/iSweat-exe/BlocusApp/issues/126)
+- [ ] **A-105** Un seul canal Realtime par client, désabonnement propre au démontage — _≤ 1 connexion/onglet_ · Issue [#127](https://github.com/iSweat-exe/BlocusApp/issues/127)
+- [ ] **A-106** Réception : regrouper l'affichage (batch de rendu toutes les X ms) pour ne pas figer le navigateur 🆕 ⚡ — _200 msgs/s sans freeze_ · Issue [#128](https://github.com/iSweat-exe/BlocusApp/issues/128)
 - [x] **A-107** Test de charge (k6/Artillery) avec scénario 200 users simultanés ; seuils (p95, taux d'erreur) documentés 🆕 — _`docs/load-testing.md`, `load/`_
-- [ ] **A-108** Les utilisateurs mute/ban sont filtrés **avant** la file (économie de charge) — _vérifié_
+- [ ] **A-108** Les utilisateurs mute/ban sont filtrés **avant** la file (économie de charge) — _vérifié_ · Issue [#129](https://github.com/iSweat-exe/BlocusApp/issues/129)
 
 ## Étape 1.9 — Pages de l’application (squelette + contenu)
 > Squelette déjà en place : groupes de routes `(auth)` (`/login`, `/register`) et `(app)` (`/`, `/calendar`, `/map`) avec barre de navigation mobile (3 onglets ; `/messages` supprimée, A-128).
 
 - [x] **A-120** Squelette des routes et navigation basse (mobile-first, safe-area iOS) — _`npm run build` génère les 6 routes_
-- [ ] **A-121** Garde d’accès : `(app)` en lecture seule pour un Guest (A-022), actions d'écriture redirigées vers `/login` ; `(auth)` redirige vers `/` si déjà connecté 🔒 — _testé E2E_
-- [ ] **A-122** Login / Register : formulaires, validation (Zod), erreurs par champ, états de chargement — _parcours E2E OK_
+- [~] **A-121** Garde d’accès : `(app)` en lecture seule pour un Guest (A-022), actions d'écriture redirigées vers `/login` ; `(auth)` redirige vers `/` si déjà connecté 🔒 — _testé E2E_ — _fait : `/profil` et `/admin/*` redirigent les invités vers `/login` (E2E sur les pages d'administration) ; reste : `(auth)` → `/` si déjà connecté, actions d'écriture → `/login`, et un E2E des routes privées (le `TODO(auth)` de `e2e/smoke.spec.ts`)_
+- [ ] **A-122** Login / Register : formulaires, validation (Zod), erreurs par champ, états de chargement — _parcours E2E OK_ · Issue [#106](https://github.com/iSweat-exe/BlocusApp/issues/106)
 - [~] **A-122b** Redesign de l'écran `/login` : titre de marque « BLOCUS. » en Archivo ExtraBold, fond de trois photos provisoires tirées au hasard côté client (Lorem Picsum, `docs/credits.md`), une seule téléchargée et fondue vers le haut, page qui défile sur écran court — _fait (#76), à valider sur de vrais téléphones ; photos définitives : voir Backlog_
 - [~] **A-122c** Icônes sur les boutons de `/login` : logo Discord, logo Google, œil pour le mode invité (décoratives, 20 px) — _fait, à valider sur de vrais téléphones_
 - [~] **A-123a** Table `announcements` + RLS (lecture Guest, écriture `announcement.publish` / `announcement.delete`) + tests pgTAP — _fait, reste la PR de l'UI_
@@ -176,22 +176,22 @@ L'application sert à **gérer une manifestation dans une ville X** :
 
 - [x] **A-130** Manifest, enregistrement du service worker (prod uniquement), meta iOS, icône apple-touch — _manifest et `sw.js` servis avec les bons en-têtes_
 - [~] **A-131** Icônes générées depuis `logo_symbol.png` « B. » (192, 512, maskable, apple-touch 180, favicon) — _reste : validation visuelle sur appareils réels + écrans de démarrage iOS optionnels_
-- [ ] **A-132** Stratégie hors-ligne dans `sw.js` : coquille de l’app en cache, page `/offline`, **jamais** de cache des réponses authentifiées/sensibles 🔒 — _mode avion testé_
-- [ ] **A-133** Stratégie de mise à jour du SW (nouvelle version → message « mettre à jour ») 🆕 — _pas d’ancienne version bloquée_
-- [ ] **A-134** Invite d’installation : bouton « Installer » sur Android (`beforeinstallprompt`) + explication « Partager → Sur l’écran d’accueil » sur iOS 🆕 — _testée sur appareils réels_
-- [ ] **A-135a** **Priorité (après 1.2)** 📚 **Recherche approfondie avant toute implémentation** : Web Push sur iOS 16.4+ (installation écran d'accueil obligatoire, permission sur geste utilisateur, abonnement `PushManager.subscribe` + VAPID, endpoints Apple, limites de fiabilité) et sur Android (Chrome/FCM), choix de la lib d'envoi — _ADR dans `docs/adr/` validé avant le code_
-- [ ] **A-135b** **Priorité** Notifications push (Web Push + VAPID) : table `push_subscriptions` + RLS, abonnement/désabonnement, envoi côté serveur, purge des abonnements expirés (404/410) ; déclencheurs : nouvelle annonce, nouvelle position déclarée — _reçue sur iOS et Android_
-- [ ] **A-135c** **Priorité** Parcours d'abonnement iOS (installer l'app → activer les notifications) 🆕 — _testé sur iPhone réel_
-- [ ] **A-136** Session persistante en mode standalone (cookies Supabase OK dans la PWA iOS) 🔒 — _reste connecté après fermeture_
-- [ ] **A-137** Audit Lighthouse PWA + tests sur iPhone et Android réels (HTTPS requis, Vercel OK) — _installable, score validé_
+- [ ] **A-132** Stratégie hors-ligne dans `sw.js` : coquille de l’app en cache, page `/offline`, **jamais** de cache des réponses authentifiées/sensibles 🔒 — _mode avion testé_ · Issue [#130](https://github.com/iSweat-exe/BlocusApp/issues/130)
+- [ ] **A-133** Stratégie de mise à jour du SW (nouvelle version → message « mettre à jour ») 🆕 — _pas d’ancienne version bloquée_ · Issue [#131](https://github.com/iSweat-exe/BlocusApp/issues/131)
+- [ ] **A-134** Invite d’installation : bouton « Installer » sur Android (`beforeinstallprompt`) + explication « Partager → Sur l’écran d’accueil » sur iOS 🆕 — _testée sur appareils réels_ · Issue [#132](https://github.com/iSweat-exe/BlocusApp/issues/132)
+- [ ] **A-135a** **Priorité (après 1.2)** 📚 **Recherche approfondie avant toute implémentation** : Web Push sur iOS 16.4+ (installation écran d'accueil obligatoire, permission sur geste utilisateur, abonnement `PushManager.subscribe` + VAPID, endpoints Apple, limites de fiabilité) et sur Android (Chrome/FCM), choix de la lib d'envoi — _ADR dans `docs/adr/` validé avant le code_ · Issue [#133](https://github.com/iSweat-exe/BlocusApp/issues/133)
+- [ ] **A-135b** **Priorité** Notifications push (Web Push + VAPID) : table `push_subscriptions` + RLS, abonnement/désabonnement, envoi côté serveur, purge des abonnements expirés (404/410) ; déclencheurs : nouvelle annonce, nouvelle position déclarée — _reçue sur iOS et Android_ · Issue [#134](https://github.com/iSweat-exe/BlocusApp/issues/134)
+- [ ] **A-135c** **Priorité** Parcours d'abonnement iOS (installer l'app → activer les notifications) 🆕 — _testé sur iPhone réel_ · Issue [#135](https://github.com/iSweat-exe/BlocusApp/issues/135)
+- [ ] **A-136** Session persistante en mode standalone (cookies Supabase OK dans la PWA iOS) 🔒 — _reste connecté après fermeture_ · Issue [#136](https://github.com/iSweat-exe/BlocusApp/issues/136)
+- [ ] **A-137** Audit Lighthouse PWA + tests sur iPhone et Android réels (HTTPS requis, Vercel OK) — _installable, score validé_ · Issue [#137](https://github.com/iSweat-exe/BlocusApp/issues/137)
 
 ## Étape 1.11 — Finalisation v1.0.0
-- [ ] **A-110** Revue sécurité complète (RLS, secrets, en-têtes, dépendances) 🔒 — _rapport signé_
-- [ ] **A-111** Documentation complète et à jour (README, architecture, permissions, DB, runbook) 📚 — _relecture par quelqu'un qui n'a pas écrit le code_
-- [ ] **A-112** Pages d'erreur, états de chargement, accessibilité de base (clavier, contrastes) 🆕 — _Lighthouse ≥ 90_
-- [ ] **A-113** Pages légales/RGPD : politique de confidentialité, export et suppression des données utilisateur 🆕 🔒 — _suppression de compte fonctionnelle_
-- [ ] **A-114** Vérification des quotas free tier en conditions réelles (Supabase + Vercel dashboards) — _marge ≥ 20 %_
-- [ ] **A-115** Changelog + tag `v1.0.0` + release GitHub — _publié_
+- [ ] **A-110** Revue sécurité complète (RLS, secrets, en-têtes, dépendances) 🔒 — _rapport signé_ · Issue [#138](https://github.com/iSweat-exe/BlocusApp/issues/138)
+- [ ] **A-111** Documentation complète et à jour (README, architecture, permissions, DB, runbook) 📚 — _relecture par quelqu'un qui n'a pas écrit le code_ · Issue [#139](https://github.com/iSweat-exe/BlocusApp/issues/139)
+- [ ] **A-112** Pages d'erreur, états de chargement, accessibilité de base (clavier, contrastes) 🆕 — _Lighthouse ≥ 90_ · Issue [#140](https://github.com/iSweat-exe/BlocusApp/issues/140)
+- [ ] **A-113** Pages légales/RGPD : politique de confidentialité, export et suppression des données utilisateur 🆕 🔒 — _suppression de compte fonctionnelle_ · Issue [#141](https://github.com/iSweat-exe/BlocusApp/issues/141)
+- [ ] **A-114** Vérification des quotas free tier en conditions réelles (Supabase + Vercel dashboards) — _marge ≥ 20 %_ · Issue [#142](https://github.com/iSweat-exe/BlocusApp/issues/142)
+- [ ] **A-115** Changelog + tag `v1.0.0` + release GitHub — _publié_ · Issue [#143](https://github.com/iSweat-exe/BlocusApp/issues/143)
 
 ---
 

@@ -12,7 +12,7 @@
 - [x] **O-004** Verrouiller les versions : `engines` dans `package.json`, `.nvmrc`, `package-lock.json` commité — _même version Node pour tous_
 - [x] **O-005** Scripts npm standard : `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `format` — _documentés dans le README_
 - [x] **O-006** Fichier `.env.example` listant toutes les variables (sans valeurs) — _onboarding sans question_
-- [ ] **O-007** Créer les projets Supabase (dev + prod) et Vercel, lier Vercel ↔ GitHub — _preview deploy sur chaque PR_
+- [~] **O-007** Créer les projets Supabase (dev + prod) et Vercel, lier Vercel ↔ GitHub — _preview deploy sur chaque PR_ — _Vérifié le 2026-10-14 : projet Vercel `blocus-app` lié à `iSweat-exe/BlocusApp` et `main` déployé en production ; projet Supabase de production lié et migré par la CI (workflow `Supabase`). Reste : confirmer le projet Supabase de **dev** distinct. Les previews par PR sont désactivées volontairement (`vercel.json`, quota Hobby) : le critère « preview deploy sur chaque PR » est à amender, voir O-035._
 
 ## Étape 0.2 — Conventions de code (stack Next.js / React / TypeScript)
 - [x] **O-010** TypeScript `strict: true`, `noUncheckedIndexedAccess`, interdiction de `any` (règle ESLint) — _CI échoue sinon_
@@ -24,14 +24,14 @@
 - [x] **O-016** Validation des entrées avec un schéma (ex. Zod) à **chaque** frontière (API, Server Actions, formulaires) — _documenté_
 - [x] **O-017** Gestion d'erreurs uniforme (type `Result`/codes d'erreur) et logs sans données personnelles — _documenté_
 - [x] **O-018** **Tous les commentaires, noms de variables, messages de commit, JSDoc : en anglais** (règle ESLint/relecture) — _vérifié en revue de PR_
-- [ ] **O-019** Les textes UI utilisateur passent par un fichier de traductions (i18n) 🆕 — _aucun texte FR en dur dans les composants_
+- [ ] **O-019** Les textes UI utilisateur passent par un fichier de traductions (i18n) 🆕 — _aucun texte FR en dur dans les composants_ · Issue [#144](https://github.com/iSweat-exe/BlocusApp/issues/144)
 
 ## Étape 0.3 — Convention Git & GitHub
 - [x] **O-020** Adopter **Conventional Commits** : `type(scope): description` (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`, `build`) — _documenté avec exemples_
 - [x] **O-021** `commitlint` + `husky` : hook `commit-msg` qui rejette les messages invalides — _commit non conforme impossible_
 - [x] **O-022** Hook `pre-commit` (`lint-staged` : lint + prettier + typecheck rapide) — _rapide (< 10 s)_
 - [x] **O-023** Stratégie de branches : `main` (protégée, = prod), `develop` optionnel, branches `feat/…`, `fix/…`, `docs/…`, `chore/…` — _nommage documenté_
-- [ ] **O-024** Protection de `main` : PR obligatoire, 1 review min, CI verte, pas de force-push, historique linéaire (squash merge) — _réglages GitHub appliqués_
+- [~] **O-024** Protection de `main` : PR obligatoire, 1 review min, CI verte, pas de force-push, historique linéaire (squash merge) — _réglages GitHub appliqués_ — _`main` est protégée (vérifié le 2026-10-14) et ne reçoit que des squash de PR ; reste : confirmer dans Settings → Branches les règles exactes (1 review, CI verte, pas de force-push, historique linéaire), non lisibles depuis les outils de vérification._
 - [x] **O-025** Template de PR (`.github/pull_request_template.md`) : description, lien issue, checklist (tests, docs, migration, RLS) — _affiché à chaque PR_
 - [x] **O-026** Templates d'issues (bug, feature, tâche LLM) + labels standards — _créés sur GitHub_ ; labels versionnés (`.github/labels.yml`), synchronisés et posés automatiquement (type, area, size…), cf. `docs/git-workflow.md`
 - [x] **O-027** `CODEOWNERS` : les dossiers sensibles (`supabase/migrations`, auth, permissions) nécessitent un reviewer désigné 🔒 — _fichier actif_
@@ -43,9 +43,9 @@
 - [x] **O-031** Vérification des commits/titres de PR au format Conventional Commits en CI — _CI rouge sinon_
 - [x] **O-032** Scan de secrets (gitleaks) 🆕 🔒 — _CI rouge si secret détecté_
 - [x] **O-033** Audit des dépendances (`npm audit` + Dependabot/Renovate) — _PRs automatiques hebdo_
-- [~] **O-034** Migrations Supabase testées en CI sur une base jetable (`supabase db reset` + tests RLS) 🆕 — _CI rouge si migration cassée_ (reste : brancher `supabase db reset` + tests en CI dès la première migration, étape 1.1) — _fait : `.github/workflows/supabase.yml` rejoue les migrations et lance `supabase test db` sur chaque PR touchant `supabase/**` ; reste à valider sur une vraie PR_
-- [~] **O-034b** Migrations appliquées **automatiquement en production** après fusion sur `main` (`supabase db push`, environnement GitHub `production` avec approbation, secrets `SUPABASE_*`) 🔒 — _fait dans le workflow ; reste : créer l'environnement et les secrets (réglages GitHub), baseline si besoin, cf. `docs/runbook.md`_
-- [~] **O-035** Déploiement : preview par PR, prod uniquement depuis `main` — _vérifié_ (reste : lier le dépôt à Vercel, voir O-007)
+- [x] **O-034** Migrations Supabase testées en CI sur une base jetable (`supabase db reset` + tests RLS) 🆕 — _CI rouge si migration cassée_ — _fait (#56) : `.github/workflows/supabase.yml` rejoue toutes les migrations (`supabase start`) et lance `supabase test db` sur chaque PR touchant `supabase/**` ; validé sur de vraies PR (#94 à #97), et la CI a bien échoué sur `main` après #94 (test dépendant du seed), corrigé par #95_
+- [~] **O-034b** Migrations appliquées **automatiquement en production** après fusion sur `main` (`supabase db push`, environnement GitHub `production` avec approbation, secrets `SUPABASE_*`) 🔒 — _fait dans le workflow (#56) ; vérifié le 2026-10-14 : le job « Apply migrations to production » a réussi sur `main` après #96 et #97 (secrets présents, projet lié, migrations appliquées). Reste : confirmer que l'environnement GitHub `production` exige une approbation, le job ayant démarré sans attente ; cf. `docs/runbook.md`_
+- [~] **O-035** Déploiement : preview par PR, prod uniquement depuis `main` — _vérifié_ (2026-10-14 : dépôt lié à Vercel, seul `main` est déployé en production ; aucune preview par PR, choix volontaire de `vercel.json` pour le quota Hobby. Reste : amender le critère « preview par PR » ou réactiver les previews)
 
 ## Étape 0.5 — Organisation multi-développeurs avec LLMs
 - [x] **O-040** `CLAUDE.md` (et `AGENTS.md` pointant vers le même contenu) à la racine : stack, commandes, conventions, interdits — _un LLM peut coder sans contexte oral_
@@ -62,14 +62,14 @@
 - [x] **O-051** `docs/` structuré : `architecture.md`, `conventions.md`, `database.md`, `permissions.md`, `security.md`, `runbook.md` — _squelettes créés_
 - [x] **O-052** ADR (Architecture Decision Records) dans `docs/adr/` pour chaque décision structurante 🆕 — _modèle + ADR-001 « choix de la stack »_
 - [x] **O-053** Règle « pas de PR sans doc » : si le comportement, le schéma ou une permission change → doc modifiée dans la **même PR** — _case dans le template de PR_
-- [ ] **O-054** Doc auto-générée quand possible : types Supabase (`supabase gen types`), schéma de BDD, liste des permissions — _script `npm run docs:gen`_ (reporté à l'étape 1.1 : nécessite le schéma et la CLI Supabase)
-- [ ] **O-055** Vérification en CI que les types/doc générés sont à jour (diff = échec) — _CI rouge si doc périmée_ (reporté à l'étape 1.1, avec O-054)
+- [~] **O-054** Doc auto-générée quand possible : types Supabase (`supabase gen types`), schéma de BDD, liste des permissions — _script `npm run docs:gen`_ (reporté à l'étape 1.1 : nécessite le schéma et la CLI Supabase) — _types générés par `npm run db:types` (A-005) ; reste : le script `npm run docs:gen` (schéma de BDD, liste des permissions)_
+- [ ] **O-055** Vérification en CI que les types/doc générés sont à jour (diff = échec) — _CI rouge si doc périmée_ (reporté à l'étape 1.1, avec O-054) · Issue [#145](https://github.com/iSweat-exe/BlocusApp/issues/145)
 - [x] **O-056** TSDoc (en anglais) sur toutes les fonctions publiques des couches `lib/` et `server/` — _règle ESLint `jsdoc` ou revue_
 
 ## Étape 0.7 — Qualité & tests
 - [x] **O-060** Framework de tests unitaires (Vitest) + Testing Library — _`npm test` passe_
 - [x] **O-061** Tests E2E (Playwright) sur les parcours critiques (login, ban, permissions) — _tournent en CI_
-- [~] **O-062** Tests des politiques RLS (pgTAP ou tests SQL) : chaque table a un test « accès autorisé / refusé » 🔒 — _obligatoire pour toute nouvelle table_ (reste : écrire les tests pgTAP dans `supabase/tests/` dès l'étape 1.1, quand les tables existent)
+- [x] **O-062** Tests des politiques RLS (pgTAP ou tests SQL) : chaque table a un test « accès autorisé / refusé » 🔒 — _obligatoire pour toute nouvelle table_ — _fait : 25 fichiers pgTAP dans `supabase/tests/database/` couvrent les 17 tables du schéma `public` (accès autorisé / refusé, `anon` compris), rejoués à chaque PR par `.github/workflows/supabase.yml` (#56)_
 - [x] **O-063** Seuil de couverture minimal sur `lib/` et `server/` (ex. 70 %) 🆕 — _CI_
 
 ## Étape 0.8 — Sécurité & opérations de base
@@ -77,8 +77,8 @@
 - [x] **O-071** En-têtes de sécurité (CSP, HSTS, X-Frame-Options…) dans `next.config` 🔒 — _vérifié avec un scanner_ (vérifié par test E2E ; scanner externe à passer après le premier déploiement)
 - [~] **O-072** Monitoring minimal des erreurs (Sentry free tier ou logs Vercel) 🆕 — _erreur de test remontée_ (error boundaries en place ; décision Sentry : voir ADR-0003)
 - [~] **O-073** Procédure de backup/restauration (le free tier n'a pas de backup auto fiable → export régulier) 🆕 🔒 — _testée une fois_ (procédure écrite dans `docs/runbook.md` ; test de restauration à faire après la 1ère migration)
-- [ ] **O-074** Variables Vercel de la surveillance : `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID` (+ `VERCEL_TEAM_ID`) — _carte « Vercel » de `/admin/health` renseignée_ (**à faire à la main**, voir `docs/runbook.md`)
-- [ ] **O-075** Moniteur externe gratuit sur `/api/health` avec alerte e-mail 🆕 — _alerte reçue lors d'une coupure simulée_ (**à faire à la main**)
+- [~] **O-074** Variables Vercel de la surveillance : `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID` (+ `VERCEL_TEAM_ID`) — _carte « Vercel » de `/admin/health` renseignée_ (**à faire à la main**, voir `docs/runbook.md`) — _vérifié le 2026-10-14 dans Vercel (noms seulement) : `SUPABASE_SERVICE_ROLE_KEY`, `VERCEL_API_TOKEN` et `VERCEL_PROJECT_ID` sont définies en production, `VERCEL_TEAM_ID` ne l'est pas (requise si le projet appartient à une équipe) ; reste : constater que la carte « Vercel » de `/admin/health` est renseignée_
+- [ ] **O-075** Moniteur externe gratuit sur `/api/health` avec alerte e-mail 🆕 — _alerte reçue lors d'une coupure simulée_ (**à faire à la main**) · Issue [#146](https://github.com/iSweat-exe/BlocusApp/issues/146)
 
 ---
 
