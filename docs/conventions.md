@@ -77,3 +77,9 @@ hauteur de bouton : utiliser les tokens et classes partagées.
 
 Vitest (unitaires), Playwright (E2E, parcours critiques), tests SQL des politiques RLS. Couverture
 minimale sur `src/lib/` et `src/server/` : voir `vitest.config.ts`.
+
+Les tests E2E tournent contre un faux Supabase local (`e2e/support/fake-supabase.mjs`, lancé par
+`playwright.config.ts`) : il répond aux endpoints `authorize`, `token` (PKCE) et `user` de l'authentification et
+renvoie le profil de l'utilisateur connecté ; toutes les autres tables sont vides. Les parcours de connexion
+et de déconnexion (`e2e/auth.spec.ts`) exécutent donc les vraies routes `/auth/*` sans appeler Discord ni
+Google. Le test avec les vrais fournisseurs reste manuel (`docs/runbook.md`).

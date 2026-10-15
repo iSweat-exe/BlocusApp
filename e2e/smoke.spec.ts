@@ -136,7 +136,7 @@ test.describe("app shell", () => {
     expect(response.ok()).toBe(true);
     const { url } = await response.json();
     // Discord itself when Supabase is reachable, otherwise the Supabase authorize URL.
-    expect(url).toMatch(/^https:\/\/(discord\.com\/oauth2\/authorize|[^/]+\/auth\/v1\/authorize)/);
+    expect(url).toMatch(/^https?:\/\/(discord\.com\/oauth2\/authorize|[^/]+\/auth\/v1\/authorize)/);
   });
 
   test("the calendar shows a month grid and survives invalid parameters", async ({ page }) => {
