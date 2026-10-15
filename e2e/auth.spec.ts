@@ -30,10 +30,11 @@ test.describe("sign-in and sign-out", () => {
       await expect(header.getByRole("link", { name: "Mon profil" })).toBeVisible();
       await expect(header.getByRole("link", { name: "Se connecter" })).toHaveCount(0);
 
-      // The session lives in cookies (SameSite=Lax), never in web storage.
+      // The session lives in httpOnly cookies (SameSite=Lax) that page scripts cannot read, never in web storage.
       const cookies = await sessionCookies(page);
       expect(cookies.length).toBeGreaterThan(0);
-      expect(cookies.every((cookie) => cookie.sameSite === "Lax")).toBe(true);
+      expect(cookies.every((cookie) => cookie.httpOnly && cookie.sameSite === "Lax")).toBe(true);
+      expect(await page.evaluate(() => document.cookie)).not.toContain(SESSION_COOKIE);
       expect(await page.evaluate(() => JSON.stringify({ ...localStorage }))).not.toContain(
         "access_token",
       );

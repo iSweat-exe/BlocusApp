@@ -9,5 +9,10 @@
  */
 export const AUTH_COOKIE_NAME = "blocus-auth";
 
-/** Options to pass to `createServerClient` / `createBrowserClient`. */
-export const authCookieOptions = { name: AUTH_COOKIE_NAME };
+/**
+ * Options to pass to `createServerClient`. The session cookies are `httpOnly` (`@supabase/ssr` leaves them
+ * readable by scripts by default): page scripts, including an injected one, cannot read the tokens. The whole
+ * app reads the session on the server (Server Components, Route Handlers, proxy), so nothing needs them in
+ * the browser. `SameSite=Lax` and `Secure` on HTTPS come from the library defaults.
+ */
+export const authCookieOptions = { name: AUTH_COOKIE_NAME, httpOnly: true };

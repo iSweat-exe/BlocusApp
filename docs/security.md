@@ -10,7 +10,10 @@
 4. Validation de toutes les entrées côté serveur (schéma) ; limites de taille avant et après décompression.
 5. Rate limiting par utilisateur sur toutes les écritures (voir « Limites de débit »). L'authentification passe par
    Discord et Google, dont les limites s'appliquent ; la limite par IP des visiteurs non connectés reste à faire (A-101).
-6. Sessions Supabase en cookies httpOnly (`@supabase/ssr`), jamais en `localStorage`. Le cookie a un nom fixe, `blocus-auth`
+6. Sessions Supabase en cookies `httpOnly` et `SameSite=Lax` (`@supabase/ssr`, option posée dans `authCookieOptions`, car
+   la bibliothèque les laisse lisibles par les scripts par défaut), jamais en `localStorage` ; le test E2E `e2e/auth.spec.ts`
+   le vérifie. Conséquence : aucun client navigateur ne lit la session (`src/lib/supabase/client.ts` est inutilisé), tout passe par
+   le serveur. Le cookie a un nom fixe, `blocus-auth`
    (`src/lib/supabase/cookie.ts`), commun à tous les clients Supabase ; le `matcher` du `proxy` en dépend.
 7. Le cache ne contient jamais de réponse authentifiée partagée entre utilisateurs ; le service worker ne
    met pas en cache les réponses authentifiées.
