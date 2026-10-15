@@ -31,6 +31,8 @@ export default defineConfig({
       env: {
         NEXT_PUBLIC_SUPABASE_URL: `http://localhost:${SUPABASE_PORT}`,
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "placeholder",
+        // Only used to remove a refused sign-up: the fake Supabase accepts anything.
+        SUPABASE_SERVICE_ROLE_KEY: "placeholder",
         NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`,
       },
     },

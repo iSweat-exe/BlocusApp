@@ -18,6 +18,18 @@
 7. Le cache ne contient jamais de réponse authentifiée partagée entre utilisateurs ; le service worker ne
    met pas en cache les réponses authentifiées.
 
+## E-mail non vérifié (A-011)
+
+Une connexion Discord ou Google n'est acceptée que si le fournisseur garantit l'adresse e-mail. Dans `/auth/callback`
+(`src/features/auth/email-verification.ts`), après l'échange du code, le compte est refusé quand l'adresse manque,
+quand Supabase ne l'a pas confirmée (`email_confirmed_at`) ou quand une identité annonce `email_verified: false`.
+Le refus : fin de session (`signOut`), suppression du compte **s'il vient d'être créé** (moins de 10 minutes, par
+l'API d'administration avec la clé `service_role`, jamais pour un compte plus ancien), puis redirection vers
+`/login?error=email_not_verified` (message « Email non vérifié… »). Si le fournisseur ne renvoie aucune adresse
+(« Error getting user email from external provider »), le même message s'affiche. Si la suppression échoue, la
+connexion reste refusée et seule la raison est journalisée. Tests : `route.test.ts`, `email-verification.test.ts`,
+`e2e/auth.spec.ts`.
+
 ## Limites de débit (A-100)
 
 Chaque utilisateur est limité **dans la base de données** (table `rate_limits`, voir [`database.md`](./database.md)) :

@@ -18,29 +18,42 @@ function signJwt(claims) {
   return `${body}.${createHmac("sha256", JWT_SECRET).update(body).digest("base64url")}`;
 }
 
-/** The provider is carried by the code (`<provider>.<random>`), so parallel tests never share state. */
-const providerOf = (code) => code.split(".")[0];
-const userIdOf = (provider) =>
-  provider === "discord"
-    ? "00000000-0000-4000-8000-0000000000d1"
-    : "00000000-0000-4000-8000-0000000000a2";
+// The code carries the provider and the scenario (`<provider>.<scenario>.<random>`), so parallel tests never
+// share state. Scenarios: `ok` (verified e-mail), `unverified` (address the provider did not verify) and
+// `new-unverified` (same, on an account created just now).
+const partsOf = (code) => {
+  const [provider, scenario = "ok"] = code.split(".");
+  return { provider, scenario };
+};
+const userIdOf = (provider, scenario) =>
+  scenario !== "ok"
+    ? `00000000-0000-4000-8000-00000000${scenario === "unverified" ? "0b" : "0c"}${provider === "discord" ? "d1" : "a2"}`
+    : provider === "discord"
+      ? "00000000-0000-4000-8000-0000000000d1"
+      : "00000000-0000-4000-8000-0000000000a2";
 
-function userFor(provider) {
-  const id = userIdOf(provider);
+/** Ids of the accounts the app asked to delete (`DELETE /auth/v1/admin/users/:id`), for the tests to read. */
+const deletedUsers = [];
+
+function userFor(provider, scenario = "ok") {
+  const id = userIdOf(provider, scenario);
   const label = provider === "discord" ? "Discord" : "Google";
+  const verified = scenario === "ok";
   return {
     id,
     aud: "authenticated",
     role: "authenticated",
     email: `e2e-${provider}@example.test`,
-    created_at: "2020-01-01T00:00:00Z",
-    app_metadata: { provider, providers: [provider] },
+    email_confirmed_at: verified ? "2020-01-01T00:00:00Z" : null,
+    created_at: scenario === "new-unverified" ? new Date().toISOString() : "2020-01-01T00:00:00Z",
+    app_metadata: { provider, providers: [provider], scenario },
     user_metadata: { full_name: `E2E ${label}` },
+    identities: [{ identity_data: { email_verified: verified } }],
   };
 }
 
-function sessionFor(provider) {
-  const user = userFor(provider);
+function sessionFor(provider, scenario = "ok") {
+  const user = userFor(provider, scenario);
   const now = Math.floor(Date.now() / 1000);
   const accessToken = signJwt({
     iss: `http://localhost:${PORT}/auth/v1`,
@@ -76,7 +89,9 @@ function userFromBearer(request) {
     .digest("base64url");
   if (signature !== expected) return null;
   const claims = JSON.parse(Buffer.from(payload, "base64url").toString());
-  return claims.exp * 1000 > Date.now() ? userFor(claims.app_metadata?.provider) : null;
+  return claims.exp * 1000 > Date.now()
+    ? userFor(claims.app_metadata?.provider, claims.app_metadata?.scenario)
+    : null;
 }
 
 const profileFor = (provider) => ({
@@ -114,7 +129,14 @@ const server = createServer(async (request, response) => {
       return send(response, 400, { error_code: "validation_failed", msg: "missing parameters" });
     }
     const target = new URL(redirectTo);
-    target.searchParams.set("code", `${provider}.${Math.random().toString(36).slice(2)}`);
+    // A test picks the scenario with an `e2e_scenario` cookie: cookies ignore ports, so the app's origin sets it
+    // for this one's too, and each test has its own browser context.
+    const scenario =
+      /(?:^|; )e2e_scenario=([\w-]+)/.exec(request.headers.cookie ?? "")?.[1] ?? "ok";
+    target.searchParams.set(
+      "code",
+      `${provider}.${scenario}.${Math.random().toString(36).slice(2)}`,
+    );
     response.writeHead(302, { location: target.href });
     return response.end();
   }
@@ -123,13 +145,17 @@ const server = createServer(async (request, response) => {
     const body = JSON.parse((await readBody(request)) || "{}");
     if (url.searchParams.get("grant_type") === "pkce") {
       const code = String(body.auth_code ?? "");
-      if (!body.code_verifier || !/^(discord|google)\./.test(code)) {
+      if (
+        !body.code_verifier ||
+        !/^(discord|google)\.(ok|unverified|new-unverified)\./.test(code)
+      ) {
         return send(response, 400, {
           error_code: "flow_state_not_found",
           msg: "invalid flow state, no valid flow state found",
         });
       }
-      return send(response, 200, sessionFor(providerOf(code)));
+      const { provider, scenario } = partsOf(code);
+      return send(response, 200, sessionFor(provider, scenario));
     }
     if (url.searchParams.get("grant_type") === "refresh_token") {
       const provider = String(body.refresh_token ?? "").replace("refresh-", "");
@@ -145,6 +171,11 @@ const server = createServer(async (request, response) => {
       : send(response, 401, { error_code: "bad_jwt", msg: "invalid JWT" });
   }
   if (path === "/auth/v1/logout") return send(response, 204);
+  if (path.startsWith("/auth/v1/admin/users/") && request.method === "DELETE") {
+    deletedUsers.push(path.split("/").pop());
+    return send(response, 200, {});
+  }
+  if (path === "/__deleted-users") return send(response, 200, deletedUsers);
   if (path.startsWith("/auth/v1/")) return send(response, 404, { msg: "not found" });
 
   // PostgREST: the signed-in user's own profile, nothing else.

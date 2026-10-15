@@ -18,6 +18,7 @@ describe("LoginError", () => {
   it.each([
     ["oauth_start", "Impossible de démarrer la connexion. Réessaie."],
     ["oauth_callback", "La connexion a échoué. Réessaie."],
+    ["email_not_verified", "Email non vérifié"],
   ])("explains the %s error", (code, message) => {
     query = `error=${code}`;
     render(<LoginError />);

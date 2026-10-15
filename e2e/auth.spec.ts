@@ -82,12 +82,54 @@ test.describe("sign-in and sign-out", () => {
   test("a provider that refuses the sign-in (no code) sends back to /login with an error", async ({
     page,
   }) => {
-    await page.goto(
-      "/auth/callback?error=server_error&error_description=Error+getting+user+email+from+external+provider",
-    );
+    await page.goto("/auth/callback?error=access_denied&error_description=The+user+denied+access");
     await page.waitForURL("**/login?error=oauth_callback");
     await expect(page.getByText("La connexion a échoué. Réessaie.")).toBeVisible();
     expect(await sessionCookies(page)).toEqual([]);
+  });
+
+  test("a Discord account that shares no e-mail is told «Email non vérifié»", async ({ page }) => {
+    await page.goto(
+      "/auth/callback?error=server_error&error_description=Error+getting+user+email+from+external+provider",
+    );
+    await page.waitForURL("**/login?error=email_not_verified");
+    await expect(page.getByText(/Email non vérifié/)).toBeVisible();
+    expect(await sessionCookies(page)).toEqual([]);
+  });
+
+  test.describe("e-mail not verified by the provider", () => {
+    // Tells the fake provider to answer with an address it did not verify (see the scenarios in fake-supabase.mjs).
+    async function signInAs(page: Page, scenario: string) {
+      await page
+        .context()
+        .addCookies([{ name: "e2e_scenario", value: scenario, url: "http://localhost:3100" }]);
+      await page.goto("/auth/login/discord");
+    }
+
+    test("refuses the sign-up, leaves no session and removes the new account", async ({
+      page,
+      request,
+    }) => {
+      await signInAs(page, "new-unverified");
+      await page.waitForURL("**/login?error=email_not_verified");
+      await expect(page.getByText(/Email non vérifié/)).toBeVisible();
+      expect(await sessionCookies(page)).toEqual([]);
+
+      await page.goto("/profil");
+      await page.waitForURL("**/login");
+      const deleted = await (await request.get("http://localhost:54399/__deleted-users")).json();
+      expect(deleted).toContain("00000000-0000-4000-8000-000000000cd1");
+    });
+
+    test("refuses an older account too, without deleting it", async ({ page, request }) => {
+      await signInAs(page, "unverified");
+      await page.waitForURL("**/login?error=email_not_verified");
+      await expect(page.getByText(/Email non vérifié/)).toBeVisible();
+      expect(await sessionCookies(page)).toEqual([]);
+
+      const deleted = await (await request.get("http://localhost:54399/__deleted-users")).json();
+      expect(deleted).not.toContain("00000000-0000-4000-8000-00000000" + "0bd1");
+    });
   });
 
   test("signing out is a POST only: a plain link to it does nothing", async ({ request }) => {

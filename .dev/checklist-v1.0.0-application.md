@@ -24,7 +24,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 
 ## Étape 1.2 — Authentification sécurisée 🔒
 - [ ] **A-010** Supabase Auth via `@supabase/ssr` (cookies httpOnly, pas de token en localStorage) — _session SSR fonctionnelle_
-- [~] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_ (E2E OAuth fait avec un faux Supabase, `e2e/auth.spec.ts` ; reste : test manuel avec les vrais Discord et Google)
+- [~] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_ (E2E OAuth fait avec un faux Supabase, `e2e/auth.spec.ts` ; fait aussi : refus propre d'un compte sans e-mail vérifié ; reste : test manuel avec les vrais Discord et Google)
 - [ ] **A-012** SMTP custom configuré (limite e-mails du free tier) — _e-mails reçus_
 - [ ] **A-013** Politique de mot de passe + protection contre fuites (leaked password protection si dispo) + CAPTCHA (Turnstile/hCaptcha) sur signup/login 🆕 — _bots bloqués_
 - [~] **A-014** Middleware Next.js : rafraîchit la session (fait, `src/proxy.ts`), protège les routes privées (reste, cf. A-121) — _route privée inaccessible déconnecté_
