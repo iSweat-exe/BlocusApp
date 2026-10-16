@@ -76,6 +76,69 @@ export function addDays(dayKey: string, days: number): string {
   return `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}-${pad(shifted.getUTCDate())}`;
 }
 
+/** Weekday of a day key: Monday = 0, ..., Sunday = 6. */
+export function weekdayOf(dayKey: string): number {
+  const parsed = parseDayKey(dayKey);
+  if (!parsed) throw new Error(`Invalid day key: ${dayKey}`);
+  return (new Date(Date.UTC(parsed.year, parsed.month - 1, parsed.day)).getUTCDay() + 6) % 7;
+}
+
+/** Monday of the week containing the day key. */
+export function mondayOf(dayKey: string): string {
+  return addDays(dayKey, -weekdayOf(dayKey));
+}
+
+/** All 7 day keys (Monday to Sunday) of the week containing the day key. */
+export function weekDaysOf(dayKey: string): string[] {
+  const monday = mondayOf(dayKey);
+  return Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+}
+
+/** ISO week key (`YYYY-WW`) of a day key. */
+export function weekKeyOf(dayKey: string): string {
+  const weekday = weekdayOf(dayKey);
+  const thursdayKey = addDays(dayKey, 3 - weekday);
+  const thursdayParsed = parseDayKey(thursdayKey);
+  if (!thursdayParsed) throw new Error(`Invalid day key: ${dayKey}`);
+  const isoYear = thursdayParsed.year;
+
+  const jan4Weekday = weekdayOf(`${isoYear}-01-04`);
+  const week1MondayKey = addDays(`${isoYear}-01-04`, -jan4Weekday);
+
+  const mondayKey = mondayOf(dayKey);
+  const mondayParsed = parseDayKey(mondayKey)!;
+  const week1Parsed = parseDayKey(week1MondayKey)!;
+  const mondayUtc = Date.UTC(mondayParsed.year, mondayParsed.month - 1, mondayParsed.day);
+  const week1Utc = Date.UTC(week1Parsed.year, week1Parsed.month - 1, week1Parsed.day);
+  const diffDays = Math.round((mondayUtc - week1Utc) / MS_PER_DAY);
+  const weekNum = Math.floor(diffDays / 7) + 1;
+  return `${isoYear}-${pad(weekNum)}`;
+}
+
+/** Parses `YYYY-WW` or `YYYY-Www`. */
+export function parseWeekKey(value: unknown): { year: number; week: number } | null {
+  if (typeof value !== "string") return null;
+  const match = /^(\d{4})-(?:W)?(\d{1,2})$/i.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const week = Number(match[2]);
+  if (week < 1 || week > 53) return null;
+  if (week === 53) {
+    const dec28Week = weekKeyOf(`${year}-12-28`);
+    if (dec28Week !== `${year}-53`) return null;
+  }
+  return { year, week };
+}
+
+/** Resolves the Monday of a week key. */
+export function dayKeyFromWeek(weekKey: string, dayOffset = 0): string | null {
+  const parsed = parseWeekKey(weekKey);
+  if (!parsed) return null;
+  const jan4Weekday = weekdayOf(`${parsed.year}-01-04`);
+  const week1MondayKey = addDays(`${parsed.year}-01-04`, -jan4Weekday);
+  return addDays(week1MondayKey, (parsed.week - 1) * 7 + dayOffset);
+}
+
 /** UTC instant of a wall-clock time in the event time zone. */
 export function zonedToUtc(dayKey: string, hour = 0, minute = 0): Date {
   const parsed = parseDayKey(dayKey);
@@ -115,6 +178,12 @@ export function formatTime(iso: string): string {
   return timeFormat.format(new Date(iso));
 }
 
+/** Fractional hour (`14.5` for 14:30) of an ISO instant in Europe/Paris. */
+export function timeToHour(iso: string): number {
+  const f = zonedFields(new Date(iso));
+  return f.hour + f.minute / 60;
+}
+
 /** `mercredi 7 octobre 2026` for an instant. */
 export function formatDayLong(iso: string): string {
   return dayFormat.format(new Date(iso));
@@ -135,4 +204,44 @@ export function formatMonthLabel(monthKey: string): string {
 /** `14:30` or `14:30 – 16:00`. */
 export function formatTimeRange(startIso: string, endIso: string | null): string {
   return endIso ? `${formatTime(startIso)} – ${formatTime(endIso)}` : formatTime(startIso);
+}
+
+const shortDayMonthFormat = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "short",
+  timeZone: EVENT_TIME_ZONE,
+});
+const shortDayFormat = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  timeZone: EVENT_TIME_ZONE,
+});
+const shortMonthYearFormat = new Intl.DateTimeFormat("fr-FR", {
+  month: "short",
+  year: "numeric",
+  timeZone: EVENT_TIME_ZONE,
+});
+
+/** `12 – 18 oct. 2026` or `28 sept. – 4 oct. 2026` for a week. */
+export function formatWeekRange(dayKey: string): string {
+  const monday = mondayOf(dayKey);
+  const sunday = addDays(monday, 6);
+  const monParsed = parseDayKey(monday)!;
+  const sunParsed = parseDayKey(sunday)!;
+  const monDate = zonedToUtc(monday, 12);
+  const sunDate = zonedToUtc(sunday, 12);
+
+  if (monParsed.year !== sunParsed.year) {
+    return `${shortDayMonthFormat.format(monDate)} ${monParsed.year} – ${shortDayMonthFormat.format(sunDate)} ${sunParsed.year}`;
+  }
+  if (monParsed.month !== sunParsed.month) {
+    return `${shortDayMonthFormat.format(monDate)} – ${shortDayMonthFormat.format(sunDate)} ${sunParsed.year}`;
+  }
+  return `${shortDayFormat.format(monDate)} – ${shortDayFormat.format(sunDate)} ${shortMonthYearFormat.format(sunDate)}`;
+}
+
+/** `Semaine 42` for a week key. */
+export function formatWeekLabel(weekKey: string): string {
+  const parsed = parseWeekKey(weekKey);
+  if (!parsed) return weekKey;
+  return `Semaine ${parsed.week}`;
 }
