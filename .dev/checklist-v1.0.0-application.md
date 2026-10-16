@@ -24,7 +24,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 
 ## Étape 1.2 — Authentification sécurisée 🔒
 - [ ] **A-010** Supabase Auth via `@supabase/ssr` (cookies httpOnly, pas de token en localStorage) — _session SSR fonctionnelle_
-- [ ] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_
+- [~] **A-011** Inscription / connexion / déconnexion / mot de passe oublié / vérification e-mail obligatoire — _parcours E2E OK_ (E2E OAuth fait avec un faux Supabase, `e2e/auth.spec.ts` ; fait aussi : refus propre d'un compte sans e-mail vérifié ; reste : test manuel avec les vrais Discord et Google)
 - [ ] **A-012** SMTP custom configuré (limite e-mails du free tier) — _e-mails reçus_
 - [ ] **A-013** Politique de mot de passe + protection contre fuites (leaked password protection si dispo) + CAPTCHA (Turnstile/hCaptcha) sur signup/login 🆕 — _bots bloqués_
 - [~] **A-014** Middleware Next.js : rafraîchit la session (fait, `src/proxy.ts`), protège les routes privées (reste, cf. A-121) — _route privée inaccessible déconnecté_
@@ -72,7 +72,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-063** Historique `health_snapshots` sur 30 jours (un instantané par visite, ≤ 1 / 10 min, et un par jour via le cron de `/api/keep-alive`), purge sans `pg_cron`, graphique du score, disponibilité et p95 sur 7 jours 🆕 ⚡ — _purge testée_ (fait ; l'historique du cron demande `SUPABASE_SERVICE_ROLE_KEY`)
 - [~] **A-064** `GET /api/health` public (statut seul, 503 si la base ou Auth est en panne, réponse gardée 10 s) pour un moniteur externe 🆕 🔒 — _aucune donnée sensible exposée_ (fait)
 - [~] **A-065** Origine d'inscription : pays, région et ville lus dans les en-têtes Vercel quand le compte est créé (jamais l'adresse IP), table `signup_origins` écrite par le seul `service_role`, affichée sur la fiche `/admin/users/[id]` avec la permission `user.origin.view` (admin, super_admin) 🆕 🔒 — _fait (ADR 0008, pgTAP) ; à valider en production (clé service, déploiement Vercel) ; la mention dans la politique de confidentialité relève d'A-113_
-- [~] **A-066** Activité par heure : `touch_activity()` appelée par le proxy au plus une fois par heure et par navigateur (cookie `blocus-seen`, `waitUntil`), utilisateurs distincts par heure UTC (`activity_hours`), sans présence Realtime 🆕 ⚡ — _fait (ADR 0008, pgTAP) ; l'historique commence au déploiement_
+- [~] **A-066** Activité par heure : `touch_activity()` appelée par le proxy au plus une fois par heure et par navigateur (cookie `blocus-seen`, `waitUntil`), utilisateurs distincts par heure UTC (`activity_hours`), sans présence Realtime 🆕 ⚡ — _fait (ADR 0008, pgTAP) ; l'historique commence au déploiement ; dernière activité (« En ligne », « Il y a X ») sur la fiche utilisateur, précision 5 minutes, permission `user.activity.view`_
 - [~] **A-067** Page `/admin/statistics` (permission `statistics.view`) : chiffres clés, courbes des utilisateurs actifs et des inscriptions par heure (24 h / 7 j / 30 j), heures de pointe, répartition des comptes (rôles, méthode d'inscription, pays) et contenu 🆕 — _fait (SVG sans dépendance, pgTAP) ; à valider sur de vrais téléphones et en production_
 
 ## Étape 1.5 — Compression des données avant envoi à la BDD ⚡

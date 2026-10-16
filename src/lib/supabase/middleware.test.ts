@@ -83,7 +83,7 @@ describe("updateSession", () => {
   });
 });
 
-describe("updateSession: hourly activity", () => {
+describe("updateSession: activity report", () => {
   const signedIn = () =>
     getClaims.mockResolvedValue({ data: { claims: { sub: "u1", iat: after } } });
 
@@ -99,7 +99,7 @@ describe("updateSession: hourly activity", () => {
     expect(response.cookies.get(ACTIVITY_COOKIE_NAME)?.value).toBe(activityMark("u1"));
   });
 
-  it("reports once per hour: a browser that already did gets no new call", async () => {
+  it("reports once per interval: a browser that already did gets no new call", async () => {
     signedIn();
     const request = await run();
 

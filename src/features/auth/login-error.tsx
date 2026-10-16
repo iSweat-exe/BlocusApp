@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 const ERRORS: Record<string, string> = {
   oauth_start: "Impossible de démarrer la connexion. Réessaie.",
   oauth_callback: "La connexion a échoué. Réessaie.",
+  email_not_verified:
+    "Email non vérifié. Vérifie l'adresse e-mail de ton compte Discord ou Google, puis réessaie.",
 };
 
 /**

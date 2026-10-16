@@ -59,6 +59,7 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
 | `monitoring.view`      |   -  |   -   |    -   |    -    |     -     |     ✅     |   ✅   |      ✅      |
 | `statistics.view`      |   -  |   -   |    -   |    -    |     -     |     ✅     |   ✅   |      ✅      |
 | `user.origin.view`     |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |
+| `user.activity.view`   |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |
 | `event.create`         |   -  |   -   |    -   |    ✅    |     -     |     -     |   ✅   |      ✅      |
 | `event.delete`         |   -  |   -   |    -   |    -    |     ✅     |     -     |   ✅   |      ✅      |
 | `event.finish`         |   -  |   -   |    -   |    ✅    |     ✅     |     -     |   ✅   |      ✅      |
@@ -115,6 +116,9 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
 - **Origine d'inscription (A-065)** : `user.origin.view` (admin, super_admin) affiche sur la fiche utilisateur d'où le
   compte a été créé (pays, région, ville : approximation déduite de l'IP, jamais l'IP elle-même). Sans la permission,
   la section n'est pas affichée et la base ne renvoie rien (RLS sur `signup_origins`). Voir `docs/security.md`.
+- **Dernière activité** : `user.activity.view` (admin, super_admin) affiche sur la fiche utilisateur « En ligne » (vu il y a
+  moins de 10 minutes) ou « Hors ligne · il y a 3 heures ». Lecture par `get_last_seen()`, qui revérifie la permission
+  (`forbidden`, 42501) ; la table `user_activity` reste fermée. Sans la permission, la ligne n'est ni affichée ni lue.
 - **Statistiques (A-067)** : `/admin/statistics`, permission `statistics.view` (404 sans elle). Les fonctions SQL
   `stats_*` revérifient la permission.
 - **Gestion des permissions dans le panneau** : sous-navigation de `/admin` (Utilisateurs · Rôles ·
