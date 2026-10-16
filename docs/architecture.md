@@ -46,7 +46,7 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/admin`      | Administration : utilisateurs (recherche, filtre par rôle, liste) | Une permission d'administration (`role.assign`, `user.ban`, `permission.manage`, `audit.read`, `monitoring.view`, `statistics.view`) ; sinon 404, Guest → `/login` |
 | `(app)`  | `/admin/statistics` | Statistiques : chiffres clés, activité et inscriptions par heure (24 h / 7 j / 30 j), heures de pointe, répartition des comptes, contenu | `statistics.view` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/health` | Santé de l'application : score en jauge, services avec état coloré, tables, utilisateurs, historique, configuration | `monitoring.view` (sinon 404 ; Guest → `/login`) |
-| `(app)`  | `/admin/users/[id]` | Fiche utilisateur : origine d'inscription (`user.origin.view`), rôle, sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
+| `(app)`  | `/admin/users/[id]` | Fiche utilisateur : dernière activité (`user.activity.view`), origine d'inscription (`user.origin.view`), rôle, sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/roles` | Rôles et permissions : un rôle à la fois (onglets), permissions groupées, interrupteurs | Permission `permission.manage` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/journal` | Journal d'audit : par jour, filtre par catégorie, pagination | Permission `audit.read` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/credits`    | Crédits : l'équipe de développement avec son GitHub, les technologies utilisées | Public (Guests et connectés) ; ligne « Crédits » dans `/settings` (À propos) et `/profil`, petit lien sur `/login` |

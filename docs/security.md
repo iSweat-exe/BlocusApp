@@ -103,6 +103,9 @@ sont des **données personnelles** (localisation approximative) :
   lui-même ne voit pas sa ligne. Les statistiques n'affichent que des **totaux par pays** (`stats_breakdown()`).
 - Supprimée avec le compte (`on delete cascade`). À mentionner dans la politique de confidentialité (A-113 : export et
   suppression des données).
+- **Dernière activité** : `user_activity.last_seen_at` (précision 5 minutes) est une donnée personnelle, visible sur la fiche
+  utilisateur par la seule permission `user.activity.view` (admin, super_admin) ; aucun autre utilisateur ne voit « en ligne »
+  ni les dates des autres. Supprimée avec le compte (cascade). À mentionner dans la politique de confidentialité (A-113).
 - Limite : la valeur est celle que la plateforme annonce (VPN, réseau mobile, entreprise faussent la ville) : à lire
   comme une indication, jamais comme une preuve ni un critère de sécurité ou de sanction.
 

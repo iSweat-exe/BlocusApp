@@ -58,6 +58,16 @@ est complet dès le premier jour).
 renvoient que des comptages et revérifient la permission, page `/admin/statistics` dynamique, graphiques en SVG écrits à
 la main (aucune dépendance).
 
+## Amendement (2026-10-16) : dernière activité
+
+La fiche utilisateur affiche « En ligne » / « Hors ligne · il y a X ». Une précision d'une heure ne le permet pas :
+`touch_activity()` déplace maintenant `last_seen_at` **toutes les 5 minutes** (cookie `blocus-seen` de 5 minutes, seuil dans la
+fonction) et ne compte l'utilisateur dans l'heure que si l'ancienne date était dans une heure antérieure : les statistiques
+horaires sont inchangées. « En ligne » = vu il y a moins de 10 minutes (deux intervalles). Ce n'est pas de la présence temps
+réel : un utilisateur qui reste sur une page sans naviguer apparaît hors ligne après 10 minutes. Lecture réservée à la
+permission `user.activity.view` (admin) par `get_last_seen()` ; coût : environ 12 écritures par heure et par utilisateur actif
+(quelques dizaines par minute au pic), sans Realtime.
+
 ## Conséquences
 
 - Positives : coût nul (≤ 1 appel SQL par utilisateur et par heure), aucune connexion Realtime, aucune IP stockée,

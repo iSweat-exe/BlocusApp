@@ -7,6 +7,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   "user.mute": "Rendre muet un utilisateur",
   "user.ban": "Bannir un utilisateur",
   "user.origin.view": "Voir d'où un utilisateur s'est inscrit",
+  "user.activity.view": "Voir la dernière activité d'un utilisateur",
   "role.assign": "Attribuer des rôles",
   "audit.read": "Consulter le journal d'audit",
   "permission.manage": "Gérer les permissions",
