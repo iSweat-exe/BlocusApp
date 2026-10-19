@@ -36,7 +36,8 @@ export async function CalendarView({
     const rawStart = timeToHour(event.starts_at);
     const hasExplicitEnd = event.ends_at !== null;
     const rawEnd = hasExplicitEnd ? timeToHour(event.ends_at!) : rawStart < 18 ? 18 : rawStart + 1;
-    const startHour = Math.min(24, Math.max(6, rawStart));
+    // The day view shows the whole day; the week columns clamp to 6h-24h themselves (`computeEventBounds`).
+    const startHour = Math.min(24, Math.max(0, rawStart));
     const endHour = Math.min(24, Math.max(startHour + 0.5, rawEnd));
 
     (eventsByDay[dayKeyOf(new Date(event.starts_at))] ??= []).push({

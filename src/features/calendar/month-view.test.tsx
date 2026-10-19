@@ -128,11 +128,12 @@ describe("MonthView", () => {
       screen.getByRole("heading", { level: 2, name: "mercredi 7 octobre 2026" }),
     ).toBeInTheDocument();
 
-    // Hourly timeline with 06:00, 12:00, 18:00, 24:00 markers
+    // The whole day, from midnight to midnight, with an hour every six hours.
+    expect(screen.getByLabelText(/sur 24 heures/)).toBeInTheDocument();
+    expect(screen.getAllByText("00:00")).toHaveLength(2);
     expect(screen.getByText("06:00")).toBeInTheDocument();
     expect(screen.getByText("12:00")).toBeInTheDocument();
     expect(screen.getByText("18:00")).toBeInTheDocument();
-    expect(screen.getByText("24:00")).toBeInTheDocument();
 
     // Event block spanning its hours
     const dayEventLinks = screen.getAllByRole("link", { name: /Révision maths/ });
@@ -185,7 +186,7 @@ describe("MonthView", () => {
     expect(boundsStartOnly.heightPercent).toBeCloseTo(44.44, 1);
   });
 
-  describe("start markers of the day timeline", () => {
+  describe("day timeline", () => {
     const at = (id: string, startTime: string, startHour: number): DayEvent => ({
       id,
       title: `Événement ${id}`,
@@ -196,6 +197,22 @@ describe("MonthView", () => {
       endHour: 18,
       startTime,
     });
+    const day = (events: DayEvent[]) =>
+      renderMonth({ initialView: "day", eventsByDay: { "2026-10-07": events } });
+
+    it("shows the whole day: an event of the early morning is on the timeline, not clamped to 6h", () => {
+      const range = { min: 0, max: 24 };
+      const early = { ...at("a", "03:00", 3), endHour: 4 };
+      // 3h is an eighth of the way down 00:00-24:00 (it would sit on the very first row of a 6h-24h timeline).
+      expect(computeEventBounds(early, range).topPercent).toBeCloseTo(12.5, 1);
+      expect(computeEventBounds(early, range).heightPercent).toBeCloseTo(8, 1);
+      expect(computeEventBounds(early).topPercent).toBe(0);
+    });
+
+    it("keeps the week columns on 6h-24h", () => {
+      // 10h in 6h-24h: 4 / 18, as before the day view got its own range.
+      expect(computeEventBounds(at("a", "10:00", 10)).topPercent).toBeCloseTo(22.22, 1);
+    });
 
     it("gives one marker per exact start time, from the top of the timeline down", () => {
       const markers = startMarkersOf([
@@ -204,28 +221,39 @@ describe("MonthView", () => {
         at("c", "14:30", 14.5),
       ]);
       expect(markers.map((marker) => marker.startTime)).toEqual(["09:15", "14:30"]);
-      // 9h15 is (9.25 - 6) / 18 of the way down the 6h-24h timeline.
-      expect(markers[0]!.topPercent).toBeCloseTo(18.06, 1);
-      expect(markers[1]!.topPercent).toBeCloseTo(47.22, 1);
+      // 9h15 is 9.25 / 24 of the way down the 00:00-24:00 timeline.
+      expect(markers[0]!.topPercent).toBeCloseTo(38.54, 1);
+      expect(markers[1]!.topPercent).toBeCloseTo(60.42, 1);
+      expect(markers[0]!.hour).toBe(9.25);
     });
 
     it("has none for an event without an exact start time", () => {
       expect(startMarkersOf([exam])).toEqual([]);
     });
 
-    it("prints the exact start on the right of the day timeline, besides the time of the event", () => {
-      const { container } = renderMonth({
-        initialView: "day",
-        eventsByDay: { "2026-10-07": [at("a", "09:30", 9.5)] },
-      });
-      const marker = container.querySelector('[data-start-marker="09:30"]');
+    it("prints the exact start in the left strip, with the other hours, like the iOS Calendar", () => {
+      const { container } = day([at("a", "09:30", 9.5)]);
+      const marker = container.querySelector('[data-start-marker="09:30"]')!;
       expect(marker).not.toBeNull();
       // A decoration: the time is already in the name of the event link.
       expect(marker).toHaveAttribute("aria-hidden", "true");
-      expect(marker).toHaveTextContent("09:30");
+      // The time comes first (left), then the dot, then the line: nothing is written on the right.
+      const [label, dot, line] = Array.from(marker.children);
+      expect(label).toHaveTextContent("09:30");
+      expect(dot).toHaveClass("rounded-full");
+      expect(line).toHaveTextContent("");
+      expect(marker.lastElementChild).toBe(line);
+      expect(label).toHaveClass("text-accent", "w-11", "text-right");
       expect(
         screen.getAllByRole("link", { name: /09:30 – 18:00 Événement a/ }).length,
       ).toBeGreaterThan(0);
+    });
+
+    it("hides the hour label that a start marker would overlap, and only that one", () => {
+      day([at("a", "12:10", 12 + 10 / 60)]);
+      expect(screen.getByText("12:00")).toHaveClass("opacity-0");
+      expect(screen.getByText("06:00")).not.toHaveClass("opacity-0");
+      expect(screen.getByText("18:00")).not.toHaveClass("opacity-0");
     });
 
     it("is only in the day view", () => {
