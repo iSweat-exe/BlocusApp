@@ -7,6 +7,7 @@ const getProfile = vi.fn();
 const listRoles = vi.fn();
 const listSanctions = vi.fn();
 const getSignupOrigin = vi.fn();
+const getLastSeen = vi.fn();
 
 vi.mock("@/lib/data/profiles", () => ({
   getProfile: (...args: unknown[]) => getProfile(...args),
@@ -17,6 +18,9 @@ vi.mock("@/lib/data/sanctions", () => ({
 }));
 vi.mock("@/lib/data/signup-origins", () => ({
   getSignupOrigin: (...args: unknown[]) => getSignupOrigin(...args),
+}));
+vi.mock("@/lib/data/last-seen", () => ({
+  getLastSeen: (...args: unknown[]) => getLastSeen(...args),
 }));
 vi.mock("next/navigation", () => ({
   notFound: () => {
@@ -143,5 +147,48 @@ describe("UserDetail: sign-up origin", () => {
     await show();
     expect(getSignupOrigin).not.toHaveBeenCalled();
     expect(screen.queryByRole("heading", { name: "Origine de l'inscription" })).toBeNull();
+  });
+});
+
+describe("UserDetail: last activity", () => {
+  const withActivity = { permissions: ["role.assign", "user.activity.view"] };
+  const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
+
+  it("shows « En ligne » for a user seen a minute ago", async () => {
+    profile("user");
+    getLastSeen.mockResolvedValue({ ok: true, value: minutesAgo(1) });
+    await show(withActivity);
+    expect(getLastSeen).toHaveBeenCalledWith("target-1");
+    expect(screen.getByText("En ligne")).toBeInTheDocument();
+  });
+
+  it("shows « Hors ligne » with how long ago", async () => {
+    profile("user");
+    getLastSeen.mockResolvedValue({ ok: true, value: minutesAgo(3 * 60) });
+    await show(withActivity);
+    expect(screen.getByText("Hors ligne · il y a 3 heures")).toBeInTheDocument();
+  });
+
+  it("says so when the user was never seen", async () => {
+    profile("user");
+    getLastSeen.mockResolvedValue({ ok: true, value: null });
+    await show(withActivity);
+    expect(screen.getByText(/dernière activité inconnue/)).toBeInTheDocument();
+  });
+
+  it("reports a failed read", async () => {
+    profile("user");
+    getLastSeen.mockResolvedValue({ ok: false, error: "load_failed" });
+    await show(withActivity);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Impossible de charger la dernière activité",
+    );
+  });
+
+  it("neither shows nor reads it without the permission", async () => {
+    profile("user");
+    await show();
+    expect(getLastSeen).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText("Dernière activité")).toBeNull();
   });
 });

@@ -10,10 +10,25 @@
 4. Validation de toutes les entrées côté serveur (schéma) ; limites de taille avant et après décompression.
 5. Rate limiting par utilisateur sur toutes les écritures (voir « Limites de débit »). L'authentification passe par
    Discord et Google, dont les limites s'appliquent ; la limite par IP des visiteurs non connectés reste à faire (A-101).
-6. Sessions Supabase en cookies httpOnly (`@supabase/ssr`), jamais en `localStorage`. Le cookie a un nom fixe, `blocus-auth`
+6. Sessions Supabase en cookies `httpOnly` et `SameSite=Lax` (`@supabase/ssr`, option posée dans `authCookieOptions`, car
+   la bibliothèque les laisse lisibles par les scripts par défaut), jamais en `localStorage` ; le test E2E `e2e/auth.spec.ts`
+   le vérifie. Conséquence : aucun client navigateur ne lit la session (`src/lib/supabase/client.ts` est inutilisé), tout passe par
+   le serveur. Le cookie a un nom fixe, `blocus-auth`
    (`src/lib/supabase/cookie.ts`), commun à tous les clients Supabase ; le `matcher` du `proxy` en dépend.
 7. Le cache ne contient jamais de réponse authentifiée partagée entre utilisateurs ; le service worker ne
    met pas en cache les réponses authentifiées.
+
+## E-mail non vérifié (A-011)
+
+Une connexion Discord ou Google n'est acceptée que si le fournisseur garantit l'adresse e-mail. Dans `/auth/callback`
+(`src/features/auth/email-verification.ts`), après l'échange du code, le compte est refusé quand l'adresse manque,
+quand Supabase ne l'a pas confirmée (`email_confirmed_at`) ou quand une identité annonce `email_verified: false`.
+Le refus : fin de session (`signOut`), suppression du compte **s'il vient d'être créé** (moins de 10 minutes, par
+l'API d'administration avec la clé `service_role`, jamais pour un compte plus ancien), puis redirection vers
+`/login?error=email_not_verified` (message « Email non vérifié… »). Si le fournisseur ne renvoie aucune adresse
+(« Error getting user email from external provider »), le même message s'affiche. Si la suppression échoue, la
+connexion reste refusée et seule la raison est journalisée. Tests : `route.test.ts`, `email-verification.test.ts`,
+`e2e/auth.spec.ts`.
 
 ## Limites de débit (A-100)
 
@@ -109,6 +124,9 @@ sont des **données personnelles** (localisation approximative) :
   lui-même ne voit pas sa ligne. Les statistiques n'affichent que des **totaux par pays** (`stats_breakdown()`).
 - Supprimée avec le compte (`on delete cascade`). À mentionner dans la politique de confidentialité (A-113 : export et
   suppression des données).
+- **Dernière activité** : `user_activity.last_seen_at` (précision 5 minutes) est une donnée personnelle, visible sur la fiche
+  utilisateur par la seule permission `user.activity.view` (admin, super_admin) ; aucun autre utilisateur ne voit « en ligne »
+  ni les dates des autres. Supprimée avec le compte (cascade). À mentionner dans la politique de confidentialité (A-113).
 - Limite : la valeur est celle que la plateforme annonce (VPN, réseau mobile, entreprise faussent la ville) : à lire
   comme une indication, jamais comme une preuve ni un critère de sécurité ou de sanction.
 

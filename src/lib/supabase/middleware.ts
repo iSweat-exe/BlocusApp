@@ -24,7 +24,7 @@ export type Defer = (work: Promise<unknown>) => void;
 
 /**
  * Refreshes the Supabase session cookies for an incoming request, and reports the user as active in the current
- * hour (at most once per hour and per browser).
+ * hour and as last seen (at most once every 5 minutes per browser).
  * Meant to be called from the Next.js proxy (formerly "middleware") entry point.
  * @param defer - Where the activity report runs so it never slows the page down; defaults to fire-and-forget.
  */
@@ -66,8 +66,8 @@ export async function updateSession(request: NextRequest, defer: Defer = (work) 
       await supabase.auth.refreshSession();
     }
 
-    // Hourly activity for the statistics page. The cookie keeps this to one call per hour and per browser, and
-    // the database ignores repeats anyway. A failure (migration not applied yet, network) never breaks the page.
+    // Activity for the statistics page (hourly count) and the "last seen" of the admin user page. The cookie keeps
+    // this to one call every 5 minutes per browser, and the database ignores repeats anyway. A failure (migration not applied yet, network) never breaks the page.
     const mark = activityMark(claims.sub);
     if (request.cookies.get(ACTIVITY_COOKIE_NAME)?.value !== mark) {
       defer(Promise.resolve(supabase.rpc("touch_activity")).then(noop, noop));

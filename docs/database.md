@@ -271,6 +271,13 @@ nécessaire. RLS activée, **aucune politique ni droit** (comme `rate_limits`) ;
 `database.types.ts` (le client ne les lit jamais). Les heures d'avant la migration ne sont pas mesurées : l'historique
 commence au déploiement. Test : `supabase/tests/database/activity_tracking.test.sql`.
 
+**Dernière activité (migration `20261016100000_last_seen.sql`).** `touch_activity()` (même signature, remplacée) déplace
+`last_seen_at` **au plus toutes les 5 minutes** par utilisateur ; le compteur de l'heure ne s'incrémente que si l'ancienne
+valeur était dans une heure antérieure (ou absente), donc les statistiques horaires ne changent pas. `get_last_seen(p_user_id)`
+(`SECURITY DEFINER`, lecture seule) renvoie la date (ou `null` : compte antérieur au suivi) et refuse (`forbidden`, 42501)
+sans la permission `user.activity.view` (admin) ; la table reste sans politique ni droit. Test :
+`supabase/tests/database/last_seen.test.sql`.
+
 ## Statistiques (`stats_overview()`, `stats_activity()`, `stats_breakdown()`)
 
 Migration `20261011120000_statistics.sql` (A-067). Permission `statistics.view` (admin, super_admin via

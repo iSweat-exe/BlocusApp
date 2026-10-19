@@ -583,6 +583,7 @@ export type Database = {
         Returns: string;
       };
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
+      get_last_seen: { Args: { p_user_id: string }; Returns: string };
       get_permission_epoch: { Args: never; Returns: string };
       health_connections: {
         Args: never;
