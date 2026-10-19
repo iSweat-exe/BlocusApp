@@ -140,7 +140,7 @@ export function AnnouncementForm({ post }: { post?: MyAnnouncement }) {
             width={image?.width ?? post?.image_width ?? 800}
             height={image?.height ?? post?.image_height ?? 600}
             unoptimized
-            className="h-auto max-h-56 w-full rounded-control border border-line object-cover"
+            className="h-auto max-h-56 w-full rounded-control img-outline object-cover"
           />
         )}
         <div className="flex flex-wrap items-center gap-2">

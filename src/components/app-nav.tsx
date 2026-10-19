@@ -55,14 +55,14 @@ export function AppNav() {
                 href={href}
                 onClick={() => handleTap(href)}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-16 flex-col items-center justify-center gap-0.5 px-2 text-xs font-medium transition-all active:scale-95 ${
+                className={`flex min-h-16 flex-col items-center justify-center gap-0.5 px-2 text-xs font-medium transition-[color,scale] active:scale-[0.96] ${
                   active
                     ? "font-semibold text-accent"
                     : "text-muted [@media(hover:hover)]:hover:text-foreground"
                 }`}
               >
                 <span
-                  className={`flex h-8 w-14 items-center justify-center rounded-control border transition-all ${
+                  className={`flex h-8 w-14 items-center justify-center rounded-control border transition-[scale,color,background-color,border-color,opacity,box-shadow] ${
                     active
                       ? "scale-105 border-accent/30 bg-accent/15 text-accent shadow-2xs"
                       : "border-transparent bg-transparent text-foreground opacity-60 [@media(hover:hover)]:hover:border-line-strong/40 [@media(hover:hover)]:hover:bg-surface/50 [@media(hover:hover)]:hover:opacity-100"

@@ -22,7 +22,7 @@ export function RefreshButton() {
       aria-label="Actualiser"
       title="Actualiser"
       aria-busy={pending}
-      className="flex h-tap w-tap items-center justify-center rounded-control border border-line-strong/60 bg-surface/80 text-foreground/80 backdrop-blur-xs shadow-2xs transition-all active:scale-95 active:bg-foreground/15 disabled:opacity-70 [@media(hover:hover)]:hover:bg-foreground/10"
+      className="flex h-tap w-tap items-center justify-center rounded-control border border-line-strong/60 bg-surface/80 text-foreground/80 backdrop-blur-xs shadow-2xs transition-[scale,background-color,opacity] active:scale-[0.96] active:bg-foreground/15 disabled:opacity-70 [@media(hover:hover)]:hover:bg-foreground/10"
     >
       <RefreshIcon className={pending ? "animate-spin" : undefined} />
     </button>

@@ -14,7 +14,9 @@ const PILL = "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 t
 const PILL_IDLE = "border-line bg-surface text-foreground/80";
 const PILL_MINE = "border-accent/50 bg-accent/15 text-accent";
 // Tap feedback only; no movement for people who asked for less of it.
-const PRESS = "transition-transform active:scale-90 motion-reduce:transition-none";
+// 36 px pills: a pseudo-element grows the touch area to 44 px (rows are 8 px apart, so areas never overlap).
+const HIT = "relative after:absolute after:inset-x-0 after:-inset-y-1 after:content-['']";
+const PRESS = "transition-transform active:scale-[0.96] motion-reduce:transition-none";
 
 /**
  * Discord-style reactions under a public post: one pill per emoji already used (highlighted when the viewer used
@@ -49,7 +51,7 @@ export function ReactionBar({
 
   return (
     <div className="mt-3 flex flex-col gap-2">
-      <ul aria-label="Réactions" className="flex flex-wrap items-center gap-1.5">
+      <ul aria-label="Réactions" className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
         {used.map((emoji) => {
           const count = optimistic.counts[emoji] ?? 0;
           const mine = optimistic.mine.includes(emoji);
@@ -67,7 +69,7 @@ export function ReactionBar({
                   onClick={() => react(emoji)}
                   aria-pressed={mine}
                   aria-label={`${REACTION_LABELS[emoji]} : ${count}`}
-                  className={`${PILL} ${PRESS} min-h-9 ${mine ? PILL_MINE : PILL_IDLE} [@media(hover:hover)]:hover:border-accent/50`}
+                  className={`${PILL} ${PRESS} ${HIT} min-h-9 ${mine ? PILL_MINE : PILL_IDLE} [@media(hover:hover)]:hover:border-accent/50`}
                 >
                   {content}
                 </button>
@@ -90,7 +92,7 @@ export function ReactionBar({
               onClick={() => setPickerOpen((open) => !open)}
               aria-expanded={pickerOpen}
               aria-label="Ajouter une réaction"
-              className={`${PILL} ${PRESS} min-h-9 ${PILL_IDLE} text-muted [@media(hover:hover)]:hover:text-foreground`}
+              className={`${PILL} ${PRESS} ${HIT} min-h-9 ${PILL_IDLE} text-muted [@media(hover:hover)]:hover:text-foreground`}
             >
               <span aria-hidden="true" className="text-base leading-none">
                 {pickerOpen ? "×" : "+"}
@@ -104,7 +106,7 @@ export function ReactionBar({
       {pickerOpen && (
         <ul
           aria-label="Choisir une réaction"
-          className="flex animate-fade-in flex-wrap gap-1 rounded-control border border-line bg-surface p-1"
+          className="flex animate-fade-in flex-wrap gap-1 rounded-card border border-line bg-surface p-1"
         >
           {REACTION_EMOJIS.map((emoji) => (
             <li key={emoji}>
