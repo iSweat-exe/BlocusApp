@@ -10,10 +10,25 @@
 4. Validation de toutes les entrées côté serveur (schéma) ; limites de taille avant et après décompression.
 5. Rate limiting par utilisateur sur toutes les écritures (voir « Limites de débit »). L'authentification passe par
    Discord et Google, dont les limites s'appliquent ; la limite par IP des visiteurs non connectés reste à faire (A-101).
-6. Sessions Supabase en cookies httpOnly (`@supabase/ssr`), jamais en `localStorage`. Le cookie a un nom fixe, `blocus-auth`
+6. Sessions Supabase en cookies `httpOnly` et `SameSite=Lax` (`@supabase/ssr`, option posée dans `authCookieOptions`, car
+   la bibliothèque les laisse lisibles par les scripts par défaut), jamais en `localStorage` ; le test E2E `e2e/auth.spec.ts`
+   le vérifie. Conséquence : aucun client navigateur ne lit la session (`src/lib/supabase/client.ts` est inutilisé), tout passe par
+   le serveur. Le cookie a un nom fixe, `blocus-auth`
    (`src/lib/supabase/cookie.ts`), commun à tous les clients Supabase ; le `matcher` du `proxy` en dépend.
 7. Le cache ne contient jamais de réponse authentifiée partagée entre utilisateurs ; le service worker ne
    met pas en cache les réponses authentifiées.
+
+## E-mail non vérifié (A-011)
+
+Une connexion Discord ou Google n'est acceptée que si le fournisseur garantit l'adresse e-mail. Dans `/auth/callback`
+(`src/features/auth/email-verification.ts`), après l'échange du code, le compte est refusé quand l'adresse manque,
+quand Supabase ne l'a pas confirmée (`email_confirmed_at`) ou quand une identité annonce `email_verified: false`.
+Le refus : fin de session (`signOut`), suppression du compte **s'il vient d'être créé** (moins de 10 minutes, par
+l'API d'administration avec la clé `service_role`, jamais pour un compte plus ancien), puis redirection vers
+`/login?error=email_not_verified` (message « Email non vérifié… »). Si le fournisseur ne renvoie aucune adresse
+(« Error getting user email from external provider »), le même message s'affiche. Si la suppression échoue, la
+connexion reste refusée et seule la raison est journalisée. Tests : `route.test.ts`, `email-verification.test.ts`,
+`e2e/auth.spec.ts`.
 
 ## Limites de débit (A-100)
 
@@ -56,6 +71,27 @@ les posts publics et voient donc leur auteur. Images : bucket public plafonné �
 aux titulaires de `announcement.publish` dans leur propre dossier ; le serveur revérifie la taille, le format réel et
 les dimensions. Une image est une donnée publique : ne pas y mettre de donnée sensible.
 
+## Réactions emoji
+
+Les réactions s'écrivent uniquement par `toggle_announcement_reaction()` (aucun droit d'écriture sur la table) : la
+fonction vérifie la connexion, l'absence de bannissement, la visibilité publique du post et la limite de 60 actions par
+minute, puis la Server Action revalide l'id et l'emoji. L'emoji est contraint par un `check` à une palette fixe (pas de
+texte libre). Les totaux sont publics et anonymes (la vue ne contient aucun `user_id`) : qui a réagi n'est lisible que
+par la personne elle-même.
+
+## Notifications push (A-135)
+
+- Un abonnement (adresse + clés) permet d'envoyer des notifications à un appareil : la table `push_subscriptions` n'est
+  lisible par aucun client, y compris le propriétaire ; seul le serveur la lit (`service_role`, `src/server/push.ts`).
+- **SSRF** : le serveur appelle l'adresse que le client fournit. Elle est limitée à HTTPS sur les services de push des
+  navigateurs, par la Server Action (`isAllowedPushEndpoint`) **et** par un `check` en base ; un nom approchant
+  (`fcm.googleapis.com.evil.example`), une adresse locale, un port ou des identifiants dans l'URL sont refusés. Les hôtes sont listés **par nom exact** (jamais `*.google.com`) ; un refus explique son motif à la personne et n'écrit dans les journaux que le nom d'hôte du service, sans chemin ni clé.
+- `VAPID_PRIVATE_KEY` : serveur uniquement, **jamais** `NEXT_PUBLIC_` (la clé publique l'est par conception). La perdre ou
+  la changer invalide tous les abonnements : chacun devra réactiver les notifications.
+- Le message ne contient que le titre d'un post **public** : il ne révèle pas l'auteur (qui peut être masqué) et n'est
+  jamais envoyé pour un brouillon ou un post privé. Aucune adresse d'abonnement ni clé n'est écrite dans les journaux.
+- Un compte banni ne peut plus s'abonner ; ses abonnements existants reçoivent encore les posts, qui sont publics.
+
 ## En-têtes HTTP
 
 Définis dans `next.config.ts` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`,
@@ -88,6 +124,9 @@ sont des **données personnelles** (localisation approximative) :
   lui-même ne voit pas sa ligne. Les statistiques n'affichent que des **totaux par pays** (`stats_breakdown()`).
 - Supprimée avec le compte (`on delete cascade`). À mentionner dans la politique de confidentialité (A-113 : export et
   suppression des données).
+- **Dernière activité** : `user_activity.last_seen_at` (précision 5 minutes) est une donnée personnelle, visible sur la fiche
+  utilisateur par la seule permission `user.activity.view` (admin, super_admin) ; aucun autre utilisateur ne voit « en ligne »
+  ni les dates des autres. Supprimée avec le compte (cascade). À mentionner dans la politique de confidentialité (A-113).
 - Limite : la valeur est celle que la plateforme annonce (VPN, réseau mobile, entreprise faussent la ville) : à lire
   comme une indication, jamais comme une preuve ni un critère de sécurité ou de sanction.
 
@@ -117,6 +156,30 @@ Vercel (`VERCEL_API_TOKEN`) reste côté serveur.
   et à la liste des hôtes d'avatars), sans en-tête *referrer*. GitHub voit donc l'adresse IP des visiteurs de `/credits`,
   comme Discord et Google voient celle des utilisateurs dont l'avatar s'affiche ; aucune photo n'est copiée dans le dépôt.
   Chaque développeur listé doit être d'accord pour que sa photo publique y figure.
+
+## Données personnelles : accès, export et suppression (A-113)
+
+- **Registre des données** : compte (e-mail, pseudo, photo du fournisseur), origine d'inscription (pays, région, ville, jamais l'IP),
+  dernière activité (précision 5 minutes, admins seulement), réactions, abonnements push, sanctions et journal d'administration.
+  Les textes publics sont dans `src/features/legal/` (voir `docs/architecture.md`).
+- **Export** : `GET /api/me/export` → `export_my_data()` ; `Cache-Control: no-store`, 401 pour un invité, aucune erreur de base
+  exposée. Les clés des abonnements push n'en font pas partie.
+- **Suppression** : Server Action `deleteMyAccount` avec le `service_role` (API admin), identifiant pris dans la session, mot de
+  confirmation vérifié côté serveur, photos supprimées avant le compte (un échec de Storage arrête tout), super administrateur
+  refusé. Reste après suppression, sans nom ni e-mail : `audit_logs`, `moderation_actions` (identifiants simples, sans clé
+  étrangère), et les posts, événements et positions (auteur à `null`).
+- **À faire avant la mise en production** : faire relire les textes (`src/features/legal/`) par la personne responsable, et vérifier
+  l'âge minimal (15 ans), la durée de réponse (1 mois) et les clauses de transfert hors UE avec un juriste.
+
+## Double authentification (A-060)
+
+- Imposée **en base** (`has_permission()`), pas seulement dans l'interface : une session volée sans second facteur ne peut pas appeler
+  les fonctions d'administration directement. Derrière un interrupteur désactivé par défaut (voir `docs/runbook.md` pour l'ordre à suivre
+  et la récupération). L'activer exige une session AAL2 et la permission `security.manage` (super_admin seulement) ; le changement est
+  journalisé (`security.admin_mfa`).
+- Activer, vérifier et retirer un facteur ne dépendent d'aucune permission : un administrateur retenu peut toujours s'inscrire. Retirer
+  son facteur demande son code actuel.
+- Le secret TOTP et le code ne sont jamais écrits dans les journaux (seul le motif d'une erreur d'Auth l'est).
 
 ## Signalement d'une vulnérabilité
 

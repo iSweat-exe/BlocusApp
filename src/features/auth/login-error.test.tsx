@@ -18,10 +18,18 @@ describe("LoginError", () => {
   it.each([
     ["oauth_start", "Impossible de démarrer la connexion. Réessaie."],
     ["oauth_callback", "La connexion a échoué. Réessaie."],
+    ["email_not_verified", "Email non vérifié"],
   ])("explains the %s error", (code, message) => {
     query = `error=${code}`;
     render(<LoginError />);
     expect(screen.getByRole("alert")).toHaveTextContent(message);
+  });
+
+  it("confirms the deletion of an account with a status, not an alert", () => {
+    query = "deleted=1";
+    render(<LoginError />);
+    expect(screen.getByRole("status")).toHaveTextContent("Ton compte a été supprimé");
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("ignores unknown codes, including names inherited from Object", () => {

@@ -91,6 +91,29 @@ minutes (approximation, invités exclus).
 - **Vie privée** : pays, région et ville approximatifs, jamais l'adresse IP ; supprimés avec le compte. Voir
   `docs/security.md`.
 
+## Notifications push : clés VAPID (A-135, ADR 0010)
+
+Les notifications sont **désactivées tant que les variables ci-dessous ne sont pas posées** (la section Réglages >
+Notifications est alors masquée et l'envoi ignoré). À faire une seule fois par environnement :
+
+1. Générer une paire de clés : `npx web-push generate-vapid-keys` (affichées dans le terminal : ne pas les coller dans un
+   ticket, un message ou un fichier commité).
+2. Vercel → Project Settings → Environment Variables (Production, et Preview si on veut tester) :
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` : la clé publique (publique par conception) ;
+   - `VAPID_PRIVATE_KEY` : la clé privée, **serveur uniquement** ;
+   - `VAPID_SUBJECT` : un contact pour les services de push, au format `mailto:adresse@exemple.fr` ou une URL `https://` ;
+   - `SUPABASE_SERVICE_ROLE_KEY` : déjà posée (lecture des abonnements).
+3. Redéployer (la clé publique est lue au démarrage).
+
+**Rotation** : changer la clé invalide tous les abonnements (les envois échouent en 401 / 403) ; chacun doit réactiver les
+notifications dans Réglages. À ne faire qu'en cas de fuite de la clé privée.
+
+**Tester** : le service worker n'est enregistré qu'en production (`npm run build && npm run start`, en HTTPS ou sur
+`localhost`). Sur **iPhone** : iOS 16.4 minimum, ouvrir le site dans Safari → Partager → « Sur l'écran d'accueil », lancer
+l'application depuis son icône, Réglages → Notifications → Activer, puis publier un post public depuis un autre appareil.
+Sur **Android** : Chrome, Réglages → Notifications → Activer (l'installation n'est pas obligatoire). Les journaux Vercel
+affichent `[broadcastPush] sent=… removed=… failed=…` après chaque publication.
+
 ## Claims JWT de permissions (A-034)
 
 En local le hook est activé par `supabase/config.toml`. **Sur un projet hébergé**, activer à la main :
@@ -262,6 +285,36 @@ pg_restore --no-owner --dbname="$TARGET_DB_URL" backup-YYYY-MM-DD.dump
 
 L'offre gratuite met le projet en pause après ~1 semaine d'inactivité. Le restaurer depuis le dashboard ;
 prévoir une activité régulière ou un ping.
+
+## Surveillance externe de la disponibilité (workflow `Uptime`)
+
+Le workflow `.github/workflows/uptime.yml` appelle `/api/health` de la production toutes les 10 minutes (3 essais à 20 s
+d'intervalle : un paquet perdu n'ouvre pas d'incident). « ok » et « degraded » (HTTP 200) comptent comme disponible.
+Quand le site ne répond plus, il ouvre une issue **« Application indisponible »**, marque l'exécution en échec (GitHub
+envoie un e-mail aux personnes qui surveillent le dépôt) ; au retour du service il commente et ferme l'issue. Gratuit
+(minutes d'Actions d'un dépôt public), sans prestataire tiers.
+
+1. **Variable à poser une fois** : GitHub → Settings → Secrets and variables → Actions → **Variables** → `PRODUCTION_URL`,
+   l'origine HTTPS de la production, sans chemin (par exemple `https://blocus.example.com`). Sans elle le workflow ne fait
+   rien et le dit. Ce n'est pas un secret.
+2. **Essai à la main** : Actions → Uptime → « Run workflow ».
+3. **Recevoir les e-mails** : Watch → Custom → cocher « Actions » (et « Issues »).
+4. Ce n'est qu'une sonde de disponibilité. Les pics d'erreurs (500) se lisent dans Vercel → Observability → Errors et
+   dans `/admin/health` ; Vercel n'envoie pas d'alertes d'erreurs sur l'offre gratuite.
+
+## Double authentification des administrateurs (A-060)
+
+- **Activer côté Supabase** : Authentication → Multi-Factor → TOTP, « Enroll » **et** « Verify » activés (en local c'est
+  `[auth.mfa.totp]` dans `supabase/config.toml`). Sans cela l'écran d'activation répond que le serveur d'authentification
+  ne l'accepte pas.
+- **Ordre à suivre en production** : (1) fusionner et appliquer la migration, le réglage est **facultatif** par défaut,
+  rien ne change ; (2) chaque administrateur et super administrateur active sa double authentification dans
+  Réglages > Sécurité ; (3) un super administrateur ouvre `/admin/security` (session validée par son code) et clique
+  « Rendre obligatoire ». À partir de là la base de données refuse les droits d'administration (rang `admin` et plus) à une
+  session qui n'a pas donné son code ; elle garde les droits d'un utilisateur ordinaire.
+- **Perte de l'appareil (aucun code possible)** : dans le SQL editor de Supabase, `update public.security_settings set
+  require_admin_mfa = false;` rend le réglage facultatif ; puis dans Authentication > Users, retirer le facteur de la
+  personne (« Remove MFA factor »), qui se ré-inscrit. À noter dans le journal de l'incident.
 
 ## Incidents
 

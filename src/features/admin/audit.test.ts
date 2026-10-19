@@ -182,6 +182,22 @@ describe("describeAuditEntry", () => {
     );
   });
 
+  it("describes the switch of the second factor rule", () => {
+    expect(
+      describeAuditEntry(
+        entry({ action: "security.admin_mfa", target_id: null, details: { required: true } }),
+        NAMES,
+      ),
+    ).toBe("alice a rendu obligatoire la double authentification des administrateurs.");
+    expect(
+      describeAuditEntry(
+        entry({ action: "security.admin_mfa", target_id: null, details: { required: false } }),
+        NAMES,
+      ),
+    ).toBe("alice a rendu facultative la double authentification des administrateurs.");
+    expect(categoryOfAction("security.admin_mfa")).toBe("security");
+  });
+
   it("describes finished and reopened events", () => {
     const details = { event_id: "e1", title: "Rassemblement" };
     expect(

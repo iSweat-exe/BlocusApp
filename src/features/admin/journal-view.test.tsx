@@ -109,6 +109,7 @@ describe("JournalFeed", () => {
       "/admin/journal?category=sanctions",
       "/admin/journal?category=calendar",
       "/admin/journal?category=map",
+      "/admin/journal?category=security",
     ]);
     expect(within(nav).getByRole("link", { current: "page" })).toHaveTextContent("Sanctions");
     expect(screen.getByText(/3 entrées · Sanctions/)).toBeInTheDocument();

@@ -60,9 +60,13 @@ hauteur de bouton : utiliser les tokens et classes partagées.
 | Boutons               | `.btn` + `.btn-primary` / `-secondary` / `-outline` / `-danger`, `.btn-sm`    |
 | Champs de formulaire  | `.field`, `.field-label`, `.field-error`                                      |
 | Titres                | `.page-title`, `.section-title`                                               |
+| Retour au toucher     | `.btn` s’enfonce déjà (`scale(0.96)`) ; pour un autre contrôle : `transition-[scale,…] active:scale-[0.96]`, jamais `transition-all`, jamais sous `0.95` |
+| Images                | `.img-outline` (contour intérieur noir pur en clair, blanc pur en sombre, jeton `--image-outline`) à la place d’une bordure |
 | Composants            | `Select` (liste déroulante, feuille swipeable sur mobile), `Avatar`, `FullScreenDialog` |
 
 **Valeurs et pastilles : une seule ligne.** Dans une ligne `flex` (libellé à gauche, valeur à droite), la valeur et les pastilles (`.chip`, qui ne se coupe jamais) portent `whitespace-nowrap` en plus de `shrink-0` : sans lui, un navigateur peut réduire la colonne à son plus petit mot (« 30 ms » devenait « 30 » / « ms » sur iPhone). C'est le texte d'aide qui se replie, jamais la valeur. Vérifier les écrans à **320 px** (le plus petit téléphone).
+
+**Finitions (skill `make-interfaces-feel-better`).** Arrondis imbriqués : rayon extérieur = rayon intérieur + marge (`rounded-card` autour de `rounded-control` avec `p-1`). Chiffres qui changent : `tabular-nums`. Titres : `text-wrap: balance` et paragraphes : `text-wrap: pretty` (déjà dans `globals.css`). Zone tactile d’un petit contrôle : 44 px (40 px minimum en interface dense), étendue par un pseudo-élément sans chevaucher le voisin.
 
 ## TypeScript / qualité
 
@@ -77,3 +81,10 @@ hauteur de bouton : utiliser les tokens et classes partagées.
 
 Vitest (unitaires), Playwright (E2E, parcours critiques), tests SQL des politiques RLS. Couverture
 minimale sur `src/lib/` et `src/server/` : voir `vitest.config.ts`.
+
+Les tests E2E tournent contre un faux Supabase local (`e2e/support/fake-supabase.mjs`, lancé par
+`playwright.config.ts`) : il répond aux endpoints `authorize`, `token` (PKCE) et `user` de l'authentification et
+renvoie le profil de l'utilisateur connecté ; toutes les autres tables sont vides. Il garde aussi en mémoire des posts, des réactions et des positions (filtres, tri, limite, fonctions SQL utilisées par les
+parcours) : `e2e/journeys.spec.ts` publie, réagit et déclare la position pour de vrai. Les parcours de connexion
+et de déconnexion (`e2e/auth.spec.ts`) exécutent donc les vraies routes `/auth/*` sans appeler Discord ni
+Google. Le scénario `manager` (cookie `e2e_scenario`) donne les permissions de publier et de déclarer. Le test avec les vrais fournisseurs reste manuel (`docs/runbook.md`).

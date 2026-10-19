@@ -12,6 +12,9 @@ export function adminLinksFor(permissions: readonly string[]): AdminLink[] {
   if (permissions.includes("statistics.view")) {
     links.push({ href: "/admin/statistics", label: "Statistiques" });
   }
+  if (permissions.includes("security.manage")) {
+    links.push({ href: "/admin/security", label: "Sécurité" });
+  }
   if (permissions.includes("monitoring.view")) {
     links.push({ href: "/admin/health", label: "Santé" });
   }

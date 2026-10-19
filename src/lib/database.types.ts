@@ -23,6 +23,43 @@ export type Database = {
   };
   public: {
     Tables: {
+      announcement_reactions: {
+        Row: {
+          announcement_id: string;
+          created_at: string;
+          emoji: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          announcement_id: string;
+          created_at?: string;
+          emoji: string;
+          user_id: string;
+        };
+        Update: {
+          announcement_id?: string;
+          created_at?: string;
+          emoji?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reactions_announcement_id_fkey";
+            columns: ["announcement_id"];
+            isOneToOne: false;
+            referencedRelation: "announcements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "announcement_reactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       announcements: {
         Row: {
           author_id: string | null;
@@ -107,6 +144,43 @@ export type Database = {
           target_id?: string | null;
         };
         Relationships: [];
+      };
+      event_reactions: {
+        Row: {
+          created_at: string;
+          emoji: string;
+          event_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          emoji: string;
+          event_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          emoji?: string;
+          event_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_reactions_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_reactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       events: {
         Row: {
@@ -387,6 +461,42 @@ export type Database = {
           },
         ];
       };
+      push_subscriptions: {
+        Row: {
+          auth: string;
+          created_at: string;
+          endpoint: string;
+          id: string;
+          p256dh: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          auth: string;
+          created_at?: string;
+          endpoint: string;
+          id?: string;
+          p256dh: string;
+          user_id: string;
+        };
+        Update: {
+          auth?: string;
+          created_at?: string;
+          endpoint?: string;
+          id?: string;
+          p256dh?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       role_permissions: {
         Row: {
           permission: string;
@@ -472,6 +582,22 @@ export type Database = {
       };
     };
     Views: {
+      announcement_reaction_counts: {
+        Row: {
+          announcement_id: string | null;
+          emoji: string | null;
+          total: number | null;
+        };
+        Relationships: [];
+      };
+      event_reaction_counts: {
+        Row: {
+          emoji: string | null;
+          event_id: string | null;
+          total: number | null;
+        };
+        Relationships: [];
+      };
       announcement_feed: {
         Row: {
           author_avatar_url: string | null;
@@ -501,7 +627,10 @@ export type Database = {
         Args: { p_label?: string; p_lat: number; p_lng: number };
         Returns: string;
       };
+      admin_mfa_required: { Args: never; Returns: boolean };
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
+      export_my_data: { Args: never; Returns: Json };
+      get_last_seen: { Args: { p_user_id: string }; Returns: string };
       get_permission_epoch: { Args: never; Returns: string };
       health_connections: {
         Args: never;
@@ -526,6 +655,7 @@ export type Database = {
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       is_valid_route: { Args: { p_points: Json }; Returns: boolean };
       is_banned: { Args: { p_user_id: string }; Returns: boolean };
+      mfa_blocked: { Args: never; Returns: boolean };
       public_user_count: { Args: never; Returns: number };
       record_health_snapshot: {
         Args: {
@@ -548,6 +678,11 @@ export type Database = {
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };
       save_map_route: { Args: { p_base?: string; p_points: Json }; Returns: string };
+      remove_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
+      save_push_subscription: {
+        Args: { p_auth: string; p_endpoint: string; p_p256dh: string };
+        Returns: undefined;
+      };
       set_event_finished: { Args: { p_finished: boolean; p_id: string }; Returns: undefined };
       set_role_permission: {
         Args: { p_granted: boolean; p_permission: string; p_role: string };
@@ -592,6 +727,20 @@ export type Database = {
           users_total: number;
         }[];
       };
+      list_announcement_reactors: {
+        Args: { p_announcement_id: string };
+        Returns: { emoji: string; pseudo: string }[];
+      };
+      list_event_reactors: {
+        Args: { p_event_id: string };
+        Returns: { emoji: string; pseudo: string }[];
+      };
+      toggle_announcement_reaction: {
+        Args: { p_announcement_id: string; p_emoji: string };
+        Returns: boolean;
+      };
+      set_admin_mfa_required: { Args: { p_required: boolean }; Returns: undefined };
+      toggle_event_reaction: { Args: { p_emoji: string; p_event_id: string }; Returns: boolean };
       touch_activity: { Args: never; Returns: undefined };
       write_audit: {
         Args: { p_action: string; p_details?: Json; p_target: string };

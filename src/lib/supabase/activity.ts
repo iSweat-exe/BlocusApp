@@ -1,7 +1,7 @@
 /**
  * Cookie that remembers the hour and the user (see {@link activityMark}) for which this browser's activity was last
- * reported. It only throttles: the database counts a user once per hour whatever the cookie says
- * (`touch_activity()`).
+ * reported. It only throttles: the database moves the last-seen date at most every 5 minutes and counts a user
+ * once per hour whatever the cookie says (`touch_activity()`).
  */
 export const ACTIVITY_COOKIE_NAME = "blocus-seen";
 
@@ -20,11 +20,17 @@ export function activityMark(userId: string, now: number = Date.now()): string {
   return `${activityStamp(now)}:${userId}`;
 }
 
-/** Options of the cookie: not readable by scripts, gone after an hour, which is also what it throttles. */
+/**
+ * How often a browser reports its user, in seconds. It is the precision of "last seen" on the admin user page, and
+ * matches the 5-minute threshold of `touch_activity()`.
+ */
+export const ACTIVITY_REPORT_INTERVAL_SECONDS = 300;
+
+/** Options of the cookie: not readable by scripts, gone after the report interval, which is also what it throttles. */
 export const activityCookieOptions = {
   httpOnly: true,
   sameSite: "lax",
   secure: process.env.NODE_ENV === "production",
   path: "/",
-  maxAge: 3600,
+  maxAge: ACTIVITY_REPORT_INTERVAL_SECONDS,
 } as const;

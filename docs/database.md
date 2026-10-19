@@ -75,6 +75,38 @@ posts `public` ; `author_id`, `author_pseudo` et `author_avatar_url` ne sont rem
 `anon` et `authenticated` n'ont que cette vue. **Images** : bucket public `announcement-images` (300 Ko, WebP/JPEG),
 écriture réservée à `announcement.publish` dans son dossier, lecture et suppression par l'auteur ou un modérateur.
 
+### `announcement_reactions`
+
+Réactions emoji sur les posts publics, style Discord (migration `20261019100000_post_reactions.sql`, ADR 0009).
+Colonnes : `announcement_id` (FK `announcements`, `on delete cascade`), `user_id` (FK `profiles`, `on delete cascade`),
+`emoji`, `created_at` ; PK `(announcement_id, user_id, emoji)`. `emoji` est limité par un `check` à une palette fixe de
+8 emojis (`👍 💜 😂 😮 😢 🔥 🎉 👏`), identique à `REACTION_EMOJIS` dans `src/features/announcements/reactions.ts` :
+changer la palette demande une nouvelle migration.
+
+RLS : `authenticated` ne lit que **ses propres** lignes (pour surligner ses réactions) ; **aucun droit d'écriture** pour
+les clients. Toute écriture passe par `toggle_announcement_reaction(p_announcement_id, p_emoji)` (SECURITY DEFINER,
+exécutable par `authenticated` seulement) : refuse un appelant absent ou banni (`42501`), un post qui n'est pas public
+(`22023`), applique la limite `reaction.write` (60 / minute, `rate_limited` `54000`), puis ajoute la réaction ou la
+retire si elle existe (renvoie `true` quand elle est ajoutée). La vue `announcement_reaction_counts` (propriétaire,
+`security_invoker = false`, volontaire, comme `announcement_feed`) donne le total par post et par emoji pour les posts
+publics, lisible par `anon` ; elle ne révèle aucun utilisateur. Test : `supabase/tests/database/post_reactions.test.sql`.
+
+### `push_subscriptions`
+
+Abonnements Web Push, un par appareil (migration `20261019110000_push_subscriptions.sql`, ADR 0010). Colonnes : `id`,
+`user_id` (FK `profiles`, `on delete cascade`), `endpoint` (unique), `p256dh`, `auth`, `created_at`. Un abonnement donne
+le droit d'envoyer des notifications à l'appareil : la table est **fermée aux clients** (RLS activée, aucune politique,
+aucun droit pour `anon` / `authenticated`, même pas la lecture de ses propres lignes). Seul le serveur la lit, avec la
+clé `service_role`, pour envoyer et pour purger les abonnements expirés.
+
+`endpoint` est l'adresse où le serveur fera un `POST` : un `check` la limite à HTTPS sur les services de push des
+navigateurs (`fcm.googleapis.com`, `jmt17.google.com`, `updates.push.services.mozilla.com`, `*.push.apple.com`, `*.notify.windows.com`),
+sinon un client pourrait faire appeler une adresse quelconque par le serveur. `jmt17.google.com` est l'hôte FCM de test par lequel passent Chrome Beta / Dev / Canary (migration `20261019140000_push_endpoint_jmt17.sql`) : ajouté par son nom exact, jamais `*.google.com`. Les clés ont un format et une longueur
+contrôlés. Écriture par `save_push_subscription(p_endpoint, p_p256dh, p_auth)` (SECURITY DEFINER, `authenticated`
+seulement : refuse un appelant absent ou banni `42501`, limite `push.write` 20 / minute, reprend l'endpoint à un autre
+compte qui utilisait le même appareil, garde les 10 appareils les plus récents) et `remove_push_subscription(p_endpoint)`
+(supprime seulement l'abonnement de l'appelant). Test : `supabase/tests/database/push_subscriptions.test.sql`.
+
 ### `audit_logs`
 
 Journal des actions d'administration (migration `20261007170000_create_audit_log.sql`).
@@ -203,6 +235,8 @@ limite.
 | Compteur             | Déclenché par                                                         | Limite             |
 | -------------------- | --------------------------------------------------------------------- | ------------------ |
 | `announcement.write` | trigger `announcements_rate_limit` (création ou modification d'un post) | 10 / 10 minutes    |
+| `reaction.write`     | fonction `toggle_announcement_reaction` (ajout ou retrait d'une réaction) | 60 / minute        |
+| `push.write`         | fonctions `save_push_subscription` et `remove_push_subscription`        | 20 / minute        |
 | `event.write`        | trigger `events_rate_limit` (création, modification, « terminé »)     | 30 / 10 minutes    |
 | `admin.write`        | trigger `audit_logs_rate_limit` : rôles, permissions, sanctions        | 60 / minute        |
 | `map.write`          | même trigger, entrées `map.*` (tracé, retrait ; la déclaration garde sa règle des 5 s) | 30 / minute |
@@ -237,6 +271,13 @@ nécessaire. RLS activée, **aucune politique ni droit** (comme `rate_limits`) ;
 `database.types.ts` (le client ne les lit jamais). Les heures d'avant la migration ne sont pas mesurées : l'historique
 commence au déploiement. Test : `supabase/tests/database/activity_tracking.test.sql`.
 
+**Dernière activité (migration `20261019120000_last_seen.sql`).** `touch_activity()` (même signature, remplacée) déplace
+`last_seen_at` **au plus toutes les 5 minutes** par utilisateur ; le compteur de l'heure ne s'incrémente que si l'ancienne
+valeur était dans une heure antérieure (ou absente), donc les statistiques horaires ne changent pas. `get_last_seen(p_user_id)`
+(`SECURITY DEFINER`, lecture seule) renvoie la date (ou `null` : compte antérieur au suivi) et refuse (`forbidden`, 42501)
+sans la permission `user.activity.view` (admin) ; la table reste sans politique ni droit. Test :
+`supabase/tests/database/last_seen.test.sql`.
+
 ## Statistiques (`stats_overview()`, `stats_activity()`, `stats_breakdown()`)
 
 Migration `20261011120000_statistics.sql` (A-067). Permission `statistics.view` (admin, super_admin via
@@ -261,6 +302,38 @@ Migration `20261011140000_public_user_count.sql`. `profiles` est fermée à `ano
 `search_path` vide, exécutable par `anon` et `authenticated`) renvoie **un seul entier**, le nombre de comptes, affiché sur
 `/login`. Aucun nom, aucune date, aucun identifiant. L'application la lit à travers un cache partagé (une lecture toutes
 les 2 min par instance) et tolère son absence. Test : `supabase/tests/database/public_user_count.test.sql`.
+
+## Export des données (`export_my_data()`)
+
+`export_my_data()` : `SECURITY DEFINER`, `stable`, `search_path = ''`, exécutable par `authenticated` seulement (`anon` : refusé,
+`42501`). Renvoie en un document JSON tout ce que l'application garde sur l'appelant, dont l'identifiant vient de `auth.uid()` (jamais
+d'un argument) : compte (`auth.users`), profil, surcharges de permissions, origine d'inscription, dernière activité, posts, événements
+et positions déclarés, réactions, abonnements push (seulement l'hôte du service et la date : jamais les clés `p256dh` et `auth`) et
+sanctions. Le journal d'audit n'est pas exporté (il décrit des actions d'administrateurs, avec d'autres identifiants). Migration
+`20261019130000_export_my_data.sql`, test `export_my_data.test.sql` (refus `anon`, chaque rubrique, rien sur les autres utilisateurs).
+
+## Réactions sur les événements et liste des réacteurs (`reactions_v2`)
+
+Migration `20261019150000_reactions_v2.sql`. `event_reactions` suit le modèle de `announcement_reactions` : clé
+`(event_id, user_id, emoji)`, palette fixe (check), RLS activée avec la seule lecture de ses propres lignes, aucune écriture
+cliente. `toggle_event_reaction(p_event_id, p_emoji)` (SECURITY DEFINER, `authenticated`) ajoute ou retire la réaction : refuse
+un appelant absent ou banni (`42501`), un événement inconnu (`22023`), limite `reaction.write` partagée avec les posts
+(60 / minute). La vue `event_reaction_counts` (sans `security_invoker`) donne les totaux à tout le monde, sans révéler personne.
+
+`list_announcement_reactors(p_announcement_id)` et `list_event_reactors(p_event_id)` renvoient `(emoji, pseudo)` (500 lignes au
+plus, post public seulement pour les posts). **Connectés seulement** : un invité reçoit `42501` (les pseudos sont des données de
+profil publiques, mais l'invité n'a que les totaux). Test : `supabase/tests/database/reactions_v2.test.sql`.
+
+## Double authentification des administrateurs (`security_settings`, `has_permission()`)
+
+Migration `20261019160000_admin_mfa.sql`, test `admin_mfa.test.sql`. `security_settings` : une seule ligne
+(`id boolean` forcé à `true`), `require_admin_mfa` (faux par défaut), fermée aux clients. `admin_mfa_required()` lit le réglage
+(`authenticated`). `mfa_blocks(user)` (interne) vaut vrai quand le réglage est actif, que l'utilisateur est l'appelant, que son
+rôle a le rang de `admin` ou plus et que le JWT n'a pas `aal = aal2`. `has_permission()` en tient compte : une session retenue en
+AAL1 ne garde que les permissions du rôle de base `user`. Les autres appels (`p_user_id` d'un autre utilisateur, `service_role`)
+ne changent pas. `mfa_blocked()` donne à l'interface ce même verdict pour la session courante. `set_admin_mfa_required(bool)` :
+permission `security.manage` (super_admin seulement, jamais attribuée à un rôle), session AAL2 exigée (`mfa_required` sinon),
+écrit `security.admin_mfa` dans le journal d'audit.
 
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 

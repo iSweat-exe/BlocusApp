@@ -1,8 +1,12 @@
 import { Suspense } from "react";
+import { NotificationsSection } from "@/features/push/notifications-section";
 import { CreditsLink } from "@/features/credits/credits-link";
 import { AccentPicker } from "@/features/settings/accent-picker";
 import { ThemePicker } from "@/features/settings/theme-picker";
 import { AccountSection } from "@/features/settings/account-section";
+import { TwoFactorSection } from "@/features/mfa/two-factor-section";
+import { LegalLinks } from "@/features/legal/legal-links";
+import { MyDataSection } from "@/features/legal/my-data-section";
 
 export default function SettingsPage() {
   return (
@@ -27,7 +31,19 @@ export default function SettingsPage() {
       </section>
 
       <Suspense fallback={null}>
+        <NotificationsSection />
+      </Suspense>
+
+      <Suspense fallback={null}>
         <AccountSection />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <TwoFactorSection />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <MyDataSection />
       </Suspense>
 
       {/* Outside of the account section on purpose: Guests and signed-in users both see it. */}
@@ -36,6 +52,7 @@ export default function SettingsPage() {
           À propos
         </h2>
         <CreditsLink />
+        <LegalLinks />
       </section>
 
       <p className="px-1 text-center text-xs text-faint">

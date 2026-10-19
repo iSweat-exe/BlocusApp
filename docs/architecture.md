@@ -30,8 +30,70 @@ Supabase
 Gestion d'une manifestation dans une ville X : carte avec tracé des déplacements (éditable sur mobile,
 outils pour les gérants dont la déclaration de la position actuelle : GPS + heure), accueil = dernières
 actualités publiées par les personnes autorisées. Connexion Discord / Google ou mode Guest (lecture seule).
-Pas de messagerie pour l'instant (communication via Instagram). Notifications push PWA iOS/Android :
-priorité après l'authentification (A-135).
+Pas de messagerie pour l'instant (communication via Instagram). Notifications push PWA iOS/Android (A-135,
+ADR 0010) : un abonnement par appareil, envoyé quand un post devient public.
+
+## Notifications push (A-135, ADR 0010)
+
+- **Abonnement** : Réglages > Notifications (`src/features/push/notifications-section.tsx`, `push-settings.tsx`). Le
+  bouton « Activer » demande la permission **sur le geste de l'utilisateur** (obligatoire sur iOS), s'abonne avec la clé
+  publique VAPID (`PushManager.subscribe`, `userVisibleOnly: true`) puis enregistre l'abonnement par la Server Action
+  `savePushSubscription` → fonction SQL `save_push_subscription`. Sur iPhone / iPad tant que l'app n'est pas ajoutée à
+  l'écran d'accueil, la section explique comment l'installer (iOS ne propose le push qu'aux apps installées). Rien n'est
+  demandé au chargement d'une page. Un invité est invité à se connecter (l'abonnement appartient à un compte).
+- **Envoi** : `publishAnnouncement` / `updateAnnouncement` appellent `broadcastPush` (`src/server/push.ts`) dans
+  `after()`, donc après la réponse à l'auteur, **seulement quand un post devient public** (pas pour un brouillon, un
+  post privé ni une simple modification). Lecture de tous les abonnements avec la clé `service_role`, envoi par lots de
+  20 avec la librairie `web-push` (chiffrement RFC 8291, signature VAPID), TTL 24 h. Les abonnements que le service de
+  push déclare disparus (404 / 410) sont supprimés. Sans clés VAPID, l'envoi est ignoré et la section est masquée.
+- **Message** : JSON au format *Declarative Web Push* (`web_push: 8030`), que Safari 18.4+ affiche même sans service worker ;
+  les autres navigateurs le passent à `public/sw.js`, qui lit le même champ `notification`, affiche **toujours** une
+  notification (Safari retire la permission à un site qui reçoit un push sans rien afficher) et, au toucher, ouvre ou
+  ramène l'application (adresses du même site uniquement).
+
+## Onboarding (première ouverture, A-138)
+
+- **Où** : `src/features/onboarding/`. `OnboardingGate` (Server Component, dans `src/app/(app)/layout.tsx`, sous `Suspense`) ne monte
+  `Onboarding` que pour une personne **connectée** (l'invité est en lecture seule : ni compte, ni notifications). La session est lue
+  par `getSessionPermissions()`, déjà partagée avec l'en-tête.
+- **Forme** : une feuille plein écran (`<dialog>` natif : focus piégé, Échap et geste retour = « Passer »), barre de progression,
+  bouton principal épinglé en bas, entrée en cascade (100 ms) de l'écran d'accueil, `prefers-reduced-motion` respecté.
+- **Étapes** : Bienvenue (Accueil, Calendrier, Carte) → Installer l'app → Notifications → Thème et couleur. Les étapes inutiles
+  sont retirées (`buildSteps`) : « Installer » seulement s'il y a une invite native (Chrome / Edge, `beforeinstallprompt` gardée
+  par `install.ts`) ou sur Safari iOS (guide Partager > Sur l'écran d'accueil) ; « Notifications » seulement si l'appareil les
+  supporte (réutilise `PushSettings`, donc la même logique d'abonnement) ; « Thème » réutilise `ThemePicker` et `AccentPicker`.
+- **Mémoire** : `localStorage` (`blocus.onboarding.v1`), **par appareil** : l'installation et les notifications sont par appareil,
+  un nouveau téléphone le revoit. Stockage bloqué : considéré comme terminé (on ne harcèle pas à chaque page). Changer la version
+  de la clé le réaffiche à tout le monde. Aucune table, aucune migration.
+- **Limite connue** : si le navigateur déclenche `beforeinstallprompt` avant le montage de l'onboarding, l'étape d'installation
+  n'apparaît pas (le bouton reste disponible dans le menu du navigateur).
+
+## Réactions : événements et « Qui a réagi ? »
+
+`ReactionBar` (`src/features/announcements/reaction-bar.tsx`) sert aux **posts** (`kind="post"`) et aux **événements**
+(`kind="event"`, détail d'un événement, `EventDetail`). `toggleReaction(kind, id, emoji)` appelle la fonction SQL qui convient et
+invalide le tag `reactions` ; les totaux sont lus dans le cache partagé (`listReactionTotals`, `listEventReactionTotals`).
+« Qui a réagi ? » ouvre à la demande la liste des pseudos par emoji (`listReactors`, jamais en cache) : bouton visible des seuls
+comptes connectés, la base refuse l'invité (`42501`).
+
+## Double authentification des administrateurs (A-060)
+
+- **Où** : `src/features/mfa/`. Activation (Réglages > Sécurité, pour qui a une permission d'administration) : `startTotpEnrollment`
+  demande un secret TOTP à Supabase Auth (QR en SVG `data:`, déjà permis par la CSP `img-src`), `confirmTotpEnrollment` vérifie le
+  premier code. Les cookies de session étant `httpOnly`, **tout passe par des Server Actions** (le client navigateur ne lit pas la
+  session).
+- **Application** : `AdminMfaGate` (layout de `/admin`) remplace les sections par la saisie du code (ou l'activation) quand
+  `mfa_blocked()` est vrai, c'est-à-dire exactement quand la base refuserait. **La vraie barrière est en base** (`has_permission()`,
+  voir `docs/database.md`) : un appel direct à PostgREST avec une session OAuth simple est refusé aussi.
+- **Interrupteur** : `/admin/security` (permission `security.manage`, super_admin), derrière un code ; **facultatif par défaut**
+  pour ne verrouiller personne à la fusion. Marche à suivre et récupération : `docs/runbook.md`.
+
+## Tests de parcours (E2E)
+
+`e2e/journeys.spec.ts` : un gérant publie un post, il apparaît dans le fil, on y réagit (palette, total, surbrillance, « Qui a réagi ? »,
+rechargement, retrait), un invité voit les totaux sans pouvoir réagir ; un gérant déclare la position et le repère apparaît sur la
+carte ; un simple membre n'a ni bouton de publication ni de déclaration. Ils s'appuient sur le faux Supabase
+(`e2e/support/fake-supabase.mjs`, scénarios `ok` et `manager`) qui garde posts, réactions et positions en mémoire.
 
 ## Routes
 
@@ -46,14 +108,32 @@ priorité après l'authentification (A-135).
 | `(app)`  | `/admin`      | Administration : utilisateurs (recherche, filtre par rôle, liste) | Une permission d'administration (`role.assign`, `user.ban`, `permission.manage`, `audit.read`, `monitoring.view`, `statistics.view`) ; sinon 404, Guest → `/login` |
 | `(app)`  | `/admin/statistics` | Statistiques : chiffres clés, activité et inscriptions par heure (24 h / 7 j / 30 j), heures de pointe, répartition des comptes, contenu | `statistics.view` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/health` | Santé de l'application : score en jauge, services avec état coloré, tables, utilisateurs, historique, configuration | `monitoring.view` (sinon 404 ; Guest → `/login`) |
-| `(app)`  | `/admin/users/[id]` | Fiche utilisateur : origine d'inscription (`user.origin.view`), rôle, sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
+| `(app)`  | `/admin/users/[id]` | Fiche utilisateur : dernière activité (`user.activity.view`), origine d'inscription (`user.origin.view`), rôle, sanctions (ban, historique) | Une permission d'administration (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/roles` | Rôles et permissions : un rôle à la fois (onglets), permissions groupées, interrupteurs | Permission `permission.manage` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/admin/journal` | Journal d'audit : par jour, filtre par catégorie, pagination | Permission `audit.read` (sinon 404 ; Guest → `/login`) |
 | `(app)`  | `/credits`    | Crédits : l'équipe de développement avec son GitHub, les technologies utilisées | Public (Guests et connectés) ; ligne « Crédits » dans `/settings` (À propos) et `/profil`, petit lien sur `/login` |
 | `(app)`  | `/settings`   | Réglages : couleur de l'application (préréglages + couleur libre), raccourci profil/connexion | Public (réglages stockés sur l'appareil) |
 | `(app)`  | `/profil`     | Profil (lecture) : carte identité, compte, permissions, déconnexion| Connecté (Guest → `/login`)                |
+| `(app)`  | `/mentions-legales`, `/confidentialite`, `/cgu` | Mentions légales, politique de confidentialité (données, cookies, durées, droits), conditions d'utilisation | Public (Guests et connectés) ; liens dans `/settings` (À propos), mention sous les boutons de `/login` |
+| `api`    | `GET /api/me/export` | Export JSON des données de la personne connectée (`export_my_data()`) | Connecté (Guest → 401), jamais mis en cache |
 
 `/messages` n'existe pas (route supprimée, A-128) : la communication passe par Instagram. Messagerie = Backlog.
+
+## Pages légales et droits RGPD (A-113)
+
+- **Textes** : `src/app/(app)/{mentions-legales,confidentialite,cgu}/page.tsx`, composants communs dans `src/features/legal/`
+  (`legal-page.tsx`). Les faits qu'ils énoncent (éditeur, pays, e-mail de contact, date de mise à jour, prestataires et lieu des
+  données) sont **uniquement** dans `src/features/legal/legal-info.ts` : un texte modifié se relit, une information se change à un
+  seul endroit. Une valeur restée à « À COMPLÉTER » s'affiche surlignée, et `legal.test.tsx` échoue tant qu'il en reste.
+- **Acceptation** : phrase « En continuant, tu acceptes… » sous les boutons de `/login` (`LegalConsentNote`), sans case à cocher
+  ni étape en plus ; pas de bannière de cookies (seuls des cookies strictement nécessaires, voir la politique).
+- **Accès et portabilité** : `GET /api/me/export` appelle la fonction SQL `export_my_data()` (`SECURITY DEFINER`, l'identifiant vient
+  du JWT) et renvoie un fichier JSON ; bouton « Télécharger » dans Réglages > Mes données (`MyDataSection`, connectés seulement).
+- **Effacement** : Réglages > Mes données > « Supprimer mon compte » (mot de confirmation `SUPPRIMER`), Server Action
+  `deleteMyAccount` (`src/features/legal/actions.ts`) : supprime les photos du bucket `announcement-images` (`<id>/…`), puis
+  l'utilisateur Auth par l'API admin (`service_role`, l'identifiant vient de la session) ; le profil et ses dépendances partent en
+  cascade, les posts, événements et positions restent sans auteur (`on delete set null`). Un super administrateur ne peut pas
+  supprimer son compte. Si Storage échoue, le compte n'est pas supprimé.
 
 ## Authentification (OAuth Discord et Google)
 
@@ -97,6 +177,13 @@ revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en 
 colorée, d'ombre ni de pastille) : date lisible (« Aujourd'hui, 19:35 », « Hier, 15:11 », « 1 oct., 09:00 ») au-dessus du
 titre pleine largeur, puis le texte ; la suppression est un bouton discret en pied de carte (seulement si
 autorisé) qui demande une confirmation explicite (`delete-announcement-button.tsx`).
+Réactions (ADR 0009) : sous chaque post public, `ReactionBar` (composant client, `reaction-bar.tsx`) affiche une
+pastille par emoji déjà utilisé (surlignée si le visiteur l'a choisi) et un bouton « + » qui ouvre la palette de 8
+emojis. Le clic met l'écran à jour tout de suite (`useOptimistic`) puis appelle la Server Action `toggleReaction`
+(`reaction-actions.ts`) ; en cas de refus, le changement est annulé et la raison affichée. Les totaux viennent de
+`src/lib/data/reactions.ts` (cache partagé 2 min, tag `reactions`, expiré par chaque réaction et par « Actualiser ») ;
+les réactions du visiteur sont lues hors cache. Un Guest voit les totaux sans pouvoir réagir ; brouillons et posts
+privés n'ont pas de réactions.
 Posts v2 (ADR 0007) : le fil public vient de la vue `announcement_feed` (cache partagé de 2 min). Les titulaires de
 `announcement.publish` ont en plus, hors cache, leurs brouillons et posts privés (section « Mes brouillons et posts
 privés ») et un bouton « Modifier » sur leurs posts (`updateAnnouncement`, formulaire prérempli dans la feuille plein

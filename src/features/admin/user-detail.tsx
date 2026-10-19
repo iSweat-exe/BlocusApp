@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/avatar";
+import { getLastSeen } from "@/lib/data/last-seen";
 import { getProfile, listRoles } from "@/lib/data/profiles";
 import { listSanctions } from "@/lib/data/sanctions";
 import { getSignupOrigin } from "@/lib/data/signup-origins";
@@ -8,6 +9,7 @@ import type { SessionPermissions } from "@/server/session";
 import { BanForm } from "./ban-form";
 import { UserPermissions } from "./user-permissions";
 import { assignableRoles, canManageUser, rankOf } from "./hierarchy";
+import { LastSeen } from "./last-seen-card";
 import { RoleBadge } from "./role-badge";
 import { RoleForm } from "./role-form";
 import { liftSanction } from "./sanction-actions";
@@ -22,15 +24,18 @@ const dateFormat = new Intl.DateTimeFormat("fr-FR", {
 
 const KIND_LABELS: Record<string, string> = { ban: "Ban", mute: "Mute" };
 
-/** Admin page of one user: identity, sign-up origin, active ban, sanction history and sanction controls. */
+/** Admin page of one user: identity, last activity, sign-up origin, active ban, sanction history and sanction controls. */
 export async function UserDetail({ id, session }: { id: string; session: SessionPermissions }) {
   // The origin is read only for holders of `user.origin.view`; RLS returns nothing to anyone else anyway.
   const canViewOrigin = session.permissions.includes("user.origin.view");
-  const [profile, roles, sanctions, origin] = await Promise.all([
+  // Same for the last activity (`user.activity.view`): the database function refuses everyone else.
+  const canViewActivity = session.permissions.includes("user.activity.view");
+  const [profile, roles, sanctions, origin, lastSeen] = await Promise.all([
     getProfile(id),
     listRoles(),
     listSanctions(id),
     canViewOrigin ? getSignupOrigin(id) : null,
+    canViewActivity ? getLastSeen(id) : null,
   ]);
 
   if (!profile.ok || !roles.ok) {
@@ -70,6 +75,7 @@ export async function UserDetail({ id, session }: { id: string; session: Session
         <Avatar pseudo={user.pseudo} url={user.avatar_url} size="lg" ring />
         <h2 className="max-w-full truncate text-xl font-semibold tracking-tight">{user.pseudo}</h2>
         <RoleBadge roleKey={user.role} label={roleLabel} className="text-sm" />
+        {lastSeen && <LastSeen lastSeen={lastSeen} now={now} />}
         <p className="text-sm text-muted">
           Inscrit le {dateFormat.format(new Date(user.created_at))}
         </p>

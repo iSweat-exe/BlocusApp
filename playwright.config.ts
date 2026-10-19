@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3100;
+// Local stand-in for Supabase (e2e/support/fake-supabase.mjs): sign-in runs for real, with no network.
+const SUPABASE_PORT = 54399;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -13,16 +15,26 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
-  // Production build: the service worker and PWA manifest only behave realistically there.
-  webServer: {
-    command: `npm run build && npm run start -- -p ${PORT}`,
-    url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co",
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "placeholder",
-      NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`,
+  webServer: [
+    {
+      command: "node e2e/support/fake-supabase.mjs",
+      url: `http://localhost:${SUPABASE_PORT}/health`,
+      reuseExistingServer: !process.env.CI,
+      env: { FAKE_SUPABASE_PORT: String(SUPABASE_PORT) },
     },
-  },
+    {
+      // Production build: the service worker and PWA manifest only behave realistically there.
+      command: `npm run build && npm run start -- -p ${PORT}`,
+      url: `http://localhost:${PORT}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
+      env: {
+        NEXT_PUBLIC_SUPABASE_URL: `http://localhost:${SUPABASE_PORT}`,
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "placeholder",
+        // Only used to remove a refused sign-up: the fake Supabase accepts anything.
+        SUPABASE_SERVICE_ROLE_KEY: "placeholder",
+        NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`,
+      },
+    },
+  ],
 });
