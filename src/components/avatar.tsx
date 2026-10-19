@@ -2,6 +2,8 @@ import Image from "next/image";
 import { initialsOf, safeAvatarUrl } from "@/features/profile/avatar";
 
 const SIZES = {
+  /** Byline of a post: small enough to sit on the line of the date. */
+  xs: { px: 24, box: "h-6 w-6 text-[10px]" },
   sm: { px: 36, box: "h-9 w-9 text-xs" },
   md: { px: 44, box: "h-11 w-11 text-sm" },
   lg: { px: 80, box: "h-20 w-20 text-2xl" },

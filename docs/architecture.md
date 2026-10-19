@@ -188,7 +188,7 @@ Posts v2 (ADR 0007) : le fil public vient de la vue `announcement_feed` (cache p
 `announcement.publish` ont en plus, hors cache, leurs brouillons et posts privés (section « Mes brouillons et posts
 privés ») et un bouton « Modifier » sur leurs posts (`updateAnnouncement`, formulaire prérempli dans la feuille plein
 écran). Le formulaire permet une photo (compressée dans le navigateur avant l'envoi, `compress-image.ts`), une
-visibilité (Brouillon / Privé / Public) et « Afficher l'auteur » (pseudo et avatar visibles de tous sur ce post).
+visibilité (Brouillon / Privé / Public) et « Afficher l'auteur » (pseudo et avatar visibles de tous sur ce post). L'auteur est dans l'**en-tête de la carte**, avant la date (petite photo de 24 px, `Avatar size="xs"`, pseudo en gras, « Par » réservé aux lecteurs d'écran), et non plus sur une ligne entre le titre et le texte ; un post dont l'auteur reste masqué n'a que la date.
 Un post modifié affiche « · modifié ». L'action vérifie la taille (300 Ko), le format réel et les dimensions de
 l'image, la range dans le dossier de l'auteur et efface l'ancienne.
 Pagination et cache (A-080+) : étape 1.6.
