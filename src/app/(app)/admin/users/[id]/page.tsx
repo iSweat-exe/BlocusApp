@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { canAccessAdmin } from "@/features/admin/access";
 import { UserDetail } from "@/features/admin/user-detail";
 import { getSessionPermissions } from "@/server/session";
+
+export const metadata: Metadata = { title: "Fiche utilisateur" };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

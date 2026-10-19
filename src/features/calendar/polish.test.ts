@@ -4,7 +4,14 @@ import { describe, expect, it } from "vitest";
 
 const read = (file: string) =>
   readFileSync(join(process.cwd(), "src/features/calendar", file), "utf8");
-const FILES = ["month-view.tsx", "view-switcher.tsx", "imminent-banner.tsx", "event-detail.tsx"];
+const FILES = [
+  "month-view.tsx",
+  "week-view.tsx",
+  "day-timeline.tsx",
+  "view-switcher.tsx",
+  "imminent-banner.tsx",
+  "event-detail.tsx",
+];
 
 describe("calendar interface polish", () => {
   it("only hovers where a pointer can hover (no sticky hover on touch screens)", () => {
@@ -27,10 +34,9 @@ describe("calendar interface polish", () => {
   });
 
   it("keeps the nested corners concentric", () => {
-    const week = read("month-view.tsx");
     // Week bar (12 px) holds blocks inset by 2 px: 10 px. Day timeline (12 px) inset by 8 px: 4 px.
-    expect(week).toContain("rounded-[calc(var(--radius-control)-0.125rem)]");
-    expect(week).toContain("rounded-[calc(var(--radius-control)-0.5rem)]");
+    expect(read("week-view.tsx")).toContain("rounded-[calc(var(--radius-control)-0.125rem)]");
+    expect(read("day-timeline.tsx")).toContain("rounded-[calc(var(--radius-control)-0.5rem)]");
     // The view menu (12 px) holds items with 4 px of padding: 8 px.
     expect(read("view-switcher.tsx")).toMatch(/min-h-tap[^"]*rounded-lg/);
   });

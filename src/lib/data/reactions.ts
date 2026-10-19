@@ -1,3 +1,4 @@
+import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { err, ok, type Result } from "@/lib/result";
 import { createPublicClient } from "@/lib/supabase/public";

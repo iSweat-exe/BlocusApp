@@ -1,3 +1,4 @@
+import "server-only";
 import { io } from "next/cache";
 import { cookies } from "next/headers";
 

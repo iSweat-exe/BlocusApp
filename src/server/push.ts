@@ -1,3 +1,4 @@
+import "server-only";
 import webpush, { type WebPushError } from "web-push";
 import { buildPushPayload, type PushMessage } from "@/features/push/payload";
 import { createServiceClient } from "@/lib/supabase/service";

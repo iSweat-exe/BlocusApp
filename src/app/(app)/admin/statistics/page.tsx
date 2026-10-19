@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -6,6 +7,8 @@ import { StatisticsSkeleton } from "@/features/statistics/statistics-skeleton";
 import { StatisticsView } from "@/features/statistics/statistics-view";
 import { requirePermission } from "@/server/require-permission";
 import { getSessionPermissions } from "@/server/session";
+
+export const metadata: Metadata = { title: "Statistiques" };
 
 type StatisticsSearchParams = { period?: string | string[] };
 

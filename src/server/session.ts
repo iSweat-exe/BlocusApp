@@ -1,3 +1,4 @@
+import "server-only";
 import { cache } from "react";
 import { requestCookies } from "@/lib/supabase/request-cookies";
 import { createClient } from "@/lib/supabase/server";

@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AnnouncementFeed } from "@/features/announcements/announcement-feed";
 import { parseFeedLimit } from "@/features/announcements/feed-limit";
 import { ImminentEvents } from "@/features/calendar/imminent-events";
+
+export const metadata: Metadata = { title: "Accueil" };
 
 async function Feed({ searchParams }: { searchParams: Promise<{ n?: string }> }) {
   const { n } = await searchParams;

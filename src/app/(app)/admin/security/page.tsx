@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { SecurityPanel } from "@/features/mfa/security-panel";
 import { getSessionPermissions } from "@/server/session";
+
+export const metadata: Metadata = { title: "Sécurité" };
 
 async function SecurityContent() {
   const session = await getSessionPermissions();

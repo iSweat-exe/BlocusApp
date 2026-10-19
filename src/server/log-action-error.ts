@@ -1,3 +1,4 @@
+import "server-only";
 /** The part of a PostgREST error that is safe to log (no `details`: it can quote row values). */
 type DatabaseError = { code?: string; message: string; hint?: string | null };
 

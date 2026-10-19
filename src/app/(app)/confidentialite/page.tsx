@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LEGAL, PROCESSORS } from "@/features/legal/legal-info";
 import { InternalLink, LegalPage, LegalSection, LegalValue } from "@/features/legal/legal-page";
 
-export const metadata: Metadata = { title: "Politique de confidentialité · BLOCUS" };
+export const metadata: Metadata = { title: "Politique de confidentialité" };
 
 export default function PrivacyPage() {
   return (

@@ -1,3 +1,4 @@
+import "server-only";
 import type { Database } from "@/lib/database.types";
 import { err, ok, type Result } from "@/lib/result";
 import { requestCookies } from "@/lib/supabase/request-cookies";

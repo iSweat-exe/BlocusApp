@@ -1,3 +1,4 @@
+import "server-only";
 import { err, ok, type Result } from "@/lib/result";
 import { requestCookies } from "@/lib/supabase/request-cookies";
 import { createClient } from "@/lib/supabase/server";

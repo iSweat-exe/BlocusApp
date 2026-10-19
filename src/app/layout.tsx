@@ -28,8 +28,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BlocusApp",
-  description: "BlocusApp",
+  // Every page sets its own `title`; the template adds the brand ("Calendrier · BLOCUS").
+  title: { default: "BLOCUS", template: "%s · BLOCUS" },
+  description: "Toutes les infos de la manifestation en direct : actualités, calendrier et carte.",
   applicationName: "BlocusApp",
   // iOS: standalone mode when added to the home screen.
   appleWebApp: { capable: true, title: "BlocusApp", statusBarStyle: "default" },
