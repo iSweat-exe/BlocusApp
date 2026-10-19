@@ -25,6 +25,13 @@ describe("LoginError", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(message);
   });
 
+  it("confirms the deletion of an account with a status, not an alert", () => {
+    query = "deleted=1";
+    render(<LoginError />);
+    expect(screen.getByRole("status")).toHaveTextContent("Ton compte a été supprimé");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("ignores unknown codes, including names inherited from Object", () => {
     query = "error=unknown";
     const { container, rerender } = render(<LoginError />);

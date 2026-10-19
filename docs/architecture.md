@@ -87,8 +87,26 @@ ADR 0010) : un abonnement par appareil, envoyé quand un post devient public.
 | `(app)`  | `/credits`    | Crédits : l'équipe de développement avec son GitHub, les technologies utilisées | Public (Guests et connectés) ; ligne « Crédits » dans `/settings` (À propos) et `/profil`, petit lien sur `/login` |
 | `(app)`  | `/settings`   | Réglages : couleur de l'application (préréglages + couleur libre), raccourci profil/connexion | Public (réglages stockés sur l'appareil) |
 | `(app)`  | `/profil`     | Profil (lecture) : carte identité, compte, permissions, déconnexion| Connecté (Guest → `/login`)                |
+| `(app)`  | `/mentions-legales`, `/confidentialite`, `/cgu` | Mentions légales, politique de confidentialité (données, cookies, durées, droits), conditions d'utilisation | Public (Guests et connectés) ; liens dans `/settings` (À propos), mention sous les boutons de `/login` |
+| `api`    | `GET /api/me/export` | Export JSON des données de la personne connectée (`export_my_data()`) | Connecté (Guest → 401), jamais mis en cache |
 
 `/messages` n'existe pas (route supprimée, A-128) : la communication passe par Instagram. Messagerie = Backlog.
+
+## Pages légales et droits RGPD (A-113)
+
+- **Textes** : `src/app/(app)/{mentions-legales,confidentialite,cgu}/page.tsx`, composants communs dans `src/features/legal/`
+  (`legal-page.tsx`). Les faits qu'ils énoncent (éditeur, pays, e-mail de contact, date de mise à jour, prestataires et lieu des
+  données) sont **uniquement** dans `src/features/legal/legal-info.ts` : un texte modifié se relit, une information se change à un
+  seul endroit. Une valeur restée à « À COMPLÉTER » s'affiche surlignée, et `legal.test.tsx` échoue tant qu'il en reste.
+- **Acceptation** : phrase « En continuant, tu acceptes… » sous les boutons de `/login` (`LegalConsentNote`), sans case à cocher
+  ni étape en plus ; pas de bannière de cookies (seuls des cookies strictement nécessaires, voir la politique).
+- **Accès et portabilité** : `GET /api/me/export` appelle la fonction SQL `export_my_data()` (`SECURITY DEFINER`, l'identifiant vient
+  du JWT) et renvoie un fichier JSON ; bouton « Télécharger » dans Réglages > Mes données (`MyDataSection`, connectés seulement).
+- **Effacement** : Réglages > Mes données > « Supprimer mon compte » (mot de confirmation `SUPPRIMER`), Server Action
+  `deleteMyAccount` (`src/features/legal/actions.ts`) : supprime les photos du bucket `announcement-images` (`<id>/…`), puis
+  l'utilisateur Auth par l'API admin (`service_role`, l'identifiant vient de la session) ; le profil et ses dépendances partent en
+  cascade, les posts, événements et positions restent sans auteur (`on delete set null`). Un super administrateur ne peut pas
+  supprimer son compte. Si Storage échoue, le compte n'est pas supprimé.
 
 ## Authentification (OAuth Discord et Google)
 

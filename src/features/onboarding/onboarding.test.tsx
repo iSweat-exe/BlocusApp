@@ -77,6 +77,14 @@ describe("Onboarding", () => {
     expect(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)).not.toBeNull();
   });
 
+  it("puts the focus on the title without outlining it, not on a button", () => {
+    render(<Onboarding vapidPublicKey={null} />);
+    const title = screen.getByRole("heading", { name: "Bienvenue sur BLOCUS." });
+    expect(title).toHaveFocus();
+    // globals.css hides the focus ring of this attribute: nobody can Tab to the title.
+    expect(title).toHaveAttribute("data-focus-silent");
+  });
+
   it("can be skipped from the first step", async () => {
     const user = userEvent.setup();
     render(<Onboarding vapidPublicKey={null} />);

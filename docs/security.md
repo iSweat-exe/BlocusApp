@@ -157,6 +157,20 @@ Vercel (`VERCEL_API_TOKEN`) reste côté serveur.
   comme Discord et Google voient celle des utilisateurs dont l'avatar s'affiche ; aucune photo n'est copiée dans le dépôt.
   Chaque développeur listé doit être d'accord pour que sa photo publique y figure.
 
+## Données personnelles : accès, export et suppression (A-113)
+
+- **Registre des données** : compte (e-mail, pseudo, photo du fournisseur), origine d'inscription (pays, région, ville, jamais l'IP),
+  dernière activité (précision 5 minutes, admins seulement), réactions, abonnements push, sanctions et journal d'administration.
+  Les textes publics sont dans `src/features/legal/` (voir `docs/architecture.md`).
+- **Export** : `GET /api/me/export` → `export_my_data()` ; `Cache-Control: no-store`, 401 pour un invité, aucune erreur de base
+  exposée. Les clés des abonnements push n'en font pas partie.
+- **Suppression** : Server Action `deleteMyAccount` avec le `service_role` (API admin), identifiant pris dans la session, mot de
+  confirmation vérifié côté serveur, photos supprimées avant le compte (un échec de Storage arrête tout), super administrateur
+  refusé. Reste après suppression, sans nom ni e-mail : `audit_logs`, `moderation_actions` (identifiants simples, sans clé
+  étrangère), et les posts, événements et positions (auteur à `null`).
+- **À faire avant la mise en production** : faire relire les textes (`src/features/legal/`) par la personne responsable, et vérifier
+  l'âge minimal (15 ans), la durée de réponse (1 mois) et les clauses de transfert hors UE avec un juriste.
+
 ## Signalement d'une vulnérabilité
 
 Ne pas ouvrir d'issue publique : contacter directement les mainteneurs.

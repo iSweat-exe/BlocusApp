@@ -303,6 +303,15 @@ Migration `20261011140000_public_user_count.sql`. `profiles` est fermée à `ano
 `/login`. Aucun nom, aucune date, aucun identifiant. L'application la lit à travers un cache partagé (une lecture toutes
 les 2 min par instance) et tolère son absence. Test : `supabase/tests/database/public_user_count.test.sql`.
 
+## Export des données (`export_my_data()`)
+
+`export_my_data()` : `SECURITY DEFINER`, `stable`, `search_path = ''`, exécutable par `authenticated` seulement (`anon` : refusé,
+`42501`). Renvoie en un document JSON tout ce que l'application garde sur l'appelant, dont l'identifiant vient de `auth.uid()` (jamais
+d'un argument) : compte (`auth.users`), profil, surcharges de permissions, origine d'inscription, dernière activité, posts, événements
+et positions déclarés, réactions, abonnements push (seulement l'hôte du service et la date : jamais les clés `p256dh` et `auth`) et
+sanctions. Le journal d'audit n'est pas exporté (il décrit des actions d'administrateurs, avec d'autres identifiants). Migration
+`20261019130000_export_my_data.sql`, test `export_my_data.test.sql` (refus `anon`, chaque rubrique, rien sur les autres utilisateurs).
+
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 
 Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées
