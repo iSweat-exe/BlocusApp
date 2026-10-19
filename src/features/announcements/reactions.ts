@@ -20,12 +20,36 @@ export const REACTION_LABELS: Record<ReactionEmoji, string> = {
   "👏": "applaudissements",
 };
 
+/** What can be reacted to: a public post (home feed) or an event (calendar). */
+export type ReactionKind = "post" | "event";
+
+/** Whether a value received from a client is a kind of reaction target. */
+export function isReactionKind(value: unknown): value is ReactionKind {
+  return value === "post" || value === "event";
+}
+
 /** Whether a value received from a client is one of the palette's emojis. */
 export function isReactionEmoji(value: unknown): value is ReactionEmoji {
   return typeof value === "string" && (REACTION_EMOJIS as readonly string[]).includes(value);
 }
 
-/** What a post shows: how many people used each emoji, and which ones the viewer used. */
+/** Who used each emoji, as shown to signed-in people: `{ "👍": ["pseudo1", "pseudo2"] }`, palette order. */
+export type ReactorsByEmoji = Partial<Record<ReactionEmoji, string[]>>;
+
+/**
+ * Groups the rows of `list_announcement_reactors()` / `list_event_reactors()` by emoji, in palette order. An emoji
+ * outside the palette (the database check makes it impossible) is dropped rather than shown.
+ */
+export function groupReactors(rows: readonly { emoji: string; pseudo: string }[]): ReactorsByEmoji {
+  const grouped: ReactorsByEmoji = {};
+  for (const emoji of REACTION_EMOJIS) {
+    const pseudos = rows.filter((row) => row.emoji === emoji).map((row) => row.pseudo);
+    if (pseudos.length > 0) grouped[emoji] = pseudos;
+  }
+  return grouped;
+}
+
+/** What a post or an event shows: how many people used each emoji, and which ones the viewer used. */
 export type ReactionState = {
   counts: Partial<Record<ReactionEmoji, number>>;
   mine: ReactionEmoji[];

@@ -75,3 +75,68 @@ export async function listMyReactions(
     return err("load_failed", cause instanceof Error ? cause.message : "unknown error");
   }
 }
+
+/**
+ * Same as {@link fetchReactionTotals}, for events: one shared read of the public view, cached for 2 min and
+ * refreshed at once for the person who reacted (`updateTag("reactions")`). A failure is thrown, never cached.
+ */
+async function fetchEventReactionTotals(eventIds: string[]): Promise<ReactionTotals> {
+  "use cache";
+  cacheLife("feed");
+  cacheTag("reactions");
+
+  if (eventIds.length === 0) return {};
+  const { data, error } = await createPublicClient()
+    .from("event_reaction_counts")
+    .select("event_id, emoji, total")
+    .in("event_id", eventIds);
+  if (error) throw new Error(error.message);
+
+  const totals: ReactionTotals = {};
+  for (const row of data) {
+    if (!row.event_id || !row.emoji || !row.total) continue;
+    (totals[row.event_id] ??= {})[row.emoji] = row.total;
+  }
+  return totals;
+}
+
+/**
+ * Lists the reaction totals of the given events. Readable by Guests and shared through the data cache.
+ * @param eventIds - Ids of the events shown on the page.
+ */
+export async function listEventReactionTotals(
+  eventIds: string[],
+): Promise<Result<ReactionTotals, "load_failed">> {
+  try {
+    return ok(await fetchEventReactionTotals(eventIds));
+  } catch (cause) {
+    return err("load_failed", cause instanceof Error ? cause.message : "unknown error");
+  }
+}
+
+/**
+ * Lists the emojis the signed-in user already used on the given events. Not cached (it depends on who asks).
+ * @param userId - The caller's id.
+ * @param eventIds - Ids of the events shown on the page.
+ */
+export async function listMyEventReactions(
+  userId: string,
+  eventIds: string[],
+): Promise<Result<Record<string, string[]>, "load_failed">> {
+  if (eventIds.length === 0) return ok({});
+  try {
+    const supabase = createClient(await requestCookies());
+    const { data, error } = await supabase
+      .from("event_reactions")
+      .select("event_id, emoji")
+      .eq("user_id", userId)
+      .in("event_id", eventIds);
+    if (error) return err("load_failed", error.message);
+
+    const mine: Record<string, string[]> = {};
+    for (const row of data) (mine[row.event_id] ??= []).push(row.emoji);
+    return ok(mine);
+  } catch (cause) {
+    return err("load_failed", cause instanceof Error ? cause.message : "unknown error");
+  }
+}

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { adminLinksFor } from "@/features/admin/admin-links";
 import { AdminNav } from "@/features/admin/admin-nav";
+import { AdminMfaGate } from "@/features/mfa/admin-mfa-gate";
 import { getSessionPermissions } from "@/server/session";
 
 async function AdminSections() {
@@ -16,7 +17,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <Suspense fallback={null}>
         <AdminSections />
       </Suspense>
-      {children}
+      <Suspense fallback={null}>
+        <AdminMfaGate>{children}</AdminMfaGate>
+      </Suspense>
     </div>
   );
 }

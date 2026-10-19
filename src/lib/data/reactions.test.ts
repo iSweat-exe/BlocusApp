@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { listMyReactions, listReactionTotals } from "./reactions";
+import {
+  listEventReactionTotals,
+  listMyEventReactions,
+  listMyReactions,
+  listReactionTotals,
+} from "./reactions";
 
 const from = vi.fn();
 const select = vi.fn();
@@ -68,5 +73,45 @@ describe("listMyReactions", () => {
   it("returns an error instead of throwing", async () => {
     inFn.mockResolvedValue({ data: null, error: { message: "down" } });
     expect((await listMyReactions("u1", ["p1"])).ok).toBe(false);
+  });
+});
+
+describe("event reactions", () => {
+  it("groups the event totals per event and emoji, under the shared tag", async () => {
+    inFn.mockResolvedValue({
+      data: [
+        { event_id: "e1", emoji: "🎉", total: 4 },
+        { event_id: "e1", emoji: "👏", total: 1 },
+      ],
+      error: null,
+    });
+    await expect(listEventReactionTotals(["e1"])).resolves.toEqual({
+      ok: true,
+      value: { e1: { "🎉": 4, "👏": 1 } },
+    });
+    expect(from).toHaveBeenCalledWith("event_reaction_counts");
+    expect(cacheTag).toHaveBeenCalledWith("reactions");
+  });
+
+  it("does not query without events and returns errors instead of throwing", async () => {
+    await expect(listEventReactionTotals([])).resolves.toEqual({ ok: true, value: {} });
+    expect(from).not.toHaveBeenCalled();
+    inFn.mockResolvedValue({ data: null, error: { message: "down" } });
+    expect((await listEventReactionTotals(["e1"])).ok).toBe(false);
+  });
+
+  it("lists the viewer's emojis per event", async () => {
+    inFn.mockResolvedValue({ data: [{ event_id: "e1", emoji: "🎉" }], error: null });
+    await expect(listMyEventReactions("u1", ["e1"])).resolves.toEqual({
+      ok: true,
+      value: { e1: ["🎉"] },
+    });
+    expect(from).toHaveBeenCalledWith("event_reactions");
+    expect(eq).toHaveBeenCalledWith("user_id", "u1");
+  });
+
+  it("returns an error when the viewer's reactions cannot be read", async () => {
+    inFn.mockResolvedValue({ data: null, error: { message: "down" } });
+    expect((await listMyEventReactions("u1", ["e1"])).ok).toBe(false);
   });
 });
