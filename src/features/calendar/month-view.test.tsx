@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { computeEventBounds, MonthView, type DayEvent } from "./month-view";
+import { computeEventBounds, MonthView, startMarkersOf, type DayEvent } from "./month-view";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -183,6 +183,58 @@ describe("MonthView", () => {
     expect(boundsStartOnly.topPercent).toBeCloseTo(22.22, 1);
     // duration 8h (10 to 18): 8 / 18 * 100 = 44.44%
     expect(boundsStartOnly.heightPercent).toBeCloseTo(44.44, 1);
+  });
+
+  describe("start markers of the day timeline", () => {
+    const at = (id: string, startTime: string, startHour: number): DayEvent => ({
+      id,
+      title: `Événement ${id}`,
+      location: "",
+      time: `${startTime} – 18:00`,
+      finished: false,
+      startHour,
+      endHour: 18,
+      startTime,
+    });
+
+    it("gives one marker per exact start time, from the top of the timeline down", () => {
+      const markers = startMarkersOf([
+        at("a", "14:30", 14.5),
+        at("b", "09:15", 9.25),
+        at("c", "14:30", 14.5),
+      ]);
+      expect(markers.map((marker) => marker.startTime)).toEqual(["09:15", "14:30"]);
+      // 9h15 is (9.25 - 6) / 18 of the way down the 6h-24h timeline.
+      expect(markers[0]!.topPercent).toBeCloseTo(18.06, 1);
+      expect(markers[1]!.topPercent).toBeCloseTo(47.22, 1);
+    });
+
+    it("has none for an event without an exact start time", () => {
+      expect(startMarkersOf([exam])).toEqual([]);
+    });
+
+    it("prints the exact start on the right of the day timeline, besides the time of the event", () => {
+      const { container } = renderMonth({
+        initialView: "day",
+        eventsByDay: { "2026-10-07": [at("a", "09:30", 9.5)] },
+      });
+      const marker = container.querySelector('[data-start-marker="09:30"]');
+      expect(marker).not.toBeNull();
+      // A decoration: the time is already in the name of the event link.
+      expect(marker).toHaveAttribute("aria-hidden", "true");
+      expect(marker).toHaveTextContent("09:30");
+      expect(
+        screen.getAllByRole("link", { name: /09:30 – 18:00 Événement a/ }).length,
+      ).toBeGreaterThan(0);
+    });
+
+    it("is only in the day view", () => {
+      const { container } = renderMonth({
+        initialView: "week",
+        eventsByDay: { "2026-10-07": [at("a", "09:30", 9.5)] },
+      });
+      expect(container.querySelector("[data-start-marker]")).toBeNull();
+    });
   });
 
   it("switches views via pinch gesture (zoom in / zoom out with two fingers)", () => {

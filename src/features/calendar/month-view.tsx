@@ -29,6 +29,8 @@ export type DayEvent = {
   finished: boolean;
   startHour?: number;
   endHour?: number;
+  /** Exact start (`HH:MM`, local time), shown on the right of the day timeline. Not clamped like `startHour`. */
+  startTime?: string;
 };
 
 const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -79,6 +81,23 @@ const KEY_HOURS = [
   { hour: 18, label: "18:00", percent: ((18 - TIMELINE_MIN_HOUR) / TIMELINE_SPAN_HOURS) * 100 },
   { hour: 24, label: "24:00", percent: 100 },
 ];
+
+/**
+ * One marker per exact start time among the events of the day: its vertical position (where the event block
+ * begins) and the time to print on the right of the timeline. Two events that start together share one marker.
+ */
+export function startMarkersOf(
+  events: readonly DayEvent[],
+): { startTime: string; topPercent: number }[] {
+  const markers = new Map<string, number>();
+  for (const event of events) {
+    if (!event.startTime || markers.has(event.startTime)) continue;
+    markers.set(event.startTime, computeEventBounds(event).topPercent);
+  }
+  return [...markers]
+    .map(([startTime, topPercent]) => ({ startTime, topPercent }))
+    .sort((a, b) => a.topPercent - b.topPercent || a.startTime.localeCompare(b.startTime));
+}
 
 const VIEW_RANK: Record<CalendarViewMode, number> = {
   month: 1,
@@ -650,7 +669,24 @@ export function MonthView({
                 </div>
               ))}
 
-              {/* Event blocks: positioned to the right of the invisible hours strip (left-14 right-2) */}
+              {/* Exact start of each event: a bar across the timeline, with the time on its right end, in addition to
+                  the time printed at the top left of the event block. */}
+              {startMarkersOf(selected).map(({ startTime, topPercent }) => (
+                <div
+                  key={startTime}
+                  aria-hidden="true"
+                  data-start-marker={startTime}
+                  style={{ top: `${topPercent}%` }}
+                  className="pointer-events-none absolute left-14 right-2 z-0 flex -translate-y-1/2 items-center"
+                >
+                  <div className="h-px flex-1 bg-accent/70" />
+                  <span className="w-11 shrink-0 text-right text-[11px] font-semibold tabular-nums text-accent">
+                    {startTime}
+                  </span>
+                </div>
+              ))}
+
+              {/* Event blocks: between the hours strip (left-14) and the start times (right-14) */}
               {selected.map((event) => {
                 const { topPercent, heightPercent } = computeEventBounds(event);
 
@@ -665,7 +701,7 @@ export function MonthView({
                       top: `${topPercent}%`,
                       height: `${heightPercent}%`,
                     }}
-                    className={`absolute left-14 right-2 rounded-control p-2.5 shadow-sm transition-transform hover:scale-[1.01] flex flex-col justify-between overflow-hidden z-10 ${
+                    className={`absolute left-14 right-14 rounded-control p-2.5 shadow-sm transition-transform hover:scale-[1.01] flex flex-col justify-between overflow-hidden z-10 ${
                       event.finished
                         ? "bg-foreground/20 text-foreground/60 line-through"
                         : "bg-accent text-accent-ink font-semibold shadow-xs"

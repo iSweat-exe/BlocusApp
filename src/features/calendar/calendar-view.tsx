@@ -3,7 +3,7 @@ import { getSessionPermissions } from "@/server/session";
 import type { CalendarViewMode } from "./calendar-types";
 import { monthGrid } from "./month-grid";
 import { MonthView, type DayEvent } from "./month-view";
-import { dayKeyOf, formatTimeRange, timeToHour, zonedToUtc } from "./time";
+import { dayKeyOf, formatTime, formatTimeRange, timeToHour, zonedToUtc } from "./time";
 
 /**
  * Month calendar: reads the whole visible grid in one (shared, cached) query, groups the events by day
@@ -47,6 +47,7 @@ export async function CalendarView({
       finished: event.finished_at !== null,
       startHour,
       endHour,
+      startTime: formatTime(event.starts_at),
     });
   }
 
