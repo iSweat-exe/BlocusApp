@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { PinIcon } from "@/components/icons";
 import {
   addDismissed,
   countdownLabel,
@@ -77,9 +78,15 @@ export function ImminentBanner({
               Bientôt · {countdownLabel(event.startsAt, now)}
             </span>
             <span className="truncate text-lg font-bold">{event.title}</span>
-            <span className="truncate text-sm opacity-90">
-              {event.time}
-              {event.location ? ` · ${event.location}` : ""}
+            <span className="flex items-center gap-1.5 truncate text-sm opacity-90">
+              <span>{event.time}</span>
+              {event.location && (
+                <>
+                  <span>·</span>
+                  <PinIcon className="size-3.5 shrink-0 inline" />
+                  <span className="truncate">{event.location}</span>
+                </>
+              )}
             </span>
           </Link>
           <button

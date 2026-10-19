@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PinIcon } from "@/components/icons";
 import { ReactionBar } from "@/features/announcements/reaction-bar";
 import { buildReactionState } from "@/features/announcements/reactions";
 import { getEvent } from "@/lib/data/events";
@@ -60,7 +61,12 @@ export async function EventDetail({ id }: { id: string }) {
           {formatDayLong(event.starts_at)}
         </p>
         <p className="font-medium text-accent">{formatTimeRange(event.starts_at, event.ends_at)}</p>
-        {event.location && <p className="text-sm">{event.location}</p>}
+        {event.location && (
+          <p className="flex items-center gap-1.5 text-sm text-muted">
+            <PinIcon className="size-4 shrink-0" />
+            <span>{event.location}</span>
+          </p>
+        )}
       </header>
 
       {event.description ? (

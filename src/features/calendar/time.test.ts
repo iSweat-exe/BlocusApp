@@ -2,15 +2,24 @@ import { describe, expect, it } from "vitest";
 import { monthGrid, shiftMonth } from "./month-grid";
 import {
   addDays,
+  dayKeyFromWeek,
   dayKeyOf,
   dayRangeUtc,
   formatDayKeyLong,
   formatMonthLabel,
   formatTime,
   formatTimeRange,
+  formatWeekLabel,
+  formatWeekRange,
+  mondayOf,
   monthKeyOf,
   parseDayKey,
   parseMonthKey,
+  parseWeekKey,
+  timeToHour,
+  weekDaysOf,
+  weekdayOf,
+  weekKeyOf,
   zonedToUtc,
 } from "./time";
 
@@ -62,6 +71,8 @@ describe("time zone conversion (Europe/Paris)", () => {
     expect(formatDayKeyLong("2026-10-07")).toBe("mercredi 7 octobre 2026");
     expect(formatMonthLabel("2026-10")).toBe("octobre 2026");
     expect(formatMonthLabel("junk")).toBe("junk");
+    expect(timeToHour("2026-10-07T12:30:00Z")).toBe(14.5);
+    expect(timeToHour("2026-10-07T06:00:00Z")).toBe(8);
   });
 });
 
@@ -88,5 +99,58 @@ describe("month grid", () => {
     expect(shiftMonth("2026-12", 1)).toBe("2027-01");
     expect(shiftMonth("2026-01", -1)).toBe("2025-12");
     expect(shiftMonth("bad", 1)).toBe("bad");
+  });
+});
+
+describe("week calculations and keys", () => {
+  it("determines weekday (Monday = 0, Sunday = 6)", () => {
+    expect(weekdayOf("2026-10-12")).toBe(0); // Monday
+    expect(weekdayOf("2026-10-14")).toBe(2); // Wednesday
+    expect(weekdayOf("2026-10-18")).toBe(6); // Sunday
+  });
+
+  it("calculates Monday and 7 days of the week", () => {
+    expect(mondayOf("2026-10-14")).toBe("2026-10-12");
+    expect(mondayOf("2026-10-18")).toBe("2026-10-12");
+    const days = weekDaysOf("2026-10-14");
+    expect(days).toEqual([
+      "2026-10-12",
+      "2026-10-13",
+      "2026-10-14",
+      "2026-10-15",
+      "2026-10-16",
+      "2026-10-17",
+      "2026-10-18",
+    ]);
+  });
+
+  it("calculates ISO week keys", () => {
+    expect(weekKeyOf("2026-10-14")).toBe("2026-42");
+    // New year transition: 2026-01-01 is Thursday -> Week 1 of 2026
+    expect(weekKeyOf("2026-01-01")).toBe("2026-01");
+    // 2025-12-31 was Wednesday in week 1 of 2026 (starts Mon Dec 29 2025)
+    expect(weekKeyOf("2025-12-31")).toBe("2026-01");
+  });
+
+  it("parses valid and invalid week keys", () => {
+    expect(parseWeekKey("2026-42")).toEqual({ year: 2026, week: 42 });
+    expect(parseWeekKey("2026-W42")).toEqual({ year: 2026, week: 42 });
+    expect(parseWeekKey("2026-01")).toEqual({ year: 2026, week: 1 });
+    expect(parseWeekKey("2026-0")).toBeNull();
+    expect(parseWeekKey("2026-54")).toBeNull();
+    expect(parseWeekKey("invalid")).toBeNull();
+    expect(parseWeekKey(null)).toBeNull();
+  });
+
+  it("resolves dayKeyFromWeek", () => {
+    expect(dayKeyFromWeek("2026-42")).toBe("2026-10-12");
+    expect(dayKeyFromWeek("2026-42", 2)).toBe("2026-10-14");
+    expect(dayKeyFromWeek("bad")).toBeNull();
+  });
+
+  it("formats week label and range in French", () => {
+    expect(formatWeekLabel("2026-42")).toBe("Semaine 42");
+    expect(formatWeekRange("2026-10-14")).toBe("12 – 18 oct. 2026");
+    expect(formatWeekRange("2026-09-30")).toBe("28 sept. – 4 oct. 2026");
   });
 });
