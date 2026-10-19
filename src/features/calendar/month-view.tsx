@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { FullScreenDialog } from "@/components/full-screen-dialog";
 import { CalendarIcon, PinIcon } from "@/components/icons";
 import { buildCalendarHref, type CalendarViewMode, type DayEvent } from "./calendar-types";
 import { DayTimeline } from "./day-timeline";
+import { assignHues, dotStyle, EVENT_HUES } from "./event-colors";
 import { EventForm } from "./event-form";
 import { monthGrid, shiftMonth } from "./month-grid";
 import {
@@ -27,6 +28,9 @@ export { computeEventBounds, startMarkersOf } from "./timeline";
 export type { DayEvent } from "./calendar-types";
 
 const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
+/** Shared by the days without events: one array, so what depends on it is not recomputed on every render. */
+const NO_EVENTS: DayEvent[] = [];
 
 const VIEW_RANK: Record<CalendarViewMode, number> = {
   month: 1,
@@ -66,7 +70,8 @@ export function MonthView({
   const [anim, setAnim] = useState({ className: "animate-fade-in", key: 0 });
 
   const weeks = monthGrid(month);
-  const selected = eventsByDay[day] ?? [];
+  const selected = eventsByDay[day] ?? NO_EVENTS;
+  const hues = useMemo(() => assignHues(selected), [selected]);
   const canCreate = canCreateEvents && day >= today;
 
   // Plays an animation on the calendar area: a new key restarts it, whatever the previous class was.
@@ -379,7 +384,7 @@ export function MonthView({
             <WeekView day={day} today={today} eventsByDay={eventsByDay} onSelect={select} />
           )}
 
-          {view === "day" && <DayTimeline day={day} events={selected} />}
+          {view === "day" && <DayTimeline day={day} today={today} events={selected} />}
         </div>
       </div>
 
@@ -405,10 +410,13 @@ export function MonthView({
                   }`}
                 >
                   <span className="flex items-center justify-between gap-2">
-                    <span
-                      className={`text-sm font-medium tabular-nums ${event.finished ? "" : "text-accent"}`}
-                    >
-                      {event.time}
+                    <span className="flex items-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        style={dotStyle(hues.get(event.id) ?? EVENT_HUES[0], event.finished)}
+                        className="size-2.5 shrink-0 rounded-full"
+                      />
+                      <span className="text-sm font-medium tabular-nums">{event.time}</span>
                     </span>
                     {event.finished && (
                       <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-semibold">

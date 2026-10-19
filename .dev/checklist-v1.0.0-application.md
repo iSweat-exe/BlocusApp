@@ -192,6 +192,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-140** Tests de parcours E2E : publier un post, réagir (avec « Qui a réagi ? »), déclarer la position, côtés gérant, invité et membre 🆕 — _faits contre le faux Supabase local (`e2e/journeys.spec.ts`) ; le test avec les vrais fournisseurs reste manuel_
 - [~] **A-141** Réactions, suite : réactions sur les événements et « Qui a réagi ? » (connectés seulement), migration `20261019150000_reactions_v2.sql`, pgTAP 🆕 — _fait, à valider sur de vrais téléphones_
 - [~] **A-142** Revue des bonnes pratiques React / Next.js : `import "server-only"` sur les modules serveur (clients Supabase, `src/server`, `src/lib/data`), titre de chaque page avec un modèle commun, `MonthView` découpé (vues, maths pures, hook de pincement sans fuite), page `/calendar/[id]` refaite pour le téléphone (faits, durée, état, gestion regroupée) 🆕 — _fait, à valider sur de vrais téléphones_
+- [~] **A-143** Vues Jour et Semaine façon Calendrier iOS : ligne de temps du jour qui défile (une heure par ligne, blocs teintés avec barre, trait de l'heure courante), événements qui se superposent côte à côte, couleurs stables par événement, fin facultative jamais inventée (1 h par défaut) 🆕 — _fait, à valider sur de vrais téléphones_
 
 ## Étape 1.11 — Finalisation v1.0.0
 - [ ] **A-110** Revue sécurité complète (RLS, secrets, en-têtes, dépendances) 🔒 — _rapport signé_

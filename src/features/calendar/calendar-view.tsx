@@ -3,7 +3,8 @@ import { getSessionPermissions } from "@/server/session";
 import type { CalendarViewMode } from "./calendar-types";
 import { monthGrid } from "./month-grid";
 import { MonthView, type DayEvent } from "./month-view";
-import { dayKeyOf, formatTime, formatTimeRange, timeToHour, zonedToUtc } from "./time";
+import { toDayEvent } from "./day-event";
+import { dayKeyOf, zonedToUtc } from "./time";
 
 /**
  * Month calendar: reads the whole visible grid in one (shared, cached) query, groups the events by day
@@ -33,23 +34,7 @@ export async function CalendarView({
   // Group on the server so the client receives only what it shows (no raw timestamps, no time zone work).
   const eventsByDay: Record<string, DayEvent[]> = {};
   for (const event of result.ok ? result.value : []) {
-    const rawStart = timeToHour(event.starts_at);
-    const hasExplicitEnd = event.ends_at !== null;
-    const rawEnd = hasExplicitEnd ? timeToHour(event.ends_at!) : rawStart < 18 ? 18 : rawStart + 1;
-    // The day view shows the whole day; the week columns clamp to 6h-24h themselves (`computeEventBounds`).
-    const startHour = Math.min(24, Math.max(0, rawStart));
-    const endHour = Math.min(24, Math.max(startHour + 0.5, rawEnd));
-
-    (eventsByDay[dayKeyOf(new Date(event.starts_at))] ??= []).push({
-      id: event.id,
-      title: event.title,
-      location: event.location ?? "",
-      time: formatTimeRange(event.starts_at, event.ends_at),
-      finished: event.finished_at !== null,
-      startHour,
-      endHour,
-      startTime: formatTime(event.starts_at),
-    });
+    (eventsByDay[dayKeyOf(new Date(event.starts_at))] ??= []).push(toDayEvent(event));
   }
 
   return (

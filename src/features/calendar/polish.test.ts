@@ -8,6 +8,7 @@ const FILES = [
   "month-view.tsx",
   "week-view.tsx",
   "day-timeline.tsx",
+  "day-event-block.tsx",
   "view-switcher.tsx",
   "imminent-banner.tsx",
   "event-detail.tsx",
@@ -36,7 +37,7 @@ describe("calendar interface polish", () => {
   it("keeps the nested corners concentric", () => {
     // Week bar (12 px) holds blocks inset by 2 px: 10 px. Day timeline (12 px) inset by 8 px: 4 px.
     expect(read("week-view.tsx")).toContain("rounded-[calc(var(--radius-control)-0.125rem)]");
-    expect(read("day-timeline.tsx")).toContain("rounded-[calc(var(--radius-control)-0.5rem)]");
+    expect(read("day-event-block.tsx")).toContain("rounded-[calc(var(--radius-control)-0.5rem)]");
     // The view menu (12 px) holds items with 4 px of padding: 8 px.
     expect(read("view-switcher.tsx")).toMatch(/min-h-tap[^"]*rounded-lg/);
   });
