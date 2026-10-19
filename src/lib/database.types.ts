@@ -424,6 +424,42 @@ export type Database = {
           },
         ];
       };
+      push_subscriptions: {
+        Row: {
+          auth: string;
+          created_at: string;
+          endpoint: string;
+          id: string;
+          p256dh: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          auth: string;
+          created_at?: string;
+          endpoint: string;
+          id?: string;
+          p256dh: string;
+          user_id: string;
+        };
+        Update: {
+          auth?: string;
+          created_at?: string;
+          endpoint?: string;
+          id?: string;
+          p256dh?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       role_permissions: {
         Row: {
           permission: string;
@@ -593,6 +629,11 @@ export type Database = {
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };
       save_map_route: { Args: { p_base?: string; p_points: Json }; Returns: string };
+      remove_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
+      save_push_subscription: {
+        Args: { p_auth: string; p_endpoint: string; p_p256dh: string };
+        Returns: undefined;
+      };
       set_event_finished: { Args: { p_finished: boolean; p_id: string }; Returns: undefined };
       set_role_permission: {
         Args: { p_granted: boolean; p_permission: string; p_role: string };

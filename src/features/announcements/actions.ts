@@ -2,9 +2,11 @@
 
 import { cookies } from "next/headers";
 import { updateTag } from "next/cache";
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { logActionError } from "@/server/log-action-error";
 import { isRateLimited, RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
+import { broadcastPush } from "@/server/push";
 import { requirePermission } from "@/server/require-permission";
 import { detectImageType, IMAGE_MAX_BYTES, IMAGE_MAX_DIMENSION, type ImageType } from "./image";
 import { type AnnouncementFieldErrors, type PostStatus, validateAnnouncementInput } from "./schema";
@@ -80,6 +82,14 @@ async function removeImage(supabase: Supabase, path: string | null | undefined):
   if (error) logActionError("removeImage", error);
 }
 
+/**
+ * Tells the subscribed devices about a post that just became public. Runs after the response is sent, so a slow
+ * push service never delays the author, and a failure never reaches them (it only shows in the logs).
+ */
+function notifyNewPost(id: string, title: string): void {
+  after(() => broadcastPush({ title: "Nouveau post", body: title, path: "/", tag: `post-${id}` }));
+}
+
 /** What the user is told once a post is saved, by visibility. */
 const SAVED_MESSAGES: Record<PostStatus, { created: string; updated: string }> = {
   draft: { created: "Brouillon enregistré.", updated: "Brouillon mis à jour." },
@@ -126,13 +136,17 @@ export async function publishAnnouncement(
     if (!imagePath) return { status: "error", message: "L'envoi de l'image a échoué. Réessaie." };
   }
 
-  const { error } = await supabase.from("announcements").insert({
-    ...parsed.value,
-    author_id: userId,
-    image_path: imagePath,
-    image_width: image.value?.width ?? null,
-    image_height: image.value?.height ?? null,
-  });
+  const { data: created, error } = await supabase
+    .from("announcements")
+    .insert({
+      ...parsed.value,
+      author_id: userId,
+      image_path: imagePath,
+      image_width: image.value?.width ?? null,
+      image_height: image.value?.height ?? null,
+    })
+    .select("id")
+    .single();
   if (error) {
     await removeImage(supabase, imagePath);
     if (isRateLimited(error)) return { status: "error", message: RATE_LIMITED_MESSAGE };
@@ -140,6 +154,7 @@ export async function publishAnnouncement(
   }
 
   updateTag("announcements");
+  if (parsed.value.status === "public") notifyNewPost(created.id, parsed.value.title);
   return { status: "success", message: SAVED_MESSAGES[parsed.value.status].created };
 }
 
@@ -182,7 +197,7 @@ export async function updateAnnouncement(
 
   const { data: current } = await supabase
     .from("announcements")
-    .select("image_path")
+    .select("image_path, status")
     .eq("id", id)
     .eq("author_id", userId)
     .maybeSingle();
@@ -219,6 +234,10 @@ export async function updateAnnouncement(
   if (newPath || removeCurrent) await removeImage(supabase, current.image_path);
 
   updateTag("announcements");
+  // Only the moment a post becomes public is news: later edits stay quiet.
+  if (parsed.value.status === "public" && current.status !== "public") {
+    notifyNewPost(id, parsed.value.title);
+  }
   return { status: "success", message: SAVED_MESSAGES[parsed.value.status].updated };
 }
 

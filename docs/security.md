@@ -64,6 +64,19 @@ minute, puis la Server Action revalide l'id et l'emoji. L'emoji est contraint pa
 texte libre). Les totaux sont publics et anonymes (la vue ne contient aucun `user_id`) : qui a réagi n'est lisible que
 par la personne elle-même.
 
+## Notifications push (A-135)
+
+- Un abonnement (adresse + clés) permet d'envoyer des notifications à un appareil : la table `push_subscriptions` n'est
+  lisible par aucun client, y compris le propriétaire ; seul le serveur la lit (`service_role`, `src/server/push.ts`).
+- **SSRF** : le serveur appelle l'adresse que le client fournit. Elle est limitée à HTTPS sur les services de push des
+  navigateurs, par la Server Action (`isAllowedPushEndpoint`) **et** par un `check` en base ; un nom approchant
+  (`fcm.googleapis.com.evil.example`), une adresse locale, un port ou des identifiants dans l'URL sont refusés.
+- `VAPID_PRIVATE_KEY` : serveur uniquement, **jamais** `NEXT_PUBLIC_` (la clé publique l'est par conception). La perdre ou
+  la changer invalide tous les abonnements : chacun devra réactiver les notifications.
+- Le message ne contient que le titre d'un post **public** : il ne révèle pas l'auteur (qui peut être masqué) et n'est
+  jamais envoyé pour un brouillon ou un post privé. Aucune adresse d'abonnement ni clé n'est écrite dans les journaux.
+- Un compte banni ne peut plus s'abonner ; ses abonnements existants reçoivent encore les posts, qui sont publics.
+
 ## En-têtes HTTP
 
 Définis dans `next.config.ts` (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`,

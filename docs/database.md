@@ -91,6 +91,22 @@ retire si elle existe (renvoie `true` quand elle est ajoutée). La vue `announce
 `security_invoker = false`, volontaire, comme `announcement_feed`) donne le total par post et par emoji pour les posts
 publics, lisible par `anon` ; elle ne révèle aucun utilisateur. Test : `supabase/tests/database/post_reactions.test.sql`.
 
+### `push_subscriptions`
+
+Abonnements Web Push, un par appareil (migration `20261019110000_push_subscriptions.sql`, ADR 0010). Colonnes : `id`,
+`user_id` (FK `profiles`, `on delete cascade`), `endpoint` (unique), `p256dh`, `auth`, `created_at`. Un abonnement donne
+le droit d'envoyer des notifications à l'appareil : la table est **fermée aux clients** (RLS activée, aucune politique,
+aucun droit pour `anon` / `authenticated`, même pas la lecture de ses propres lignes). Seul le serveur la lit, avec la
+clé `service_role`, pour envoyer et pour purger les abonnements expirés.
+
+`endpoint` est l'adresse où le serveur fera un `POST` : un `check` la limite à HTTPS sur les services de push des
+navigateurs (`fcm.googleapis.com`, `updates.push.services.mozilla.com`, `*.push.apple.com`, `*.notify.windows.com`),
+sinon un client pourrait faire appeler une adresse quelconque par le serveur. Les clés ont un format et une longueur
+contrôlés. Écriture par `save_push_subscription(p_endpoint, p_p256dh, p_auth)` (SECURITY DEFINER, `authenticated`
+seulement : refuse un appelant absent ou banni `42501`, limite `push.write` 20 / minute, reprend l'endpoint à un autre
+compte qui utilisait le même appareil, garde les 10 appareils les plus récents) et `remove_push_subscription(p_endpoint)`
+(supprime seulement l'abonnement de l'appelant). Test : `supabase/tests/database/push_subscriptions.test.sql`.
+
 ### `audit_logs`
 
 Journal des actions d'administration (migration `20261007170000_create_audit_log.sql`).
@@ -220,6 +236,7 @@ limite.
 | -------------------- | --------------------------------------------------------------------- | ------------------ |
 | `announcement.write` | trigger `announcements_rate_limit` (création ou modification d'un post) | 10 / 10 minutes    |
 | `reaction.write`     | fonction `toggle_announcement_reaction` (ajout ou retrait d'une réaction) | 60 / minute        |
+| `push.write`         | fonctions `save_push_subscription` et `remove_push_subscription`        | 20 / minute        |
 | `event.write`        | trigger `events_rate_limit` (création, modification, « terminé »)     | 30 / 10 minutes    |
 | `admin.write`        | trigger `audit_logs_rate_limit` : rôles, permissions, sanctions        | 60 / minute        |
 | `map.write`          | même trigger, entrées `map.*` (tracé, retrait ; la déclaration garde sa règle des 5 s) | 30 / minute |

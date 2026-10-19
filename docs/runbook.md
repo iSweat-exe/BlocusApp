@@ -91,6 +91,29 @@ minutes (approximation, invités exclus).
 - **Vie privée** : pays, région et ville approximatifs, jamais l'adresse IP ; supprimés avec le compte. Voir
   `docs/security.md`.
 
+## Notifications push : clés VAPID (A-135, ADR 0010)
+
+Les notifications sont **désactivées tant que les variables ci-dessous ne sont pas posées** (la section Réglages >
+Notifications est alors masquée et l'envoi ignoré). À faire une seule fois par environnement :
+
+1. Générer une paire de clés : `npx web-push generate-vapid-keys` (affichées dans le terminal : ne pas les coller dans un
+   ticket, un message ou un fichier commité).
+2. Vercel → Project Settings → Environment Variables (Production, et Preview si on veut tester) :
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` : la clé publique (publique par conception) ;
+   - `VAPID_PRIVATE_KEY` : la clé privée, **serveur uniquement** ;
+   - `VAPID_SUBJECT` : un contact pour les services de push, au format `mailto:adresse@exemple.fr` ou une URL `https://` ;
+   - `SUPABASE_SERVICE_ROLE_KEY` : déjà posée (lecture des abonnements).
+3. Redéployer (la clé publique est lue au démarrage).
+
+**Rotation** : changer la clé invalide tous les abonnements (les envois échouent en 401 / 403) ; chacun doit réactiver les
+notifications dans Réglages. À ne faire qu'en cas de fuite de la clé privée.
+
+**Tester** : le service worker n'est enregistré qu'en production (`npm run build && npm run start`, en HTTPS ou sur
+`localhost`). Sur **iPhone** : iOS 16.4 minimum, ouvrir le site dans Safari → Partager → « Sur l'écran d'accueil », lancer
+l'application depuis son icône, Réglages → Notifications → Activer, puis publier un post public depuis un autre appareil.
+Sur **Android** : Chrome, Réglages → Notifications → Activer (l'installation n'est pas obligatoire). Les journaux Vercel
+affichent `[broadcastPush] sent=… removed=… failed=…` après chaque publication.
+
 ## Claims JWT de permissions (A-034)
 
 En local le hook est activé par `supabase/config.toml`. **Sur un projet hébergé**, activer à la main :
