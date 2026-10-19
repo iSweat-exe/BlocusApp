@@ -15,7 +15,7 @@ Apple ni Google. La checklist (A-135a) demande une recherche avant tout code.
 - **Standard** : Web Push = API Push + API Notifications + service worker, avec une paire de clés **VAPID** (RFC 8292) qui
   identifie le serveur, et un message **chiffré** (RFC 8291) par le serveur avec les clés de l'abonné. Aucune plateforme
   propriétaire à configurer : le navigateur fournit l'adresse (`endpoint`) du service de push.
-- **Android** : Chrome (service FCM, `fcm.googleapis.com`) et Firefox ; l'installation de l'application n'est pas requise.
+- **Android** : Chrome (service FCM, `fcm.googleapis.com` ; `jmt17.google.com` pour les versions Beta / Dev / Canary) et Firefox ; l'installation de l'application n'est pas requise.
 - **iOS / iPadOS ≥ 16.4** : uniquement pour une web app **ajoutée à l'écran d'accueil** (manifeste avec
   `display: standalone`, ce qui est déjà le cas) ; la permission ne peut être demandée **qu'en réponse à un geste de
   l'utilisateur** ; passe par APNs (`*.push.apple.com`) ; aucun compte Apple Developer nécessaire ([WebKit, « Web Push

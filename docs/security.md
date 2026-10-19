@@ -85,7 +85,7 @@ par la personne elle-même.
   lisible par aucun client, y compris le propriétaire ; seul le serveur la lit (`service_role`, `src/server/push.ts`).
 - **SSRF** : le serveur appelle l'adresse que le client fournit. Elle est limitée à HTTPS sur les services de push des
   navigateurs, par la Server Action (`isAllowedPushEndpoint`) **et** par un `check` en base ; un nom approchant
-  (`fcm.googleapis.com.evil.example`), une adresse locale, un port ou des identifiants dans l'URL sont refusés.
+  (`fcm.googleapis.com.evil.example`), une adresse locale, un port ou des identifiants dans l'URL sont refusés. Les hôtes sont listés **par nom exact** (jamais `*.google.com`) ; un refus explique son motif à la personne et n'écrit dans les journaux que le nom d'hôte du service, sans chemin ni clé.
 - `VAPID_PRIVATE_KEY` : serveur uniquement, **jamais** `NEXT_PUBLIC_` (la clé publique l'est par conception). La perdre ou
   la changer invalide tous les abonnements : chacun devra réactiver les notifications.
 - Le message ne contient que le titre d'un post **public** : il ne révèle pas l'auteur (qui peut être masqué) et n'est

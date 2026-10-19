@@ -100,8 +100,8 @@ aucun droit pour `anon` / `authenticated`, même pas la lecture de ses propres l
 clé `service_role`, pour envoyer et pour purger les abonnements expirés.
 
 `endpoint` est l'adresse où le serveur fera un `POST` : un `check` la limite à HTTPS sur les services de push des
-navigateurs (`fcm.googleapis.com`, `updates.push.services.mozilla.com`, `*.push.apple.com`, `*.notify.windows.com`),
-sinon un client pourrait faire appeler une adresse quelconque par le serveur. Les clés ont un format et une longueur
+navigateurs (`fcm.googleapis.com`, `jmt17.google.com`, `updates.push.services.mozilla.com`, `*.push.apple.com`, `*.notify.windows.com`),
+sinon un client pourrait faire appeler une adresse quelconque par le serveur. `jmt17.google.com` est l'hôte FCM de test par lequel passent Chrome Beta / Dev / Canary (migration `20261019140000_push_endpoint_jmt17.sql`) : ajouté par son nom exact, jamais `*.google.com`. Les clés ont un format et une longueur
 contrôlés. Écriture par `save_push_subscription(p_endpoint, p_p256dh, p_auth)` (SECURITY DEFINER, `authenticated`
 seulement : refuse un appelant absent ou banni `42501`, limite `push.write` 20 / minute, reprend l'endpoint à un autre
 compte qui utilisait le même appareil, garde les 10 appareils les plus récents) et `remove_push_subscription(p_endpoint)`

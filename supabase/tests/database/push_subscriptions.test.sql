@@ -1,6 +1,6 @@
 -- A-135b: Web Push subscriptions: closed table, save / remove functions, endpoint allow-list, per-user cap.
 begin;
-select plan(16);
+select plan(19);
 
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data)
 values
@@ -47,6 +47,17 @@ select throws_ok(
 select throws_ok(
   $$select public.save_push_subscription('https://fcm.googleapis.com/fcm/send/abc123', 'short', (select auth from keys))$$,
   '23514', null, '9. a malformed key is refused');
+
+-- Chrome Beta / Dev / Canary register through the staging FCM host: accepted by exact name only.
+select lives_ok(
+  $$select public.save_push_subscription('https://jmt17.google.com/fcm/send/abc123', (select p256dh from keys), (select auth from keys))$$,
+  '9b. the staging FCM host of Chrome Beta / Android is accepted');
+select lives_ok(
+  $$select public.remove_push_subscription('https://jmt17.google.com/fcm/send/abc123')$$,
+  '9c. and it can be removed again');
+select throws_ok(
+  $$select public.save_push_subscription('https://jmt17.google.com.evil.example.com/x', (select p256dh from keys), (select auth from keys))$$,
+  '23514', null, '9d. a look-alike of that host is refused');
 
 -- The same device used by another account moves to that account (one row per endpoint).
 set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-0000000000a2", "role": "authenticated"}';
