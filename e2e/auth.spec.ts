@@ -30,6 +30,12 @@ test.describe("sign-in and sign-out", () => {
       await expect(header.getByRole("link", { name: "Mon profil" })).toBeVisible();
       await expect(header.getByRole("link", { name: "Se connecter" })).toHaveCount(0);
 
+      // First launch of a signed-in person: the onboarding covers the page once, "Passer" closes it for good.
+      const onboarding = page.getByRole("dialog", { name: "Bienvenue sur BLOCUS" });
+      await expect(onboarding).toBeVisible();
+      await onboarding.getByRole("button", { name: "Passer" }).click();
+      await expect(onboarding).toHaveCount(0);
+
       // The session lives in httpOnly cookies (SameSite=Lax) that page scripts cannot read, never in web storage.
       const cookies = await sessionCookies(page);
       expect(cookies.length).toBeGreaterThan(0);
@@ -42,6 +48,7 @@ test.describe("sign-in and sign-out", () => {
       await header.getByRole("link", { name: "Mon profil" }).click();
       await page.waitForURL("**/profil");
       await expect(page.getByRole("heading", { level: 1, name: "Mon profil" })).toBeVisible();
+      await expect(page.getByRole("dialog")).toHaveCount(0); // not shown again
       await expect(page.getByText(provider.pseudo)).toBeVisible();
       await expect(page.getByText(`e2e-${provider.name.toLowerCase()}@example.test`)).toBeVisible();
       await expect(page.getByText(provider.name, { exact: true })).toBeVisible();
