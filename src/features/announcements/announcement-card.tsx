@@ -33,7 +33,11 @@ export type CardPost = {
   canReact: boolean;
 };
 
-/** One post of the feed: date, title, optional author, text, optional photo, and the author's controls. */
+/**
+ * One post of the feed: a byline (the author, when they chose to be shown, then the date), the title, the text, an
+ * optional photo, and the author's controls. The author sits in the byline like on the social networks: a small
+ * picture and the pseudo ahead of the date, instead of a line of its own between the title and the text.
+ */
 export function AnnouncementCard({ post, now }: { post: CardPost; now: Date }) {
   const hasControls = post.canDelete || post.mine !== null;
   return (
@@ -41,20 +45,37 @@ export function AnnouncementCard({ post, now }: { post: CardPost; now: Date }) {
       className={`rounded-card border border-line px-4 pt-4 ${hasControls ? "pb-2" : "pb-4"}`}
     >
       <header className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-          <time dateTime={post.date}>{formatAnnouncementDate(post.date, now)}</time>
-          {post.edited && <span>· modifié</span>}
+        <div className="flex items-center gap-1.5 text-xs text-muted">
+          {post.author && (
+            <>
+              <span className="flex min-w-0 items-center gap-1.5">
+                <Avatar
+                  pseudo={post.author.pseudo}
+                  url={post.author.avatarUrl}
+                  size="xs"
+                  decorative
+                />
+                <span className="min-w-0 truncate font-semibold text-foreground">
+                  <span className="sr-only">Par </span>
+                  {post.author.pseudo}
+                </span>
+              </span>
+              <span aria-hidden="true" className="shrink-0">
+                ·
+              </span>
+            </>
+          )}
+          <time dateTime={post.date} className="shrink-0 whitespace-nowrap">
+            {formatAnnouncementDate(post.date, now)}
+          </time>
+          {post.edited && <span className="shrink-0 whitespace-nowrap">· modifié</span>}
           {post.status !== "public" && (
-            <span className="chip chip-accent">{POST_STATUS_LABELS[post.status]}</span>
+            <span className="chip chip-accent ml-1 shrink-0">
+              {POST_STATUS_LABELS[post.status]}
+            </span>
           )}
         </div>
         <h2 className="break-words text-lg font-semibold leading-snug">{post.title}</h2>
-        {post.author && (
-          <p className="flex items-center gap-2 text-sm text-muted">
-            <Avatar pseudo={post.author.pseudo} url={post.author.avatarUrl} size="sm" decorative />
-            <span className="min-w-0 truncate">Par {post.author.pseudo}</span>
-          </p>
-        )}
       </header>
 
       <p className="mt-2 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-foreground/90">
