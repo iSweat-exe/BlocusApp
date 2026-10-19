@@ -312,6 +312,29 @@ et positions déclarés, réactions, abonnements push (seulement l'hôte du serv
 sanctions. Le journal d'audit n'est pas exporté (il décrit des actions d'administrateurs, avec d'autres identifiants). Migration
 `20261019130000_export_my_data.sql`, test `export_my_data.test.sql` (refus `anon`, chaque rubrique, rien sur les autres utilisateurs).
 
+## Réactions sur les événements et liste des réacteurs (`reactions_v2`)
+
+Migration `20261019150000_reactions_v2.sql`. `event_reactions` suit le modèle de `announcement_reactions` : clé
+`(event_id, user_id, emoji)`, palette fixe (check), RLS activée avec la seule lecture de ses propres lignes, aucune écriture
+cliente. `toggle_event_reaction(p_event_id, p_emoji)` (SECURITY DEFINER, `authenticated`) ajoute ou retire la réaction : refuse
+un appelant absent ou banni (`42501`), un événement inconnu (`22023`), limite `reaction.write` partagée avec les posts
+(60 / minute). La vue `event_reaction_counts` (sans `security_invoker`) donne les totaux à tout le monde, sans révéler personne.
+
+`list_announcement_reactors(p_announcement_id)` et `list_event_reactors(p_event_id)` renvoient `(emoji, pseudo)` (500 lignes au
+plus, post public seulement pour les posts). **Connectés seulement** : un invité reçoit `42501` (les pseudos sont des données de
+profil publiques, mais l'invité n'a que les totaux). Test : `supabase/tests/database/reactions_v2.test.sql`.
+
+## Double authentification des administrateurs (`security_settings`, `has_permission()`)
+
+Migration `20261019160000_admin_mfa.sql`, test `admin_mfa.test.sql`. `security_settings` : une seule ligne
+(`id boolean` forcé à `true`), `require_admin_mfa` (faux par défaut), fermée aux clients. `admin_mfa_required()` lit le réglage
+(`authenticated`). `mfa_blocks(user)` (interne) vaut vrai quand le réglage est actif, que l'utilisateur est l'appelant, que son
+rôle a le rang de `admin` ou plus et que le JWT n'a pas `aal = aal2`. `has_permission()` en tient compte : une session retenue en
+AAL1 ne garde que les permissions du rôle de base `user`. Les autres appels (`p_user_id` d'un autre utilisateur, `service_role`)
+ne changent pas. `mfa_blocked()` donne à l'interface ce même verdict pour la session courante. `set_admin_mfa_required(bool)` :
+permission `security.manage` (super_admin seulement, jamais attribuée à un rôle), session AAL2 exigée (`mfa_required` sinon),
+écrit `security.admin_mfa` dans le journal d'audit.
+
 ## Plans de requêtes mesurés (`EXPLAIN ANALYZE`)
 
 Volumes de test, bien au-delà de la cible : 5 000 profils, 20 000 annonces, 20 000 événements, 100 000 entrées

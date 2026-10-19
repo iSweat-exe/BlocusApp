@@ -68,6 +68,33 @@ ADR 0010) : un abonnement par appareil, envoyé quand un post devient public.
 - **Limite connue** : si le navigateur déclenche `beforeinstallprompt` avant le montage de l'onboarding, l'étape d'installation
   n'apparaît pas (le bouton reste disponible dans le menu du navigateur).
 
+## Réactions : événements et « Qui a réagi ? »
+
+`ReactionBar` (`src/features/announcements/reaction-bar.tsx`) sert aux **posts** (`kind="post"`) et aux **événements**
+(`kind="event"`, détail d'un événement, `EventDetail`). `toggleReaction(kind, id, emoji)` appelle la fonction SQL qui convient et
+invalide le tag `reactions` ; les totaux sont lus dans le cache partagé (`listReactionTotals`, `listEventReactionTotals`).
+« Qui a réagi ? » ouvre à la demande la liste des pseudos par emoji (`listReactors`, jamais en cache) : bouton visible des seuls
+comptes connectés, la base refuse l'invité (`42501`).
+
+## Double authentification des administrateurs (A-060)
+
+- **Où** : `src/features/mfa/`. Activation (Réglages > Sécurité, pour qui a une permission d'administration) : `startTotpEnrollment`
+  demande un secret TOTP à Supabase Auth (QR en SVG `data:`, déjà permis par la CSP `img-src`), `confirmTotpEnrollment` vérifie le
+  premier code. Les cookies de session étant `httpOnly`, **tout passe par des Server Actions** (le client navigateur ne lit pas la
+  session).
+- **Application** : `AdminMfaGate` (layout de `/admin`) remplace les sections par la saisie du code (ou l'activation) quand
+  `mfa_blocked()` est vrai, c'est-à-dire exactement quand la base refuserait. **La vraie barrière est en base** (`has_permission()`,
+  voir `docs/database.md`) : un appel direct à PostgREST avec une session OAuth simple est refusé aussi.
+- **Interrupteur** : `/admin/security` (permission `security.manage`, super_admin), derrière un code ; **facultatif par défaut**
+  pour ne verrouiller personne à la fusion. Marche à suivre et récupération : `docs/runbook.md`.
+
+## Tests de parcours (E2E)
+
+`e2e/journeys.spec.ts` : un gérant publie un post, il apparaît dans le fil, on y réagit (palette, total, surbrillance, « Qui a réagi ? »,
+rechargement, retrait), un invité voit les totaux sans pouvoir réagir ; un gérant déclare la position et le repère apparaît sur la
+carte ; un simple membre n'a ni bouton de publication ni de déclaration. Ils s'appuient sur le faux Supabase
+(`e2e/support/fake-supabase.mjs`, scénarios `ok` et `manager`) qui garde posts, réactions et positions en mémoire.
+
 ## Routes
 
 | Groupe   | Route         | Contenu                                  | Accès                                      |

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ReactionBar } from "@/features/announcements/reaction-bar";
+import { buildReactionState } from "@/features/announcements/reactions";
 import { getEvent } from "@/lib/data/events";
+import { listEventReactionTotals, listMyEventReactions } from "@/lib/data/reactions";
 import { getSessionPermissions } from "@/server/session";
 import { deleteEvent } from "./actions";
 import { EventForm } from "./event-form";
@@ -21,6 +24,15 @@ export async function EventDetail({ id }: { id: string }) {
   if (!result.value) notFound();
 
   const event = result.value;
+  // After the session read above, so it runs at request time (the totals are shared through the data cache).
+  const [totals, mine] = await Promise.all([
+    listEventReactionTotals([event.id]),
+    session ? listMyEventReactions(session.userId, [event.id]) : Promise.resolve(null),
+  ]);
+  // A failed read only hides the reactions, never the event.
+  const reactions = totals.ok
+    ? buildReactionState(totals.value[event.id], mine?.ok ? (mine.value[event.id] ?? []) : [])
+    : null;
   const day = dayKeyOf(new Date(event.starts_at));
   const has = (permission: string) => session?.permissions.includes(permission) ?? false;
   // Display only: the Server Actions re-check the permissions and Row Level Security decides.
@@ -55,6 +67,15 @@ export async function EventDetail({ id }: { id: string }) {
         <p className="whitespace-pre-wrap text-sm">{event.description}</p>
       ) : (
         <p className="text-sm text-muted">Pas de description.</p>
+      )}
+
+      {reactions && (
+        <ReactionBar
+          kind="event"
+          targetId={event.id}
+          state={reactions}
+          canReact={session !== null}
+        />
       )}
 
       {canFinish && <FinishToggle id={event.id} finished={finished} />}

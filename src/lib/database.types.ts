@@ -145,6 +145,43 @@ export type Database = {
         };
         Relationships: [];
       };
+      event_reactions: {
+        Row: {
+          created_at: string;
+          emoji: string;
+          event_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          emoji: string;
+          event_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          emoji?: string;
+          event_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_reactions_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_reactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       events: {
         Row: {
           author_id: string | null;
@@ -553,6 +590,14 @@ export type Database = {
         };
         Relationships: [];
       };
+      event_reaction_counts: {
+        Row: {
+          emoji: string | null;
+          event_id: string | null;
+          total: number | null;
+        };
+        Relationships: [];
+      };
       announcement_feed: {
         Row: {
           author_avatar_url: string | null;
@@ -582,6 +627,7 @@ export type Database = {
         Args: { p_label?: string; p_lat: number; p_lng: number };
         Returns: string;
       };
+      admin_mfa_required: { Args: never; Returns: boolean };
       effective_permissions: { Args: { p_user_id: string }; Returns: string[] };
       export_my_data: { Args: never; Returns: Json };
       get_last_seen: { Args: { p_user_id: string }; Returns: string };
@@ -609,6 +655,7 @@ export type Database = {
       has_permission: { Args: { p_permission: string; p_user_id: string }; Returns: boolean };
       is_valid_route: { Args: { p_points: Json }; Returns: boolean };
       is_banned: { Args: { p_user_id: string }; Returns: boolean };
+      mfa_blocked: { Args: never; Returns: boolean };
       public_user_count: { Args: never; Returns: number };
       record_health_snapshot: {
         Args: {
@@ -680,10 +727,20 @@ export type Database = {
           users_total: number;
         }[];
       };
+      list_announcement_reactors: {
+        Args: { p_announcement_id: string };
+        Returns: { emoji: string; pseudo: string }[];
+      };
+      list_event_reactors: {
+        Args: { p_event_id: string };
+        Returns: { emoji: string; pseudo: string }[];
+      };
       toggle_announcement_reaction: {
         Args: { p_announcement_id: string; p_emoji: string };
         Returns: boolean;
       };
+      set_admin_mfa_required: { Args: { p_required: boolean }; Returns: undefined };
+      toggle_event_reaction: { Args: { p_emoji: string; p_event_id: string }; Returns: boolean };
       touch_activity: { Args: never; Returns: undefined };
       write_audit: {
         Args: { p_action: string; p_details?: Json; p_target: string };

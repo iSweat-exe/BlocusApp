@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildReactionState,
+  groupReactors,
   isReactionEmoji,
+  isReactionKind,
   REACTION_EMOJIS,
   toggleReactionState,
 } from "./reactions";
@@ -45,5 +47,25 @@ describe("toggleReactionState", () => {
       counts: {},
       mine: [],
     });
+  });
+});
+
+describe("groupReactors and isReactionKind", () => {
+  it("groups pseudos by emoji in palette order and drops anything else", () => {
+    expect(
+      groupReactors([
+        { emoji: "🔥", pseudo: "carla" },
+        { emoji: "👍", pseudo: "alice" },
+        { emoji: "🤡", pseudo: "ghost" },
+        { emoji: "👍", pseudo: "bob" },
+      ]),
+    ).toEqual({ "👍": ["alice", "bob"], "🔥": ["carla"] });
+  });
+
+  it("knows the two kinds of target", () => {
+    expect(isReactionKind("post")).toBe(true);
+    expect(isReactionKind("event")).toBe(true);
+    expect(isReactionKind("comment")).toBe(false);
+    expect(isReactionKind(undefined)).toBe(false);
   });
 });

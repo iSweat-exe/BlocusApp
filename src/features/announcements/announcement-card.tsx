@@ -74,7 +74,12 @@ export function AnnouncementCard({ post, now }: { post: CardPost; now: Date }) {
       )}
 
       {post.reactions && (
-        <ReactionBar postId={post.id} state={post.reactions} canReact={post.canReact} />
+        <ReactionBar
+          kind="post"
+          targetId={post.id}
+          state={post.reactions}
+          canReact={post.canReact}
+        />
       )}
 
       {hasControls && (

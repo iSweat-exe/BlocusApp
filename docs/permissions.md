@@ -56,6 +56,7 @@ Source de vérité : table `permissions` (migration `20261007130000_create_rbac.
 | `role.assign`          |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |
 | `audit.read`           |   -  |   -   |    -   |    -    |     -     |     ✅     |   ✅   |      ✅      |
 | `permission.manage`    |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |
+| `security.manage`      |   -  |   -   |    -   |    -    |     -     |     -     |   -   |      ✅      |
 | `monitoring.view`      |   -  |   -   |    -   |    -    |     -     |     ✅     |   ✅   |      ✅      |
 | `statistics.view`      |   -  |   -   |    -   |    -    |     -     |     ✅     |   ✅   |      ✅      |
 | `user.origin.view`     |   -  |   -   |    -   |    -    |     -     |     -     |   ✅   |      ✅      |

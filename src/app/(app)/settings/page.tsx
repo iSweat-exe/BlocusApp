@@ -4,6 +4,7 @@ import { CreditsLink } from "@/features/credits/credits-link";
 import { AccentPicker } from "@/features/settings/accent-picker";
 import { ThemePicker } from "@/features/settings/theme-picker";
 import { AccountSection } from "@/features/settings/account-section";
+import { TwoFactorSection } from "@/features/mfa/two-factor-section";
 import { LegalLinks } from "@/features/legal/legal-links";
 import { MyDataSection } from "@/features/legal/my-data-section";
 
@@ -35,6 +36,10 @@ export default function SettingsPage() {
 
       <Suspense fallback={null}>
         <AccountSection />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <TwoFactorSection />
       </Suspense>
 
       <Suspense fallback={null}>

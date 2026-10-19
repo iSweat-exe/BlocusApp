@@ -13,6 +13,7 @@ export const AUDIT_ACTIONS: Record<string, string> = {
   "map.route_saved": "Tracé de la carte modifié",
   "map.position_declared": "Positions déclarées",
   "map.position_removed": "Positions retirées",
+  "security.admin_mfa": "Double authentification des administrateurs",
 };
 
 /** Families of actions, the filter of the journal. Every known action belongs to exactly one. */
@@ -36,6 +37,7 @@ export const AUDIT_CATEGORIES = [
     label: "Carte",
     actions: ["map.route_saved", "map.position_declared", "map.position_removed"],
   },
+  { id: "security", label: "Sécurité", actions: ["security.admin_mfa"] },
 ] as const;
 
 /** Id of the family of an action; `other` for an action this version does not know yet. */
@@ -245,6 +247,13 @@ export function describeAuditEntryParts(entry: AuditEntryView, names: AuditNames
     }
     case "sanction.revoked":
       return sentence`${actor} a levé une sanction de ${target}.`;
+    case "security.admin_mfa": {
+      const required =
+        typeof entry.details === "object" &&
+        entry.details !== null &&
+        (entry.details as Record<string, unknown>).required === true;
+      return sentence`${actor} a ${required ? "rendu obligatoire" : "rendu facultative"} la double authentification des administrateurs.`;
+    }
     default:
       return entry.target_id
         ? sentence`${actor} : ${entry.action} (${target}).`
