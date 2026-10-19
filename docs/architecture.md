@@ -338,6 +338,27 @@ Next.js refuse le rendu en prérendu). Lecture via `src/lib/data/events.ts` (RLS
 `calendar-types.ts` (`DayEvent`, modes de vue). `month-view.tsx` réexporte `computeEventBounds`, `startMarkersOf` et
 `DayEvent`.
 
+**Vues Jour et Semaine, façon Calendrier iOS.**
+- **Jour** (`day-timeline.tsx`, `day-event-block.tsx`) : toute la journée (00:00 → 00:00) sur une ligne de temps qui **défile** dans
+  la zone de 396 px (pas de décalage de page), 56 px par heure, une heure par ligne avec son étiquette à gauche ; elle s'ouvre une
+  heure avant le premier événement. Chaque événement est un bloc teinté avec une **barre pleine à gauche** et le texte dans la
+  même couleur, plus ou moins détaillé selon sa hauteur (`detailFor` : titre seul, + horaire, + lieu). L'**heure exacte de début**
+  s'écrit dans la colonne des heures avec un point et un trait fin (sous les blocs, pour ne pas traverser le titre d'un autre ;
+  l'étiquette grise qu'elle recouvre est masquée, et deux débuts rapprochés n'écrivent qu'une heure). **Aujourd'hui**, un trait
+  d'accent marque l'heure courante (`use-minute-clock.ts` : `null` côté serveur et à l'hydratation, donc aucun écart de rendu).
+- **Superpositions** (`layoutEvents`, `timeline.ts`, fonction pure) : les blocs qui se chevauchent, même par chaîne, forment un
+  groupe ; chacun prend la première colonne libre et tout le groupe partage la largeur (`1 / colonnes`) ; un bloc seul garde toute
+  la largeur. Le chevauchement se juge sur les blocs **tels que dessinés** (hauteur minimale de 28 px en Jour, 8 % en Semaine) : deux
+  débuts à 10 minutes d'écart ne se recouvrent donc jamais. En Semaine, à plusieurs dans une colonne étroite, le bloc n'est qu'une
+  languette colorée (titre dans l'infobulle et le nom accessible).
+- **Couleurs** (`event-colors.ts`) : huit teintes OKLCH (rouge, orange, jaune, vert, sarcelle, bleu, violet, rose) choisies par un
+  hachage de l'identifiant : « aléatoire » mais **stable** (même couleur en Semaine, en Jour et dans la liste, côté serveur comme
+  côté navigateur, sans clignotement à l'hydratation) ; deux événements qui se suivent n'ont jamais la même. Les couleurs se mélangent
+  aux variables du thème (`color-mix`) : un seul réglage sert le thème clair et le sombre. Un événement terminé est gris.
+- **Date de fin** (`day-event.ts`, `toDayEvent`) : la fin est facultative et **n'est jamais inventée**. Sans fin (ou avec une fin qui ne
+  suit pas le début, que le formulaire refuse mais que d'anciennes lignes peuvent contenir), le bloc dure 1 h par défaut et le texte ne
+  donne que l'heure de début. Une fin un autre jour (événement qui passe minuit) est coupée à 24 h. Le début n'est jamais déplacé.
+
 **Page d'un événement** (`/calendar/[id]`, `event-detail.tsx`) : pensée pour le téléphone. Le titre est le seul `h1`. Au-dessus :
 où en est l'événement (« Aujourd'hui », « Demain », « En cours », « Terminé »), puis une carte de trois faits (jour, horaire
 avec sa durée, lieu), la description, les réactions, et pour qui a le droit de gérer, une section « Gérer l'événement »

@@ -62,7 +62,12 @@ export type DayEvent = {
   location: string;
   time: string;
   finished: boolean;
+  /** Fractional hour of the start (`9.5` is 9:30), from 0 to 24. */
   startHour?: number;
+  /**
+   * Fractional hour of the end, up to 24 (an event that runs past midnight stops there). Left out when the event
+   * has no end: the timeline then draws the default length, and `time` is the start alone.
+   */
   endHour?: number;
   /** Exact start (`HH:MM`, local time), shown on the right of the day timeline. Not clamped like `startHour`. */
   startTime?: string;
