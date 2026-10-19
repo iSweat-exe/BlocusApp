@@ -47,3 +47,12 @@ describe("short labels", () => {
     expect(chip).toContain("whitespace-nowrap");
   });
 });
+
+describe("focus", () => {
+  it("never outlines the targets marked as focus-silent, with a rule that beats the global focus ring", () => {
+    expect(css).toMatch(/\[data-focus-silent\]:focus-visible\s*\{\s*outline: none;/);
+    // Unlayered, like the global ring, and declared after it.
+    const ring = css.search(/^:focus-visible \{/m);
+    expect(css.indexOf("[data-focus-silent]:focus-visible")).toBeGreaterThan(ring);
+  });
+});

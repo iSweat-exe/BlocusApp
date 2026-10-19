@@ -341,6 +341,13 @@ label {
   outline-offset: 2px;
 }
 
+/* Targets that only receive focus from a script (a title that gets the focus so screen readers announce it) are
+   never outlined: nobody can Tab to them, so a ring there is noise. The unlayered rule above would beat the
+   `outline-none` utility, hence this opt-in attribute. */
+[data-focus-silent]:focus-visible {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition-duration: 0.01ms !important;

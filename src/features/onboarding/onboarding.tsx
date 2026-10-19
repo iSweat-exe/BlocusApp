@@ -247,7 +247,8 @@ function Sheet({ vapidPublicKey }: { vapidPublicKey: string | null }) {
             <h2
               ref={headingRef}
               tabIndex={-1}
-              className="font-display text-3xl font-extrabold tracking-tight outline-none"
+              data-focus-silent
+              className="font-display text-3xl font-extrabold tracking-tight"
             >
               {TITLES[stepId]}
             </h2>
