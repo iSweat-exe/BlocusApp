@@ -186,6 +186,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-135c** **Priorité** Parcours d'abonnement iOS (installer l'app → activer les notifications) 🆕 — _testé sur iPhone réel_ (fait : Réglages explique « Partager → Sur l'écran d'accueil » tant que l'app n'est pas installée, puis propose « Activer » ; à tester sur iPhone réel)
 - [ ] **A-136** Session persistante en mode standalone (cookies Supabase OK dans la PWA iOS) 🔒 — _reste connecté après fermeture_
 - [ ] **A-137** Audit Lighthouse PWA + tests sur iPhone et Android réels (HTTPS requis, Vercel OK) — _installable, score validé_
+- [~] **A-138** Onboarding à la première ouverture (comptes connectés) : bienvenue, installation de l'app (invite native ou guide iOS), activation des notifications, thème et couleur ; une fois par appareil 🆕 — _fait, à valider sur de vrais téléphones (iPhone Safari, Android Chrome)_
 
 ## Étape 1.11 — Finalisation v1.0.0
 - [ ] **A-110** Revue sécurité complète (RLS, secrets, en-têtes, dépendances) 🔒 — _rapport signé_

@@ -283,3 +283,23 @@ export function RefreshIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** Bell: notifications. */
+export function BellIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16Z" />
+      <path d="M10 21h4" />
+    </Icon>
+  );
+}
+
+/** Square with an arrow going up: the iOS "Share" button. */
+export function ShareIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 15V4M8 8l4-4 4 4" />
+      <path d="M6 11H5v9h14v-9h-1" />
+    </Icon>
+  );
+}

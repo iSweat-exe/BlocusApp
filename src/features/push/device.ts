@@ -7,7 +7,7 @@ export type PushSupport =
   /** The browser has no Web Push (or this is a development build, where the service worker is off). */
   | "unsupported";
 
-type DeviceWindow = {
+export type DeviceWindow = {
   navigator: Pick<Navigator, "userAgent" | "maxTouchPoints"> & { standalone?: boolean };
   matchMedia: (query: string) => { matches: boolean };
 };
@@ -21,19 +21,28 @@ export function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
+/** iPhone / iPad. iPadOS reports itself as a Mac, hence the touch check. */
+export function isIosDevice(nav: Pick<Navigator, "userAgent" | "maxTouchPoints">): boolean {
+  return (
+    /iPad|iPhone|iPod/.test(nav.userAgent) ||
+    (/Macintosh/.test(nav.userAgent) && nav.maxTouchPoints > 1)
+  );
+}
+
+/** Whether the page runs as an installed app (Home Screen / standalone window) rather than in a browser tab. */
+export function isInstalledApp(win: DeviceWindow): boolean {
+  return win.navigator.standalone === true || win.matchMedia("(display-mode: standalone)").matches;
+}
+
 /**
- * Detects the push support of the current device. iPadOS reports itself as a Mac, hence the touch check. The
- * service worker is only registered in production builds, so a development build never supports push.
+ * Detects the push support of the current device. The service worker is only registered in production builds,
+ * so a development build never supports push.
  * @param win - The `window` (injected for tests).
  * @param production - Whether this is a production build.
  */
 export function detectPushSupport(win: DeviceWindow, production: boolean): PushSupport {
-  const { userAgent, maxTouchPoints, standalone } = win.navigator;
-  const ios =
-    /iPad|iPhone|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && maxTouchPoints > 1);
-  const installed = standalone === true || win.matchMedia("(display-mode: standalone)").matches;
   const capable = "serviceWorker" in win.navigator && "PushManager" in win && "Notification" in win;
 
-  if (ios && !installed) return "needs-install";
+  if (isIosDevice(win.navigator) && !isInstalledApp(win)) return "needs-install";
   return production && capable ? "supported" : "unsupported";
 }
