@@ -35,17 +35,26 @@ export type DayEvent = {
 
 const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
-/** Time span from 6h to 24h (18 hours total, without 00h-06h). */
-const TIMELINE_MIN_HOUR = 6;
-const TIMELINE_MAX_HOUR = 24;
-const TIMELINE_SPAN_HOURS = TIMELINE_MAX_HOUR - TIMELINE_MIN_HOUR; // 18
+/** The hours a timeline shows, top to bottom. */
+type TimelineRange = { min: number; max: number };
+
+/** Week columns are narrow and nobody plans before dawn: 6h to 24h (18 hours). */
+const WEEK_RANGE: TimelineRange = { min: 6, max: 24 };
+/** The day view shows the whole day, from midnight to midnight (24 hours). */
+const DAY_RANGE: TimelineRange = { min: 0, max: 24 };
+
 const DEFAULT_START_HOUR = 7.5; // 7h30 par défaut si non renseigné
 const DEFAULT_END_HOUR = 18; // 18h00 par défaut si non renseigné
 
-export function computeEventBounds(event: DayEvent): {
+/** Where an event block starts and how tall it is, in percent of the timeline (`range`: the hours it shows). */
+export function computeEventBounds(
+  event: DayEvent,
+  range: TimelineRange = WEEK_RANGE,
+): {
   topPercent: number;
   heightPercent: number;
 } {
+  const span = range.max - range.min;
   const hasExplicitStart = event.startHour != null;
   const rawStart = hasExplicitStart ? event.startHour! : DEFAULT_START_HOUR;
 
@@ -54,48 +63,49 @@ export function computeEventBounds(event: DayEvent): {
   if (hasExplicitEnd) {
     rawEnd = event.endHour!;
   } else if (hasExplicitStart) {
-    rawEnd =
-      rawStart < DEFAULT_END_HOUR ? DEFAULT_END_HOUR : Math.min(TIMELINE_MAX_HOUR, rawStart + 1);
+    rawEnd = rawStart < DEFAULT_END_HOUR ? DEFAULT_END_HOUR : Math.min(range.max, rawStart + 1);
   } else {
     rawEnd = DEFAULT_END_HOUR;
   }
 
-  const start = Math.max(TIMELINE_MIN_HOUR, Math.min(TIMELINE_MAX_HOUR, rawStart));
-  const end = Math.max(start + 0.5, Math.min(TIMELINE_MAX_HOUR, rawEnd));
+  const start = Math.max(range.min, Math.min(range.max, rawStart));
+  const end = Math.max(start + 0.5, Math.min(range.max, rawEnd));
 
-  const topPercent = Math.max(
-    0,
-    Math.min(92, ((start - TIMELINE_MIN_HOUR) / TIMELINE_SPAN_HOURS) * 100),
-  );
-  const heightPercent = Math.max(
-    8,
-    Math.min(100 - topPercent, ((end - start) / TIMELINE_SPAN_HOURS) * 100),
-  );
+  const topPercent = Math.max(0, Math.min(92, ((start - range.min) / span) * 100));
+  const heightPercent = Math.max(8, Math.min(100 - topPercent, ((end - start) / span) * 100));
 
   return { topPercent, heightPercent };
 }
 
-const KEY_HOURS = [
-  { hour: 6, label: "06:00", percent: 0 },
-  { hour: 12, label: "12:00", percent: ((12 - TIMELINE_MIN_HOUR) / TIMELINE_SPAN_HOURS) * 100 },
-  { hour: 18, label: "18:00", percent: ((18 - TIMELINE_MIN_HOUR) / TIMELINE_SPAN_HOURS) * 100 },
-  { hour: 24, label: "24:00", percent: 100 },
-];
+/**
+ * The hours written on the left of the day timeline: every six hours, midnight at both ends (the bottom one is the
+ * midnight that ends the day, so the timeline reads 00:00 to 00:00).
+ */
+const DAY_HOUR_MARKS = [0, 6, 12, 18, 24].map((hour) => ({
+  hour,
+  label: `${String(hour % 24).padStart(2, "0")}:00`,
+  percent: ((hour - DAY_RANGE.min) / (DAY_RANGE.max - DAY_RANGE.min)) * 100,
+}));
 
 /**
- * One marker per exact start time among the events of the day: its vertical position (where the event block
- * begins) and the time to print on the right of the timeline. Two events that start together share one marker.
+ * One marker per exact start time among the events of the day, like the current-time line of the iOS Calendar: the
+ * vertical position where the event block begins (`topPercent`), the hour it stands for (to hide the grey hour
+ * label it would overlap) and the time to print in the left strip. Events that start together share one marker.
  */
 export function startMarkersOf(
   events: readonly DayEvent[],
-): { startTime: string; topPercent: number }[] {
-  const markers = new Map<string, number>();
+  range: TimelineRange = DAY_RANGE,
+): { startTime: string; topPercent: number; hour: number }[] {
+  const markers = new Map<string, { topPercent: number; hour: number }>();
   for (const event of events) {
     if (!event.startTime || markers.has(event.startTime)) continue;
-    markers.set(event.startTime, computeEventBounds(event).topPercent);
+    markers.set(event.startTime, {
+      topPercent: computeEventBounds(event, range).topPercent,
+      hour: event.startHour ?? DEFAULT_START_HOUR,
+    });
   }
   return [...markers]
-    .map(([startTime, topPercent]) => ({ startTime, topPercent }))
+    .map(([startTime, marker]) => ({ startTime, ...marker }))
     .sort((a, b) => a.topPercent - b.topPercent || a.startTime.localeCompare(b.startTime));
 }
 
@@ -108,7 +118,8 @@ const VIEW_RANK: Record<CalendarViewMode, number> = {
 /**
  * Calendar view with Month, Week, and Day modes.
  * - Week view displays 7 vertical bars (columns) with proportional event blocks (6h - 24h, no scroll).
- * - Day view displays the day with markers at 6h, 12h, 18h, 24h and proportional event blocks without scroll.
+ * - Day view displays the whole day (00:00 to 00:00) with the hours every 6 h on the left, the exact start of each event
+ *   in the left strip (like the iOS Calendar) and proportional event blocks, without scroll.
  * - Navigation slides smoothly left or right only on prev/next button clicks.
  * - Zoom in/out animation transitions smoothly between modes.
  * - Month view keeps days compactly grouped without large holes.
@@ -138,6 +149,7 @@ export function MonthView({
 
   const weeks = monthGrid(month);
   const selected = eventsByDay[day] ?? [];
+  const startMarkers = view === "day" ? startMarkersOf(selected) : [];
   const canCreate = canCreateEvents && day >= today;
 
   // Day selection within current view: pure client state update without jarring grid slide
@@ -642,15 +654,16 @@ export function MonthView({
             </div>
           )}
 
-          {/* Day view: left invisible hour strip, event blocks positioned to the right */}
+          {/* Day view: the whole day (00:00 to 00:00), hours on the left, event blocks to the right */}
           {view === "day" && (
             <div
               tabIndex={0}
-              aria-label={`Planning du ${formatDayKeyLong(day)} de 6h à 24h`}
+              aria-label={`Planning du ${formatDayKeyLong(day)} sur 24 heures`}
               className="relative flex-1 min-h-0 overflow-hidden rounded-control bg-foreground/5 transition-colors select-none p-2"
             >
-              {/* Hours on the left in an invisible strip, guideline lines going across to the right */}
-              {KEY_HOURS.map(({ hour, label, percent }) => (
+              {/* Hours on the left, guideline lines going across to the right. An hour that an event start marker
+                  would overlap is hidden, like iOS does with its current-time label. */}
+              {DAY_HOUR_MARKS.map(({ hour, label, percent }) => (
                 <div
                   key={hour}
                   style={{ top: `${percent}%` }}
@@ -662,33 +675,41 @@ export function MonthView({
                         : "-translate-y-1/2"
                   }`}
                 >
-                  <span className="w-11 text-xs font-medium text-muted text-right pr-2 shrink-0">
+                  <span
+                    className={`w-11 text-xs font-medium text-muted text-right pr-2 shrink-0 ${
+                      startMarkers.some((marker) => Math.abs(marker.hour - hour) < 0.9)
+                        ? "opacity-0"
+                        : ""
+                    }`}
+                  >
                     {label}
                   </span>
                   <div className="flex-1 border-t border-foreground/10" />
                 </div>
               ))}
 
-              {/* Exact start of each event: a bar across the timeline, with the time on its right end, in addition to
-                  the time printed at the top left of the event block. */}
-              {startMarkersOf(selected).map(({ startTime, topPercent }) => (
+              {/* Exact start of each event, in the style of the iOS Calendar: the time in the left strip with the
+                  other hours (in the accent colour), a dot, and a thin line across the timeline, in addition to the
+                  time printed at the top left of the event block. */}
+              {startMarkers.map(({ startTime, topPercent }) => (
                 <div
                   key={startTime}
                   aria-hidden="true"
                   data-start-marker={startTime}
                   style={{ top: `${topPercent}%` }}
-                  className="pointer-events-none absolute left-14 right-2 z-0 flex -translate-y-1/2 items-center"
+                  className="pointer-events-none absolute inset-x-2 z-20 flex -translate-y-1/2 items-center"
                 >
-                  <div className="h-px flex-1 bg-accent/70" />
-                  <span className="w-11 shrink-0 text-right text-[11px] font-semibold tabular-nums text-accent">
+                  <span className="w-11 shrink-0 pr-2 text-right text-xs font-semibold tabular-nums text-accent">
                     {startTime}
                   </span>
+                  <span className="-mr-px size-1.5 shrink-0 rounded-full bg-accent" />
+                  <div className="h-px flex-1 bg-accent" />
                 </div>
               ))}
 
-              {/* Event blocks: between the hours strip (left-14) and the start times (right-14) */}
+              {/* Event blocks: to the right of the hours strip (left-14) */}
               {selected.map((event) => {
-                const { topPercent, heightPercent } = computeEventBounds(event);
+                const { topPercent, heightPercent } = computeEventBounds(event, DAY_RANGE);
 
                 return (
                   <Link
@@ -701,7 +722,7 @@ export function MonthView({
                       top: `${topPercent}%`,
                       height: `${heightPercent}%`,
                     }}
-                    className={`absolute left-14 right-14 rounded-control p-2.5 shadow-sm transition-transform hover:scale-[1.01] flex flex-col justify-between overflow-hidden z-10 ${
+                    className={`absolute left-14 right-2 rounded-control p-2.5 shadow-sm transition-transform hover:scale-[1.01] flex flex-col justify-between overflow-hidden z-10 ${
                       event.finished
                         ? "bg-foreground/20 text-foreground/60 line-through"
                         : "bg-accent text-accent-ink font-semibold shadow-xs"
