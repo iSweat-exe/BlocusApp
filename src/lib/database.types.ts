@@ -23,6 +23,43 @@ export type Database = {
   };
   public: {
     Tables: {
+      announcement_reactions: {
+        Row: {
+          announcement_id: string;
+          created_at: string;
+          emoji: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          announcement_id: string;
+          created_at?: string;
+          emoji: string;
+          user_id: string;
+        };
+        Update: {
+          announcement_id?: string;
+          created_at?: string;
+          emoji?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reactions_announcement_id_fkey";
+            columns: ["announcement_id"];
+            isOneToOne: false;
+            referencedRelation: "announcements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "announcement_reactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       announcements: {
         Row: {
           author_id: string | null;
@@ -472,6 +509,14 @@ export type Database = {
       };
     };
     Views: {
+      announcement_reaction_counts: {
+        Row: {
+          announcement_id: string | null;
+          emoji: string | null;
+          total: number | null;
+        };
+        Relationships: [];
+      };
       announcement_feed: {
         Row: {
           author_avatar_url: string | null;
@@ -591,6 +636,10 @@ export type Database = {
           tracking_since: string | null;
           users_total: number;
         }[];
+      };
+      toggle_announcement_reaction: {
+        Args: { p_announcement_id: string; p_emoji: string };
+        Returns: boolean;
       };
       touch_activity: { Args: never; Returns: undefined };
       write_audit: {

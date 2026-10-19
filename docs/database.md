@@ -75,6 +75,22 @@ posts `public` ; `author_id`, `author_pseudo` et `author_avatar_url` ne sont rem
 `anon` et `authenticated` n'ont que cette vue. **Images** : bucket public `announcement-images` (300 Ko, WebP/JPEG),
 écriture réservée à `announcement.publish` dans son dossier, lecture et suppression par l'auteur ou un modérateur.
 
+### `announcement_reactions`
+
+Réactions emoji sur les posts publics, style Discord (migration `20261019100000_post_reactions.sql`, ADR 0009).
+Colonnes : `announcement_id` (FK `announcements`, `on delete cascade`), `user_id` (FK `profiles`, `on delete cascade`),
+`emoji`, `created_at` ; PK `(announcement_id, user_id, emoji)`. `emoji` est limité par un `check` à une palette fixe de
+8 emojis (`👍 💜 😂 😮 😢 🔥 🎉 👏`), identique à `REACTION_EMOJIS` dans `src/features/announcements/reactions.ts` :
+changer la palette demande une nouvelle migration.
+
+RLS : `authenticated` ne lit que **ses propres** lignes (pour surligner ses réactions) ; **aucun droit d'écriture** pour
+les clients. Toute écriture passe par `toggle_announcement_reaction(p_announcement_id, p_emoji)` (SECURITY DEFINER,
+exécutable par `authenticated` seulement) : refuse un appelant absent ou banni (`42501`), un post qui n'est pas public
+(`22023`), applique la limite `reaction.write` (60 / minute, `rate_limited` `54000`), puis ajoute la réaction ou la
+retire si elle existe (renvoie `true` quand elle est ajoutée). La vue `announcement_reaction_counts` (propriétaire,
+`security_invoker = false`, volontaire, comme `announcement_feed`) donne le total par post et par emoji pour les posts
+publics, lisible par `anon` ; elle ne révèle aucun utilisateur. Test : `supabase/tests/database/post_reactions.test.sql`.
+
 ### `audit_logs`
 
 Journal des actions d'administration (migration `20261007170000_create_audit_log.sql`).
@@ -203,6 +219,7 @@ limite.
 | Compteur             | Déclenché par                                                         | Limite             |
 | -------------------- | --------------------------------------------------------------------- | ------------------ |
 | `announcement.write` | trigger `announcements_rate_limit` (création ou modification d'un post) | 10 / 10 minutes    |
+| `reaction.write`     | fonction `toggle_announcement_reaction` (ajout ou retrait d'une réaction) | 60 / minute        |
 | `event.write`        | trigger `events_rate_limit` (création, modification, « terminé »)     | 30 / 10 minutes    |
 | `admin.write`        | trigger `audit_logs_rate_limit` : rôles, permissions, sanctions        | 60 / minute        |
 | `map.write`          | même trigger, entrées `map.*` (tracé, retrait ; la déclaration garde sa règle des 5 s) | 30 / minute |

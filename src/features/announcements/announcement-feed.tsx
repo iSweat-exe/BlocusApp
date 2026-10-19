@@ -9,10 +9,12 @@ import {
   listMyAnnouncements,
   type MyAnnouncement,
 } from "@/lib/data/announcements";
+import { listMyReactions, listReactionTotals } from "@/lib/data/reactions";
 import { getSessionPermissions } from "@/server/session";
 import { AnnouncementCard, type CardPost } from "./announcement-card";
 import { AnnouncementForm } from "./announcement-form";
 import { FEED_MAX, FEED_STEP } from "./feed-limit";
+import { buildReactionState, type ReactionState } from "./reactions";
 import type { PostStatus } from "./schema";
 
 /** A public post as a card; `mine` is the viewer's own row of that post, if it is theirs. */
@@ -20,6 +22,8 @@ function publicCard(
   post: Announcement,
   mine: MyAnnouncement | undefined,
   canDeleteAny: boolean,
+  reactions: ReactionState,
+  canReact: boolean,
 ): CardPost {
   return {
     id: post.id,
@@ -36,6 +40,8 @@ function publicCard(
       : null,
     mine: mine ?? null,
     canDelete: canDeleteAny || mine !== undefined,
+    reactions,
+    canReact,
   };
 }
 
@@ -54,6 +60,8 @@ function ownCard(post: MyAnnouncement): CardPost {
     author: null,
     mine: post,
     canDelete: true,
+    reactions: null,
+    canReact: false,
   };
 }
 
@@ -82,6 +90,19 @@ export async function AnnouncementFeed({ limit }: { limit: number }) {
   const announcements = result.ok ? result.value.slice(0, limit) : [];
   const hasMore = result.ok && result.value.length > limit;
   const canDeleteAny = can("announcement.delete");
+
+  // Reactions: shared totals (cached) plus, for a signed-in viewer, the emojis they already used. A failure only
+  // hides the reactions; the posts stay readable.
+  const postIds = announcements.map((announcement) => announcement.id);
+  const [totals, mineByPost] = await Promise.all([
+    listReactionTotals(postIds),
+    session ? listMyReactions(session.userId, postIds) : Promise.resolve(null),
+  ]);
+  const reactionsOf = (id: string) =>
+    buildReactionState(
+      totals.ok ? totals.value[id] : undefined,
+      mineByPost?.ok ? (mineByPost.value[id] ?? []) : [],
+    );
 
   return (
     <section aria-label="Actualités" className="flex flex-col gap-4">
@@ -127,7 +148,13 @@ export async function AnnouncementFeed({ limit }: { limit: number }) {
           {announcements.map((announcement) => (
             <li key={announcement.id}>
               <AnnouncementCard
-                post={publicCard(announcement, mineById.get(announcement.id), canDeleteAny)}
+                post={publicCard(
+                  announcement,
+                  mineById.get(announcement.id),
+                  canDeleteAny,
+                  reactionsOf(announcement.id),
+                  session !== null,
+                )}
                 now={now}
               />
             </li>
