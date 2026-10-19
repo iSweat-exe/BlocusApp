@@ -15,15 +15,14 @@ détient les droits (voir le Backlog de la checklist).
 
 | Fichier (`public/images/login/`) | Photo Picsum | Auteur               | Page de la photo                        |
 | -------------------------------- | ------------ | -------------------- | --------------------------------------- |
-| `login-bg-1.webp`                | id 15        | Paul Jarvis          | https://unsplash.com/photos/NYDo21ssGao |
-| `login-bg-2.webp`                | id 47        | Christopher Sardegna | https://unsplash.com/photos/uDUiRS8YroY |
-| `login-bg-3.webp`                | id 29        | Go Wild              | https://unsplash.com/photos/V0yAek6BgGk |
+| `login-bg-1.jpg`                | id 15        | Paul Jarvis          | https://unsplash.com/photos/NYDo21ssGao |
+| `login-bg-2.jpg`                | id 47        | Christopher Sardegna | https://unsplash.com/photos/uDUiRS8YroY |
+| `login-bg-3.jpg`                | id 29        | Go Wild              | https://unsplash.com/photos/V0yAek6BgGk |
 
 - **Licence** : celle d'Unsplash (d'après Lorem Picsum). Elle autorise l'usage libre, commercial compris, sans
   permission préalable. À **vérifier sur la page de chaque photo** avant la mise en production.
-- **Traitement** : téléchargées en `https://picsum.photos/id/<id>/1200/800.webp`, redimensionnées à 900 px de large
-  et recompressées en WebP qualité 40 avec `sharp` (déjà présent avec Next.js, aucune dépendance ajoutée). Poids :
-  58, 20 et 85 Ko.
+- **Traitement** : fichiers JPEG tels que fournis (ils remplacent les WebP de 58, 20 et 85 Ko). Poids :
+  414, 277 et 349 Ko, au-dessus de l'objectif de 100 Ko ci-dessous ; une seule image est téléchargée par visite.
 - **Aucune requête vers Picsum à l'exécution** : les fichiers sont servis par l'application elle-même (`img-src
   'self'`, pas de changement de CSP, aucune donnée de visiteur envoyée à un tiers).
 - **Remplacer** : déposer les nouveaux fichiers dans `public/images/login/` (ou modifier `LOGIN_BACKGROUNDS` dans
