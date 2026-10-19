@@ -96,7 +96,7 @@ export function ImminentBanner({
               addDismissed(storage(), event.id);
               setClosedNow((ids) => [...ids, event.id]);
             }}
-            className="flex h-tap w-tap items-center justify-center self-start rounded-control text-xl leading-none"
+            className="flex h-tap w-tap items-center justify-center self-start rounded-control text-xl leading-none transition-colors active:bg-accent-ink/20"
           >
             ×
           </button>

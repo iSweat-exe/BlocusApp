@@ -55,7 +55,7 @@ export function ViewSwitcher({
         aria-expanded={isOpen}
         aria-label={`Changer de vue (actuelle : ${activeOption.label})`}
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-tap w-tap items-center justify-center rounded-control border border-foreground/10 bg-foreground/5 text-foreground transition-all hover:bg-foreground/10 active:scale-95"
+        className="flex h-tap w-tap items-center justify-center rounded-control border border-foreground/10 bg-foreground/5 text-foreground transition-[scale,background-color] [@media(hover:hover)]:hover:bg-foreground/10 active:scale-[0.96]"
       >
         <ActiveIcon className="size-5" />
       </button>
@@ -67,7 +67,7 @@ export function ViewSwitcher({
           style={{
             backgroundColor: "color-mix(in srgb, var(--foreground) 8%, var(--background))",
           }}
-          className="absolute right-0 top-full z-30 mt-1.5 min-w-[150px] rounded-control border border-line-strong bg-background p-1 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-100"
+          className="absolute right-0 top-full z-30 mt-1.5 min-w-[150px] rounded-control border border-line-strong bg-background p-1 shadow-2xl backdrop-blur-md origin-top-right animate-fade-in"
         >
           {VIEW_OPTIONS.map((option) => {
             const OptionIcon = option.Icon;
@@ -79,10 +79,10 @@ export function ViewSwitcher({
                 type="button"
                 aria-current={isSelected ? "true" : undefined}
                 onClick={() => selectOption(option)}
-                className={`flex w-full items-center justify-between rounded-control px-3 py-2 text-sm transition-colors ${
+                className={`flex min-h-tap w-full items-center justify-between rounded-lg px-3 text-sm transition-colors ${
                   isSelected
                     ? "bg-foreground/15 text-foreground font-semibold"
-                    : "text-foreground font-medium hover:bg-foreground/10 active:bg-foreground/15"
+                    : "text-foreground font-medium [@media(hover:hover)]:hover:bg-foreground/10 active:bg-foreground/15"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
