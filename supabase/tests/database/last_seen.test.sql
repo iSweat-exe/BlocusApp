@@ -17,10 +17,12 @@ select is(
   array['admin'],
   'user.activity.view is granted to admin only');
 
--- A user seen a minute ago, one seen in an earlier hour.
+-- A user seen a minute ago, one seen in an earlier hour. The second is placed at the start of the previous hour,
+-- not one minute before this hour: that instant is less than 5 minutes ago during the first minutes of an hour,
+-- where touch_activity() rightly leaves the date alone (the test would then depend on the time it runs).
 insert into public.user_activity (user_id, last_seen_at) values
   ('00000000-0000-0000-0000-0000000000e1', now() - interval '1 minute'),
-  ('00000000-0000-0000-0000-0000000000e2', date_trunc('hour', now(), 'UTC') - interval '1 minute');
+  ('00000000-0000-0000-0000-0000000000e2', date_trunc('hour', now(), 'UTC') - interval '1 hour');
 
 -- touch_activity(): at most one move every 5 minutes.
 set local role authenticated;
