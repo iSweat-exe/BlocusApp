@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { NotificationsSection } from "@/features/push/notifications-section";
 import { CreditsLink } from "@/features/credits/credits-link";
 import { AccentPicker } from "@/features/settings/accent-picker";
 import { ThemePicker } from "@/features/settings/theme-picker";
@@ -25,6 +26,10 @@ export default function SettingsPage() {
         </p>
         <AccentPicker />
       </section>
+
+      <Suspense fallback={null}>
+        <NotificationsSection />
+      </Suspense>
 
       <Suspense fallback={null}>
         <AccountSection />

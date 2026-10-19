@@ -30,8 +30,26 @@ Supabase
 Gestion d'une manifestation dans une ville X : carte avec tracé des déplacements (éditable sur mobile,
 outils pour les gérants dont la déclaration de la position actuelle : GPS + heure), accueil = dernières
 actualités publiées par les personnes autorisées. Connexion Discord / Google ou mode Guest (lecture seule).
-Pas de messagerie pour l'instant (communication via Instagram). Notifications push PWA iOS/Android :
-priorité après l'authentification (A-135).
+Pas de messagerie pour l'instant (communication via Instagram). Notifications push PWA iOS/Android (A-135,
+ADR 0010) : un abonnement par appareil, envoyé quand un post devient public.
+
+## Notifications push (A-135, ADR 0010)
+
+- **Abonnement** : Réglages > Notifications (`src/features/push/notifications-section.tsx`, `push-settings.tsx`). Le
+  bouton « Activer » demande la permission **sur le geste de l'utilisateur** (obligatoire sur iOS), s'abonne avec la clé
+  publique VAPID (`PushManager.subscribe`, `userVisibleOnly: true`) puis enregistre l'abonnement par la Server Action
+  `savePushSubscription` → fonction SQL `save_push_subscription`. Sur iPhone / iPad tant que l'app n'est pas ajoutée à
+  l'écran d'accueil, la section explique comment l'installer (iOS ne propose le push qu'aux apps installées). Rien n'est
+  demandé au chargement d'une page. Un invité est invité à se connecter (l'abonnement appartient à un compte).
+- **Envoi** : `publishAnnouncement` / `updateAnnouncement` appellent `broadcastPush` (`src/server/push.ts`) dans
+  `after()`, donc après la réponse à l'auteur, **seulement quand un post devient public** (pas pour un brouillon, un
+  post privé ni une simple modification). Lecture de tous les abonnements avec la clé `service_role`, envoi par lots de
+  20 avec la librairie `web-push` (chiffrement RFC 8291, signature VAPID), TTL 24 h. Les abonnements que le service de
+  push déclare disparus (404 / 410) sont supprimés. Sans clés VAPID, l'envoi est ignoré et la section est masquée.
+- **Message** : JSON au format *Declarative Web Push* (`web_push: 8030`), que Safari 18.4+ affiche même sans service worker ;
+  les autres navigateurs le passent à `public/sw.js`, qui lit le même champ `notification`, affiche **toujours** une
+  notification (Safari retire la permission à un site qui reçoit un push sans rien afficher) et, au toucher, ouvre ou
+  ramène l'application (adresses du même site uniquement).
 
 ## Routes
 
