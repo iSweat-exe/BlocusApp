@@ -2,12 +2,16 @@ import { Suspense } from "react";
 import { AppHeader, AppHeaderFallback } from "@/components/app-header";
 import { AppNav } from "@/components/app-nav";
 import { RefreshOnReturn } from "@/components/refresh-on-return";
+import { OnboardingGate } from "@/features/onboarding/onboarding-gate";
 
 // Guests may read (A-022); the access guard for write actions is tracked in A-121.
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <RefreshOnReturn />
+      <Suspense>
+        <OnboardingGate />
+      </Suspense>
       <Suspense fallback={<AppHeaderFallback />}>
         <AppHeader />
       </Suspense>

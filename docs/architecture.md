@@ -51,6 +51,23 @@ ADR 0010) : un abonnement par appareil, envoyé quand un post devient public.
   notification (Safari retire la permission à un site qui reçoit un push sans rien afficher) et, au toucher, ouvre ou
   ramène l'application (adresses du même site uniquement).
 
+## Onboarding (première ouverture, A-138)
+
+- **Où** : `src/features/onboarding/`. `OnboardingGate` (Server Component, dans `src/app/(app)/layout.tsx`, sous `Suspense`) ne monte
+  `Onboarding` que pour une personne **connectée** (l'invité est en lecture seule : ni compte, ni notifications). La session est lue
+  par `getSessionPermissions()`, déjà partagée avec l'en-tête.
+- **Forme** : une feuille plein écran (`<dialog>` natif : focus piégé, Échap et geste retour = « Passer »), barre de progression,
+  bouton principal épinglé en bas, entrée en cascade (100 ms) de l'écran d'accueil, `prefers-reduced-motion` respecté.
+- **Étapes** : Bienvenue (Accueil, Calendrier, Carte) → Installer l'app → Notifications → Thème et couleur. Les étapes inutiles
+  sont retirées (`buildSteps`) : « Installer » seulement s'il y a une invite native (Chrome / Edge, `beforeinstallprompt` gardée
+  par `install.ts`) ou sur Safari iOS (guide Partager > Sur l'écran d'accueil) ; « Notifications » seulement si l'appareil les
+  supporte (réutilise `PushSettings`, donc la même logique d'abonnement) ; « Thème » réutilise `ThemePicker` et `AccentPicker`.
+- **Mémoire** : `localStorage` (`blocus.onboarding.v1`), **par appareil** : l'installation et les notifications sont par appareil,
+  un nouveau téléphone le revoit. Stockage bloqué : considéré comme terminé (on ne harcèle pas à chaque page). Changer la version
+  de la clé le réaffiche à tout le monde. Aucune table, aucune migration.
+- **Limite connue** : si le navigateur déclenche `beforeinstallprompt` avant le montage de l'onboarding, l'étape d'installation
+  n'apparaît pas (le bouton reste disponible dans le menu du navigateur).
+
 ## Routes
 
 | Groupe   | Route         | Contenu                                  | Accès                                      |
