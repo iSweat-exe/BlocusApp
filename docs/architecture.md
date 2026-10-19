@@ -97,6 +97,13 @@ revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en 
 colorée, d'ombre ni de pastille) : date lisible (« Aujourd'hui, 19:35 », « Hier, 15:11 », « 1 oct., 09:00 ») au-dessus du
 titre pleine largeur, puis le texte ; la suppression est un bouton discret en pied de carte (seulement si
 autorisé) qui demande une confirmation explicite (`delete-announcement-button.tsx`).
+Réactions (ADR 0009) : sous chaque post public, `ReactionBar` (composant client, `reaction-bar.tsx`) affiche une
+pastille par emoji déjà utilisé (surlignée si le visiteur l'a choisi) et un bouton « + » qui ouvre la palette de 8
+emojis. Le clic met l'écran à jour tout de suite (`useOptimistic`) puis appelle la Server Action `toggleReaction`
+(`reaction-actions.ts`) ; en cas de refus, le changement est annulé et la raison affichée. Les totaux viennent de
+`src/lib/data/reactions.ts` (cache partagé 2 min, tag `reactions`, expiré par chaque réaction et par « Actualiser ») ;
+les réactions du visiteur sont lues hors cache. Un Guest voit les totaux sans pouvoir réagir ; brouillons et posts
+privés n'ont pas de réactions.
 Posts v2 (ADR 0007) : le fil public vient de la vue `announcement_feed` (cache partagé de 2 min). Les titulaires de
 `announcement.publish` ont en plus, hors cache, leurs brouillons et posts privés (section « Mes brouillons et posts
 privés ») et un bouton « Modifier » sur leurs posts (`updateAnnouncement`, formulaire prérempli dans la feuille plein
