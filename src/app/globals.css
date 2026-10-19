@@ -24,6 +24,8 @@
   --google: #4285f4;
   --discord: #5865f2;
   --discord-strong: #4752c4;
+  /* Image outline: pure black (pure white in dark); a tinted one reads as dirt on the image edge. */
+  --image-outline: oklch(0 0 0 / 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -36,6 +38,7 @@
     --danger: #f87171;
     --success: #4ade80;
     --warning: #fbbf24;
+    --image-outline: oklch(1 0 0 / 0.1);
   }
 }
 
@@ -48,6 +51,7 @@
   --danger: #f87171;
   --success: #4ade80;
   --warning: #fbbf24;
+  --image-outline: oklch(1 0 0 / 0.1);
 }
 
 /* 2. Theme: tokens exposed as Tailwind utilities (bg-accent, text-muted, rounded-card, min-h-control…). */
@@ -98,6 +102,7 @@
   /* Motion. */
   --animate-sheet-up: sheet-up 240ms cubic-bezier(0.32, 0.72, 0, 1);
   --animate-fade-in: fade-in 200ms ease-out;
+  --animate-rise-in: rise-in 400ms cubic-bezier(0.2, 0, 0, 1) backwards;
   --animate-gear-spin: icon-gear-spin 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --animate-home-bounce: icon-home-bounce 500ms ease-out;
   --animate-calendar-pop: icon-calendar-pop 500ms ease-out;
@@ -107,6 +112,16 @@
       transform: translateY(100%);
     }
     to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
       transform: translateY(0);
     }
   }
@@ -188,6 +203,11 @@
   .card {
     @apply rounded-card border border-line bg-surface;
   }
+  /* Subtle inset outline on pictures: depth without adding to the layout (use instead of a border). */
+  .img-outline {
+    outline: 1px solid var(--image-outline);
+    outline-offset: -1px;
+  }
   .card-link {
     @apply rounded-card border border-line bg-surface active:bg-foreground/10;
   }
@@ -219,7 +239,7 @@
 
   /* Buttons: combine `.btn` with one variant. */
   .btn {
-    @apply inline-flex min-h-control items-center justify-center rounded-control px-5 text-base font-semibold disabled:opacity-60;
+    @apply inline-flex min-h-control items-center justify-center rounded-control px-5 text-base font-semibold transition-[scale,background-color,opacity] active:scale-[0.96] disabled:opacity-60;
   }
   .btn-primary {
     @apply bg-accent text-accent-ink active:bg-accent-strong;
@@ -266,6 +286,11 @@
   h2,
   h3 {
     font-family: var(--font-display);
+    text-wrap: balance;
+  }
+  p,
+  li {
+    text-wrap: pretty;
   }
 }
 

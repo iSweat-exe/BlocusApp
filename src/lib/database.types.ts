@@ -23,6 +23,43 @@ export type Database = {
   };
   public: {
     Tables: {
+      announcement_reactions: {
+        Row: {
+          announcement_id: string;
+          created_at: string;
+          emoji: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          announcement_id: string;
+          created_at?: string;
+          emoji: string;
+          user_id: string;
+        };
+        Update: {
+          announcement_id?: string;
+          created_at?: string;
+          emoji?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reactions_announcement_id_fkey";
+            columns: ["announcement_id"];
+            isOneToOne: false;
+            referencedRelation: "announcements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "announcement_reactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       announcements: {
         Row: {
           author_id: string | null;
@@ -387,6 +424,42 @@ export type Database = {
           },
         ];
       };
+      push_subscriptions: {
+        Row: {
+          auth: string;
+          created_at: string;
+          endpoint: string;
+          id: string;
+          p256dh: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          auth: string;
+          created_at?: string;
+          endpoint: string;
+          id?: string;
+          p256dh: string;
+          user_id: string;
+        };
+        Update: {
+          auth?: string;
+          created_at?: string;
+          endpoint?: string;
+          id?: string;
+          p256dh?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       role_permissions: {
         Row: {
           permission: string;
@@ -472,6 +545,14 @@ export type Database = {
       };
     };
     Views: {
+      announcement_reaction_counts: {
+        Row: {
+          announcement_id: string | null;
+          emoji: string | null;
+          total: number | null;
+        };
+        Relationships: [];
+      };
       announcement_feed: {
         Row: {
           author_avatar_url: string | null;
@@ -549,6 +630,11 @@ export type Database = {
       revoke_sanction: { Args: { p_id: string }; Returns: undefined };
       role_rank: { Args: { p_role: string }; Returns: number };
       save_map_route: { Args: { p_base?: string; p_points: Json }; Returns: string };
+      remove_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
+      save_push_subscription: {
+        Args: { p_auth: string; p_endpoint: string; p_p256dh: string };
+        Returns: undefined;
+      };
       set_event_finished: { Args: { p_finished: boolean; p_id: string }; Returns: undefined };
       set_role_permission: {
         Args: { p_granted: boolean; p_permission: string; p_role: string };
@@ -592,6 +678,10 @@ export type Database = {
           tracking_since: string | null;
           users_total: number;
         }[];
+      };
+      toggle_announcement_reaction: {
+        Args: { p_announcement_id: string; p_emoji: string };
+        Returns: boolean;
       };
       touch_activity: { Args: never; Returns: undefined };
       write_audit: {

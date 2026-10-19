@@ -30,8 +30,43 @@ Supabase
 Gestion d'une manifestation dans une ville X : carte avec tracé des déplacements (éditable sur mobile,
 outils pour les gérants dont la déclaration de la position actuelle : GPS + heure), accueil = dernières
 actualités publiées par les personnes autorisées. Connexion Discord / Google ou mode Guest (lecture seule).
-Pas de messagerie pour l'instant (communication via Instagram). Notifications push PWA iOS/Android :
-priorité après l'authentification (A-135).
+Pas de messagerie pour l'instant (communication via Instagram). Notifications push PWA iOS/Android (A-135,
+ADR 0010) : un abonnement par appareil, envoyé quand un post devient public.
+
+## Notifications push (A-135, ADR 0010)
+
+- **Abonnement** : Réglages > Notifications (`src/features/push/notifications-section.tsx`, `push-settings.tsx`). Le
+  bouton « Activer » demande la permission **sur le geste de l'utilisateur** (obligatoire sur iOS), s'abonne avec la clé
+  publique VAPID (`PushManager.subscribe`, `userVisibleOnly: true`) puis enregistre l'abonnement par la Server Action
+  `savePushSubscription` → fonction SQL `save_push_subscription`. Sur iPhone / iPad tant que l'app n'est pas ajoutée à
+  l'écran d'accueil, la section explique comment l'installer (iOS ne propose le push qu'aux apps installées). Rien n'est
+  demandé au chargement d'une page. Un invité est invité à se connecter (l'abonnement appartient à un compte).
+- **Envoi** : `publishAnnouncement` / `updateAnnouncement` appellent `broadcastPush` (`src/server/push.ts`) dans
+  `after()`, donc après la réponse à l'auteur, **seulement quand un post devient public** (pas pour un brouillon, un
+  post privé ni une simple modification). Lecture de tous les abonnements avec la clé `service_role`, envoi par lots de
+  20 avec la librairie `web-push` (chiffrement RFC 8291, signature VAPID), TTL 24 h. Les abonnements que le service de
+  push déclare disparus (404 / 410) sont supprimés. Sans clés VAPID, l'envoi est ignoré et la section est masquée.
+- **Message** : JSON au format *Declarative Web Push* (`web_push: 8030`), que Safari 18.4+ affiche même sans service worker ;
+  les autres navigateurs le passent à `public/sw.js`, qui lit le même champ `notification`, affiche **toujours** une
+  notification (Safari retire la permission à un site qui reçoit un push sans rien afficher) et, au toucher, ouvre ou
+  ramène l'application (adresses du même site uniquement).
+
+## Onboarding (première ouverture, A-138)
+
+- **Où** : `src/features/onboarding/`. `OnboardingGate` (Server Component, dans `src/app/(app)/layout.tsx`, sous `Suspense`) ne monte
+  `Onboarding` que pour une personne **connectée** (l'invité est en lecture seule : ni compte, ni notifications). La session est lue
+  par `getSessionPermissions()`, déjà partagée avec l'en-tête.
+- **Forme** : une feuille plein écran (`<dialog>` natif : focus piégé, Échap et geste retour = « Passer »), barre de progression,
+  bouton principal épinglé en bas, entrée en cascade (100 ms) de l'écran d'accueil, `prefers-reduced-motion` respecté.
+- **Étapes** : Bienvenue (Accueil, Calendrier, Carte) → Installer l'app → Notifications → Thème et couleur. Les étapes inutiles
+  sont retirées (`buildSteps`) : « Installer » seulement s'il y a une invite native (Chrome / Edge, `beforeinstallprompt` gardée
+  par `install.ts`) ou sur Safari iOS (guide Partager > Sur l'écran d'accueil) ; « Notifications » seulement si l'appareil les
+  supporte (réutilise `PushSettings`, donc la même logique d'abonnement) ; « Thème » réutilise `ThemePicker` et `AccentPicker`.
+- **Mémoire** : `localStorage` (`blocus.onboarding.v1`), **par appareil** : l'installation et les notifications sont par appareil,
+  un nouveau téléphone le revoit. Stockage bloqué : considéré comme terminé (on ne harcèle pas à chaque page). Changer la version
+  de la clé le réaffiche à tout le monde. Aucune table, aucune migration.
+- **Limite connue** : si le navigateur déclenche `beforeinstallprompt` avant le montage de l'onboarding, l'étape d'installation
+  n'apparaît pas (le bouton reste disponible dans le menu du navigateur).
 
 ## Routes
 
@@ -97,6 +132,13 @@ revérifie en base ; l'auteur est toujours l'appelant. Le texte est affiché en 
 colorée, d'ombre ni de pastille) : date lisible (« Aujourd'hui, 19:35 », « Hier, 15:11 », « 1 oct., 09:00 ») au-dessus du
 titre pleine largeur, puis le texte ; la suppression est un bouton discret en pied de carte (seulement si
 autorisé) qui demande une confirmation explicite (`delete-announcement-button.tsx`).
+Réactions (ADR 0009) : sous chaque post public, `ReactionBar` (composant client, `reaction-bar.tsx`) affiche une
+pastille par emoji déjà utilisé (surlignée si le visiteur l'a choisi) et un bouton « + » qui ouvre la palette de 8
+emojis. Le clic met l'écran à jour tout de suite (`useOptimistic`) puis appelle la Server Action `toggleReaction`
+(`reaction-actions.ts`) ; en cas de refus, le changement est annulé et la raison affichée. Les totaux viennent de
+`src/lib/data/reactions.ts` (cache partagé 2 min, tag `reactions`, expiré par chaque réaction et par « Actualiser ») ;
+les réactions du visiteur sont lues hors cache. Un Guest voit les totaux sans pouvoir réagir ; brouillons et posts
+privés n'ont pas de réactions.
 Posts v2 (ADR 0007) : le fil public vient de la vue `announcement_feed` (cache partagé de 2 min). Les titulaires de
 `announcement.publish` ont en plus, hors cache, leurs brouillons et posts privés (section « Mes brouillons et posts
 privés ») et un bouton « Modifier » sur leurs posts (`updateAnnouncement`, formulaire prérempli dans la feuille plein

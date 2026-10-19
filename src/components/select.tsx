@@ -179,7 +179,7 @@ export function Select({
                     aria-selected={isSelected}
                     onMouseEnter={() => setActive(index)}
                     onClick={() => choose(index)}
-                    className={`flex min-h-control cursor-pointer items-center justify-between gap-3 rounded-control px-4 py-2 text-base sm:min-h-control-sm sm:whitespace-nowrap sm:text-sm ${
+                    className={`flex min-h-control cursor-pointer items-center justify-between gap-3 rounded-control sm:rounded-lg px-4 py-2 text-base sm:min-h-control-sm sm:whitespace-nowrap sm:text-sm ${
                       index === active ? "bg-foreground/10" : ""
                     } ${isSelected ? "font-semibold" : ""}`}
                   >

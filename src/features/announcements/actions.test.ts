@@ -7,6 +7,10 @@ const updateTag = vi.fn();
 const upload = vi.fn();
 const remove = vi.fn();
 const insert = vi.fn();
+const broadcastPush = vi.fn();
+
+// `insert(...).select("id").single()` resolves to `result`.
+const inserted = (result: unknown) => ({ select: () => ({ single: async () => result }) });
 
 // A query builder: every method returns the builder, awaiting it gives `result`.
 function chain(result: unknown) {
@@ -26,6 +30,11 @@ const deleteFn = vi.fn();
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({})) }));
 vi.mock("next/cache", () => ({ updateTag: (...args: unknown[]) => updateTag(...args) }));
+// `after()` runs its callback at once so the tests can see what it does.
+vi.mock("next/server", () => ({ after: (task: () => unknown) => task() }));
+vi.mock("@/server/push", () => ({
+  broadcastPush: (...args: unknown[]) => broadcastPush(...args),
+}));
 vi.mock("@/server/require-permission", () => ({
   requirePermission: (...args: unknown[]) => requirePermission(...args),
 }));
@@ -71,10 +80,10 @@ const pngFile = () =>
 beforeEach(() => {
   vi.clearAllMocks();
   requirePermission.mockResolvedValue({ ok: true, value: { userId: "u1" } });
-  insert.mockResolvedValue({ error: null });
+  insert.mockReturnValue(inserted({ data: { id: ID }, error: null }));
   upload.mockResolvedValue({ error: null });
   remove.mockResolvedValue({ error: null });
-  selectResult = { data: { image_path: OLD_PATH }, error: null };
+  selectResult = { data: { image_path: OLD_PATH, status: "public" }, error: null };
   updateResult = { data: [{ id: ID }], error: null };
   deleteResult = { error: null };
 });
@@ -117,6 +126,21 @@ describe("publishAnnouncement", () => {
     });
     expect(updateTag).toHaveBeenCalledWith("announcements");
     expect(upload).not.toHaveBeenCalled();
+  });
+
+  it("notifies the subscribed devices of a new public post, not of a draft", async () => {
+    await publishAnnouncement(IDLE, form({ title: "Départ à 14h", body: "b" }));
+    expect(broadcastPush).toHaveBeenCalledWith({
+      title: "Nouveau post",
+      body: "Départ à 14h",
+      path: "/",
+      tag: `post-${ID}`,
+    });
+
+    broadcastPush.mockClear();
+    await publishAnnouncement(IDLE, form({ title: "t", body: "b", status: "draft" }));
+    await publishAnnouncement(IDLE, form({ title: "t", body: "b", status: "private" }));
+    expect(broadcastPush).not.toHaveBeenCalled();
   });
 
   it("saves a draft or a private post with its own message, and the show-author choice", async () => {
@@ -196,7 +220,7 @@ describe("publishAnnouncement", () => {
   });
 
   it("removes the uploaded file when the post cannot be created", async () => {
-    insert.mockResolvedValue({ error: { message: "boom" } });
+    insert.mockReturnValue(inserted({ data: null, error: { message: "boom" } }));
     const state = await publishAnnouncement(
       IDLE,
       form({ title: "t", body: "b", image: webpFile(), image_width: "10", image_height: "10" }),
@@ -206,14 +230,14 @@ describe("publishAnnouncement", () => {
   });
 
   it("reports a database failure", async () => {
-    insert.mockResolvedValue({ error: { message: "boom" } });
+    insert.mockReturnValue(inserted({ data: null, error: { message: "boom" } }));
     expect(await publishAnnouncement(IDLE, form({ title: "t", body: "b" }))).toMatchObject({
       status: "error",
     });
   });
 
   it("tells the user to slow down when the database rate limit is hit, and removes the file", async () => {
-    insert.mockResolvedValue({ error: { message: "rate_limited" } });
+    insert.mockReturnValue(inserted({ data: null, error: { message: "rate_limited" } }));
     const state = await publishAnnouncement(
       IDLE,
       form({ title: "t", body: "b", image: webpFile(), image_width: "10", image_height: "10" }),
@@ -250,6 +274,17 @@ describe("updateAnnouncement", () => {
     });
     expect(remove).not.toHaveBeenCalled();
     expect(updateTag).toHaveBeenCalledWith("announcements");
+  });
+
+  it("notifies only when a post becomes public, not when a public post is edited", async () => {
+    selectResult = { data: { image_path: null, status: "draft" }, error: null };
+    await updateAnnouncement(IDLE, form({ id: ID, title: "Prêt", body: "b" }));
+    expect(broadcastPush).toHaveBeenCalledWith(expect.objectContaining({ body: "Prêt" }));
+
+    broadcastPush.mockClear();
+    selectResult = { data: { image_path: null, status: "public" }, error: null };
+    await updateAnnouncement(IDLE, form({ id: ID, title: "Prêt", body: "b2" }));
+    expect(broadcastPush).not.toHaveBeenCalled();
   });
 
   it("replaces the image, then removes the old file", async () => {

@@ -52,7 +52,7 @@ export function AccentPicker() {
                 writeAccent(preset.hex === DEFAULT_ACCENT ? null : preset.hex);
               }}
               style={{ backgroundColor: preset.hex }}
-              className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full text-white shadow-sm active:scale-95 ${
+              className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full text-white shadow-sm transition-transform active:scale-[0.96] ${
                 selected ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : ""
               }`}
             >

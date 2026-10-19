@@ -6,6 +6,8 @@ import { AnnouncementForm } from "./announcement-form";
 import { formatAnnouncementDate } from "./date";
 import { DeleteAnnouncementButton } from "./delete-announcement-button";
 import { announcementImageUrl } from "./image";
+import { ReactionBar } from "./reaction-bar";
+import type { ReactionState } from "./reactions";
 import { POST_STATUS_LABELS, type PostStatus } from "./schema";
 
 /** What a card shows; built by the feed from a public post and, for the viewer's own posts, their own row. */
@@ -25,6 +27,10 @@ export type CardPost = {
   /** The viewer's own row: gives them the edit button and fills the edit form. */
   mine: MyAnnouncement | null;
   canDelete: boolean;
+  /** Emoji reactions of a public post; `null` for drafts and private posts, which cannot be reacted to. */
+  reactions: ReactionState | null;
+  /** Signed-in viewers can react; Guests only see the totals. */
+  canReact: boolean;
 };
 
 /** One post of the feed: date, title, optional author, text, optional photo, and the author's controls. */
@@ -63,8 +69,12 @@ export function AnnouncementCard({ post, now }: { post: CardPost; now: Date }) {
           height={post.imageHeight}
           unoptimized
           loading="lazy"
-          className="mt-3 h-auto w-full rounded-control border border-line"
+          className="mt-3 h-auto w-full rounded-control img-outline"
         />
+      )}
+
+      {post.reactions && (
+        <ReactionBar postId={post.id} state={post.reactions} canReact={post.canReact} />
       )}
 
       {hasControls && (

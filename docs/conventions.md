@@ -60,9 +60,13 @@ hauteur de bouton : utiliser les tokens et classes partagées.
 | Boutons               | `.btn` + `.btn-primary` / `-secondary` / `-outline` / `-danger`, `.btn-sm`    |
 | Champs de formulaire  | `.field`, `.field-label`, `.field-error`                                      |
 | Titres                | `.page-title`, `.section-title`                                               |
+| Retour au toucher     | `.btn` s’enfonce déjà (`scale(0.96)`) ; pour un autre contrôle : `transition-[scale,…] active:scale-[0.96]`, jamais `transition-all`, jamais sous `0.95` |
+| Images                | `.img-outline` (contour intérieur noir pur en clair, blanc pur en sombre, jeton `--image-outline`) à la place d’une bordure |
 | Composants            | `Select` (liste déroulante, feuille swipeable sur mobile), `Avatar`, `FullScreenDialog` |
 
 **Valeurs et pastilles : une seule ligne.** Dans une ligne `flex` (libellé à gauche, valeur à droite), la valeur et les pastilles (`.chip`, qui ne se coupe jamais) portent `whitespace-nowrap` en plus de `shrink-0` : sans lui, un navigateur peut réduire la colonne à son plus petit mot (« 30 ms » devenait « 30 » / « ms » sur iPhone). C'est le texte d'aide qui se replie, jamais la valeur. Vérifier les écrans à **320 px** (le plus petit téléphone).
+
+**Finitions (skill `make-interfaces-feel-better`).** Arrondis imbriqués : rayon extérieur = rayon intérieur + marge (`rounded-card` autour de `rounded-control` avec `p-1`). Chiffres qui changent : `tabular-nums`. Titres : `text-wrap: balance` et paragraphes : `text-wrap: pretty` (déjà dans `globals.css`). Zone tactile d’un petit contrôle : 44 px (40 px minimum en interface dense), étendue par un pseudo-élément sans chevaucher le voisin.
 
 ## TypeScript / qualité
 

@@ -41,7 +41,7 @@ export async function AppHeader() {
             <Link
               href="/login"
               prefetch={false}
-              className="btn btn-primary btn-sm min-h-tap shadow-2xs transition-all active:scale-95"
+              className="btn btn-primary btn-sm min-h-tap shadow-2xs"
             >
               Se connecter
             </Link>
