@@ -334,7 +334,7 @@ export function MonthView({
                 <Link
                   href={buildCalendarHref({ view: "month", day: today, month: monthKeyOf(today) })}
                   prefetch={false}
-                  className="text-xs underline"
+                  className="relative text-xs underline after:absolute after:-inset-x-3 after:-inset-y-3.5 after:content-['']"
                 >
                   Aujourd&apos;hui
                 </Link>
@@ -389,7 +389,7 @@ export function MonthView({
                       select(today);
                     }
                   }}
-                  className="mt-0.5 text-xs underline"
+                  className="relative mt-0.5 text-xs underline after:absolute after:-inset-x-3 after:-inset-y-3 after:content-['']"
                 >
                   Cette semaine
                 </Link>
@@ -448,7 +448,7 @@ export function MonthView({
                       select(today);
                     }
                   }}
-                  className="mt-0.5 text-xs underline"
+                  className="relative mt-0.5 text-xs underline after:absolute after:-inset-x-3 after:-inset-y-3 after:content-['']"
                 >
                   Aujourd&apos;hui
                 </Link>
@@ -524,7 +524,7 @@ export function MonthView({
                               ? "bg-accent text-accent-ink"
                               : isToday
                                 ? "border border-accent"
-                                : "bg-foreground/5 hover:bg-foreground/10"
+                                : "bg-foreground/5 [@media(hover:hover)]:hover:bg-foreground/10"
                           } ${cell.inMonth ? "" : "opacity-40"}`}
                         >
                           <span>{cell.day}</span>
@@ -587,7 +587,7 @@ export function MonthView({
                           ? "bg-accent text-accent-ink shadow-xs"
                           : isToday
                             ? "border border-accent text-foreground"
-                            : "bg-foreground/5 text-foreground hover:bg-foreground/10"
+                            : "bg-foreground/5 text-foreground [@media(hover:hover)]:hover:bg-foreground/10"
                       }`}
                     >
                       <span className="text-[10px] uppercase font-semibold text-muted">
@@ -601,7 +601,7 @@ export function MonthView({
                       className={`relative flex-1 min-h-0 rounded-control transition-colors overflow-hidden ${
                         isSelected
                           ? "bg-foreground/10 ring-1 ring-accent/30"
-                          : "bg-foreground/5 hover:bg-foreground/8"
+                          : "bg-foreground/5 [@media(hover:hover)]:hover:bg-foreground/8"
                       }`}
                     >
                       {dayEvents.map((event) => {
@@ -619,14 +619,14 @@ export function MonthView({
                               top: `${topPercent}%`,
                               height: `${heightPercent}%`,
                             }}
-                            className={`absolute inset-x-0.5 rounded-sm p-1 text-[10px] leading-tight overflow-hidden transition-transform hover:scale-105 z-10 flex flex-col justify-between ${
+                            className={`absolute inset-x-0.5 rounded-[calc(var(--radius-control)-0.125rem)] p-1 text-[10px] leading-tight overflow-hidden transition-transform [@media(hover:hover)]:hover:scale-105 z-10 flex flex-col justify-between ${
                               event.finished
                                 ? "bg-foreground/20 text-foreground/60 line-through"
                                 : "bg-accent text-accent-ink font-semibold shadow-xs"
                             }`}
                           >
                             {/* 1. Heure en haut */}
-                            <span className="block text-[9px] font-semibold opacity-90 shrink-0 leading-none">
+                            <span className="block text-[9px] font-semibold tabular-nums opacity-90 shrink-0 leading-none">
                               {event.time}
                             </span>
 
@@ -676,7 +676,7 @@ export function MonthView({
                   }`}
                 >
                   <span
-                    className={`w-11 text-xs font-medium text-muted text-right pr-2 shrink-0 ${
+                    className={`w-11 text-xs font-medium tabular-nums text-muted text-right pr-2 shrink-0 ${
                       startMarkers.some((marker) => Math.abs(marker.hour - hour) < 0.9)
                         ? "opacity-0"
                         : ""
@@ -722,7 +722,7 @@ export function MonthView({
                       top: `${topPercent}%`,
                       height: `${heightPercent}%`,
                     }}
-                    className={`absolute left-14 right-2 rounded-control p-2.5 shadow-sm transition-transform hover:scale-[1.01] flex flex-col justify-between overflow-hidden z-10 ${
+                    className={`absolute left-14 right-2 rounded-[calc(var(--radius-control)-0.5rem)] p-2.5 shadow-sm transition-transform [@media(hover:hover)]:hover:scale-[1.01] flex flex-col justify-between overflow-hidden z-10 ${
                       event.finished
                         ? "bg-foreground/20 text-foreground/60 line-through"
                         : "bg-accent text-accent-ink font-semibold shadow-xs"
@@ -730,7 +730,9 @@ export function MonthView({
                   >
                     {/* 1. Heure en haut */}
                     <div className="flex items-center justify-between gap-2 shrink-0">
-                      <span className="text-xs font-semibold opacity-90">{event.time}</span>
+                      <span className="text-xs font-semibold tabular-nums opacity-90">
+                        {event.time}
+                      </span>
                       {event.finished && (
                         <span className="rounded-full bg-foreground/20 px-1.5 py-0.5 text-[10px] font-semibold">
                           Terminé
@@ -790,7 +792,9 @@ export function MonthView({
                   }`}
                 >
                   <span className="flex items-center justify-between gap-2">
-                    <span className={`text-sm font-medium ${event.finished ? "" : "text-accent"}`}>
+                    <span
+                      className={`text-sm font-medium tabular-nums ${event.finished ? "" : "text-accent"}`}
+                    >
                       {event.time}
                     </span>
                     {event.finished && (

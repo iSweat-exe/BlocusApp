@@ -44,7 +44,10 @@ export async function EventDetail({ id }: { id: string }) {
 
   return (
     <article className="flex flex-col gap-4">
-      <Link href={`/calendar?month=${monthKeyOf(day)}&day=${day}`} className="text-sm underline">
+      <Link
+        href={`/calendar?month=${monthKeyOf(day)}&day=${day}`}
+        className="inline-flex min-h-tap items-center self-start text-sm underline"
+      >
         ← Calendrier
       </Link>
 

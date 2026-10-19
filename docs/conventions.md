@@ -66,7 +66,7 @@ hauteur de bouton : utiliser les tokens et classes partagées.
 
 **Valeurs et pastilles : une seule ligne.** Dans une ligne `flex` (libellé à gauche, valeur à droite), la valeur et les pastilles (`.chip`, qui ne se coupe jamais) portent `whitespace-nowrap` en plus de `shrink-0` : sans lui, un navigateur peut réduire la colonne à son plus petit mot (« 30 ms » devenait « 30 » / « ms » sur iPhone). C'est le texte d'aide qui se replie, jamais la valeur. Vérifier les écrans à **320 px** (le plus petit téléphone).
 
-**Finitions (skill `make-interfaces-feel-better`).** Arrondis imbriqués : rayon extérieur = rayon intérieur + marge (`rounded-card` autour de `rounded-control` avec `p-1`). Chiffres qui changent : `tabular-nums`. Titres : `text-wrap: balance` et paragraphes : `text-wrap: pretty` (déjà dans `globals.css`). Zone tactile d’un petit contrôle : 44 px (40 px minimum en interface dense), étendue par un pseudo-élément sans chevaucher le voisin.
+**Finitions (skill `make-interfaces-feel-better`).** Arrondis imbriqués : rayon extérieur = rayon intérieur + marge (`rounded-card` autour de `rounded-control` avec `p-1`). Chiffres qui changent : `tabular-nums`. Titres : `text-wrap: balance` et paragraphes : `text-wrap: pretty` (déjà dans `globals.css`). Zone tactile d’un petit contrôle : 44 px (40 px minimum en interface dense), étendue par un pseudo-élément sans chevaucher le voisin. Survol : toujours derrière `[@media(hover:hover)]:hover:` (sinon il reste collé après un toucher). Animations d’entrée : seulement celles de `globals.css` (`animate-fade-in`…) ; `animate-in` / `zoom-in-95` n’existent pas dans ce projet et ne font rien.
 
 ## TypeScript / qualité
 
