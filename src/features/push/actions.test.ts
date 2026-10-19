@@ -32,6 +32,22 @@ describe("savePushSubscription", () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 
+  it("tells which push service host is not supported, so that the cause can be reported", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const result = await savePushSubscription({
+      endpoint: "https://push.example.org/device-token-1234567890",
+      keys: SUBSCRIPTION.keys,
+    });
+    expect(result).toEqual({
+      ok: false,
+      message: "Abonnement invalide : service de notification non reconnu (push.example.org).",
+    });
+    expect(console.warn).toHaveBeenCalledWith(
+      "[savePushSubscription] refused:",
+      "service de notification non reconnu (push.example.org)",
+    );
+  });
+
   it.each([
     ["rate_limited", "54000", RATE_LIMITED_MESSAGE],
     ["forbidden", "42501", "Connecte-toi avec un compte actif pour activer les notifications."],

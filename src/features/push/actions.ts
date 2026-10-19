@@ -4,7 +4,11 @@ import { requestCookies } from "@/lib/supabase/request-cookies";
 import { createClient } from "@/lib/supabase/server";
 import { logActionError } from "@/server/log-action-error";
 import { isRateLimited, RATE_LIMITED_MESSAGE } from "@/server/rate-limit";
-import { isAllowedPushEndpoint, parsePushSubscription } from "./subscription";
+import {
+  explainInvalidSubscription,
+  isAllowedPushEndpoint,
+  parsePushSubscription,
+} from "./subscription";
 
 /** Outcome of saving or removing a subscription. */
 export type PushResult = { ok: true } | { ok: false; message: string };
@@ -25,7 +29,12 @@ function refusal(action: string, error: { code?: string; message: string }): Pus
  */
 export async function savePushSubscription(input: unknown): Promise<PushResult> {
   const subscription = parsePushSubscription(input);
-  if (!subscription) return { ok: false, message: "Abonnement invalide." };
+  if (!subscription) {
+    const reason = explainInvalidSubscription(input);
+    // The reason names the push service host at most (no path, no key): the one clue to an unsupported browser.
+    console.warn("[savePushSubscription] refused:", reason);
+    return { ok: false, message: `Abonnement invalide : ${reason}.` };
+  }
 
   const supabase = createClient(await requestCookies());
   const { error } = await supabase.rpc("save_push_subscription", {
