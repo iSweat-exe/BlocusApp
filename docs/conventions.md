@@ -35,6 +35,15 @@ docs/ · .dev/                      Documentation et pilotage
   événements, les API navigateur. Garder les composants client petits et proches des feuilles.
 - Aucune requête Supabase directe dans les composants : passer par `src/lib/data/*` (point unique pour
   le cache, le batching, la compression).
+- **`import "server-only"`** en tête de tout module qui n'a rien à faire dans le navigateur : clients Supabase
+  (`server.ts`, `service.ts`, `request-cookies.ts`), `src/server/*`, `src/lib/data/*`. Un import depuis un composant
+  client fait alors **échouer le build** au lieu de livrer du code serveur (ou d'oublier un secret) au navigateur. Vitest
+  l'alias vers un module vide (`vitest.config.ts`).
+- **Chaque page a son `title`** (`export const metadata = { title: "Calendrier" }`) ; le modèle `%s · BLOCUS` du layout
+  racine ajoute la marque, donc ne jamais l'écrire dans la page (`src/app/metadata.test.ts` le vérifie).
+- **Composants courts.** Au-delà d'environ 300 lignes, un composant client se découpe : un sous-composant par vue
+  (`week-view.tsx`, `day-timeline.tsx`), la logique qui n'est pas de l'affichage dans un hook (`use-pinch-zoom.ts`) ou un
+  module pur testable (`timeline.ts`).
 - Cette version de Next.js a des changements incompatibles : consulter `node_modules/next/dist/docs/`.
 
 ## Validation et erreurs

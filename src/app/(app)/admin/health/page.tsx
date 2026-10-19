@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -5,6 +6,8 @@ import { HealthSkeleton } from "@/features/health/health-skeleton";
 import { HealthView } from "@/features/health/health-view";
 import { requirePermission } from "@/server/require-permission";
 import { getSessionPermissions } from "@/server/session";
+
+export const metadata: Metadata = { title: "Santé de l'application" };
 
 async function HealthContent() {
   // The measures read the clock and the network on every visit: never part of the static shell.

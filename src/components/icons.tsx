@@ -303,3 +303,22 @@ export function ShareIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/** Clock: the time of an event. */
+export function ClockIcon(props: IconProps) {
+  return (
+    <Icon strokeWidth="2" {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </Icon>
+  );
+}
+
+/** Chevron pointing left: back. */
+export function ChevronLeftIcon(props: IconProps) {
+  return (
+    <Icon strokeWidth="2" {...props}>
+      <path d="m15 6-6 6 6 6" />
+    </Icon>
+  );
+}

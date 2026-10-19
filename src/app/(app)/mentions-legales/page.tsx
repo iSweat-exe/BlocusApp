@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LEGAL, PROCESSORS } from "@/features/legal/legal-info";
 import { InternalLink, LegalPage, LegalSection, LegalValue } from "@/features/legal/legal-page";
 
-export const metadata: Metadata = { title: "Mentions légales · BLOCUS" };
+export const metadata: Metadata = { title: "Mentions légales" };
 
 export default function LegalNoticePage() {
   return (

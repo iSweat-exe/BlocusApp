@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { NotificationsSection } from "@/features/push/notifications-section";
 import { CreditsLink } from "@/features/credits/credits-link";
@@ -7,6 +8,8 @@ import { AccountSection } from "@/features/settings/account-section";
 import { TwoFactorSection } from "@/features/mfa/two-factor-section";
 import { LegalLinks } from "@/features/legal/legal-links";
 import { MyDataSection } from "@/features/legal/my-data-section";
+
+export const metadata: Metadata = { title: "Réglages" };
 
 export default function SettingsPage() {
   return (

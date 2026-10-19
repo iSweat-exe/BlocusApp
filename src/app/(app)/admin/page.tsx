@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { canAccessAdmin } from "@/features/admin/access";
 import { UserList } from "@/features/admin/user-list";
 import { UsersSkeleton } from "@/features/admin/users-skeleton";
 import { getSessionPermissions } from "@/server/session";
+
+export const metadata: Metadata = { title: "Administration" };
 
 type AdminSearchParams = { q?: string; role?: string };
 

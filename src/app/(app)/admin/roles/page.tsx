@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { RoleMatrix } from "@/features/admin/role-matrix";
 import { RolesSkeleton } from "@/features/admin/roles-skeleton";
 import { getSessionPermissions } from "@/server/session";
+
+export const metadata: Metadata = { title: "Rôles et permissions" };
 
 async function RolesContent({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
   const session = await getSessionPermissions();

@@ -332,6 +332,19 @@ saisis/affichés en **Europe/Paris** (`EVENT_TIME_ZONE` dans `time.ts`, conversi
 d'été). La page dépend de l'heure courante : elle appelle `await connection()` avant `new Date()` (sinon
 Next.js refuse le rendu en prérendu). Lecture via `src/lib/data/events.ts` (RLS : le Guest lit).
 
+**Découpage de `MonthView`** (client, il porte l'état : vue, jour, animation, URL) : `week-view.tsx` et `day-timeline.tsx`
+(affichage), `timeline.ts` (plages d'heures, hauteur et position des blocs, repères de début : fonctions pures),
+`use-pinch-zoom.ts` (pincement au doigt et au pavé tactile, avec nettoyage de ses écouteurs et de son délai),
+`calendar-types.ts` (`DayEvent`, modes de vue). `month-view.tsx` réexporte `computeEventBounds`, `startMarkersOf` et
+`DayEvent`.
+
+**Page d'un événement** (`/calendar/[id]`, `event-detail.tsx`) : pensée pour le téléphone. Le titre est le seul `h1`. Au-dessus :
+où en est l'événement (« Aujourd'hui », « Demain », « En cours », « Terminé »), puis une carte de trois faits (jour, horaire
+avec sa durée, lieu), la description, les réactions, et pour qui a le droit de gérer, une section « Gérer l'événement »
+(terminer, modifier, supprimer : confirmation en bouton de danger). Retour « ‹ Calendrier » vers le jour de l'événement
+(`event-back-link.tsx`), squelette de chargement de même forme (`event-detail-skeleton.tsx`). Aides de `time.ts` :
+`formatDuration`, `relativeDayLabel`, `isInProgress`.
+
 Écriture (`src/features/calendar/actions.ts`) : `createEvent`, `updateEvent`, `deleteEvent`. Création : bouton
 « Ajouter un événement » sous la liste du jour (permission `event.create`, jamais sur un jour passé) ; le
 formulaire demande l'heure, le titre, le texte, et en option le lieu et l'heure de fin (même jour). L'auteur

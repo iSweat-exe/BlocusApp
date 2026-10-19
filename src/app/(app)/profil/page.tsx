@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ProfileView } from "@/features/profile/profile-view";
 import { getSessionPermissions } from "@/server/session";
+
+export const metadata: Metadata = { title: "Mon profil" };
 
 async function ProfileContent() {
   const session = await getSessionPermissions();

@@ -1,3 +1,4 @@
+import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { type LngLat, parseRoutePoints } from "@/lib/map-route";
 import { err, ok, type Result } from "@/lib/result";

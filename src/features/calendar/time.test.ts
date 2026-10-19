@@ -2,18 +2,22 @@ import { describe, expect, it } from "vitest";
 import { monthGrid, shiftMonth } from "./month-grid";
 import {
   addDays,
+  daysBetween,
   dayKeyFromWeek,
   dayKeyOf,
   dayRangeUtc,
   formatDayKeyLong,
+  formatDuration,
   formatMonthLabel,
   formatTime,
   formatTimeRange,
   formatWeekLabel,
+  isInProgress,
   formatWeekRange,
   mondayOf,
   monthKeyOf,
   parseDayKey,
+  relativeDayLabel,
   parseMonthKey,
   parseWeekKey,
   timeToHour,
@@ -152,5 +156,58 @@ describe("week calculations and keys", () => {
     expect(formatWeekLabel("2026-42")).toBe("Semaine 42");
     expect(formatWeekRange("2026-10-14")).toBe("12 – 18 oct. 2026");
     expect(formatWeekRange("2026-09-30")).toBe("28 sept. – 4 oct. 2026");
+  });
+});
+
+describe("length, distance and state of an event", () => {
+  const at = (hour: string) => `2026-10-20T${hour}:00Z`;
+
+  it("writes a length the way people say it", () => {
+    expect(formatDuration(at("12:00"), at("12:45"))).toBe("45 min");
+    expect(formatDuration(at("12:00"), at("14:00"))).toBe("2 h");
+    expect(formatDuration(at("12:00"), at("13:30"))).toBe("1 h 30");
+    expect(formatDuration(at("12:00"), at("12:05"))).toBe("5 min");
+    expect(formatDuration(at("12:00"), at("13:05"))).toBe("1 h 05");
+  });
+
+  it("has no length without an end, or when the end does not follow the start", () => {
+    expect(formatDuration(at("12:00"), null)).toBeNull();
+    expect(formatDuration(at("12:00"), at("12:00"))).toBeNull();
+    expect(formatDuration(at("12:00"), at("11:00"))).toBeNull();
+    expect(formatDuration(at("12:00"), "not a date")).toBeNull();
+  });
+
+  it("counts whole days between two day keys, across months and a change of hour", () => {
+    expect(daysBetween("2026-10-20", "2026-10-20")).toBe(0);
+    expect(daysBetween("2026-10-20", "2026-10-23")).toBe(3);
+    expect(daysBetween("2026-10-30", "2026-11-02")).toBe(3);
+    expect(daysBetween("2026-10-20", "2026-10-18")).toBe(-2);
+    // The clocks go back on 25 October 2026: a day is still a day.
+    expect(daysBetween("2026-10-24", "2026-10-26")).toBe(2);
+    expect(daysBetween("nope", "2026-10-20")).toBe(0);
+  });
+
+  it("says where a day stands compared to today, and nothing beyond a month", () => {
+    const today = "2026-10-20";
+    expect(relativeDayLabel("2026-10-20", today)).toBe("Aujourd'hui");
+    expect(relativeDayLabel("2026-10-21", today)).toBe("Demain");
+    expect(relativeDayLabel("2026-10-19", today)).toBe("Hier");
+    expect(relativeDayLabel("2026-10-25", today)).toBe("Dans 5 jours");
+    expect(relativeDayLabel("2026-10-15", today)).toBe("Il y a 5 jours");
+    expect(relativeDayLabel("2026-11-19", today)).toBe("Dans 30 jours");
+    expect(relativeDayLabel("2026-11-20", today)).toBeNull();
+    expect(relativeDayLabel("2026-09-01", today)).toBeNull();
+  });
+
+  it("is in progress from its start up to, not including, its end", () => {
+    const start = at("12:00");
+    const end = at("14:00");
+    const ms = (iso: string) => new Date(iso).getTime();
+    expect(isInProgress(start, end, ms(at("11:59")))).toBe(false);
+    expect(isInProgress(start, end, ms(start))).toBe(true);
+    expect(isInProgress(start, end, ms(at("13:00")))).toBe(true);
+    expect(isInProgress(start, end, ms(end))).toBe(false);
+    // Without an end there is no way to know it is over: never "en cours".
+    expect(isInProgress(start, null, ms(at("12:30")))).toBe(false);
   });
 });

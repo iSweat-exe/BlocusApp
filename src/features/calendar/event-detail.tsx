@@ -1,25 +1,61 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PinIcon } from "@/components/icons";
+import type { ReactNode } from "react";
+import { CalendarIcon, ClockIcon, PinIcon } from "@/components/icons";
 import { ReactionBar } from "@/features/announcements/reaction-bar";
 import { buildReactionState } from "@/features/announcements/reactions";
 import { getEvent } from "@/lib/data/events";
 import { listEventReactionTotals, listMyEventReactions } from "@/lib/data/reactions";
 import { getSessionPermissions } from "@/server/session";
 import { deleteEvent } from "./actions";
+import { EventBackLink } from "./event-back-link";
 import { EventForm } from "./event-form";
 import { FinishToggle } from "./finish-toggle";
-import { dayKeyOf, formatDayLong, formatTime, formatTimeRange, monthKeyOf } from "./time";
+import {
+  dayKeyOf,
+  formatDayLong,
+  formatDuration,
+  formatTime,
+  formatTimeRange,
+  isInProgress,
+  monthKeyOf,
+  relativeDayLabel,
+} from "./time";
 
-/** Detail of one event: date, time, place and full text. Readable by Guests. */
+/** One line of the facts card: an icon tile, a small label and the value. */
+function Fact({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-3.5 px-4 py-3.5">
+      <span
+        aria-hidden="true"
+        className="flex size-10 shrink-0 items-center justify-center rounded-control bg-accent/15 text-accent"
+      >
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <dt className="text-xs font-medium text-muted">{label}</dt>
+        <dd className="font-semibold break-words">{children}</dd>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Page of one event, made to be read on a phone: where it stands (today, in progress, over), the title, then three
+ * facts (day, time with its length, place), the description and the reactions. People who may manage it get their
+ * controls last, under their own heading. Readable by Guests; the controls are display only: the Server Actions
+ * re-check the permissions and Row Level Security decides.
+ */
 export async function EventDetail({ id }: { id: string }) {
   const [result, session] = await Promise.all([getEvent(id), getSessionPermissions()]);
 
   if (!result.ok) {
     return (
-      <p role="alert" className="alert alert-error">
-        Impossible de charger cet événement pour le moment.
-      </p>
+      <div className="flex flex-col gap-4">
+        <EventBackLink />
+        <p role="alert" className="alert alert-error">
+          Impossible de charger cet événement pour le moment.
+        </p>
+      </div>
     );
   }
   if (!result.value) notFound();
@@ -34,49 +70,68 @@ export async function EventDetail({ id }: { id: string }) {
   const reactions = totals.ok
     ? buildReactionState(totals.value[event.id], mine?.ok ? (mine.value[event.id] ?? []) : [])
     : null;
+
+  const now = new Date();
   const day = dayKeyOf(new Date(event.starts_at));
-  const has = (permission: string) => session?.permissions.includes(permission) ?? false;
-  // Display only: the Server Actions re-check the permissions and Row Level Security decides.
   const finished = event.finished_at !== null;
+  const inProgress = !finished && isInProgress(event.starts_at, event.ends_at, now.getTime());
+  const relative = relativeDayLabel(day, dayKeyOf(now));
+  const duration = formatDuration(event.starts_at, event.ends_at);
+
+  const has = (permission: string) => session?.permissions.includes(permission) ?? false;
   const canEdit = has("event.create") && event.author_id === session?.userId;
   const canFinish = has("event.finish");
   const canDelete = has("event.delete") || canEdit;
+  const canManage = canFinish || canEdit || canDelete;
 
   return (
-    <article className="flex flex-col gap-4">
-      <Link
-        href={`/calendar?month=${monthKeyOf(day)}&day=${day}`}
-        className="inline-flex min-h-tap items-center self-start text-sm underline"
-      >
-        ← Calendrier
-      </Link>
+    <article className="flex animate-fade-in flex-col gap-section">
+      <EventBackLink href={`/calendar?month=${monthKeyOf(day)}&day=${day}`} />
 
-      <header className="flex flex-col gap-1">
-        <div className="flex items-start justify-between gap-2">
-          <h2 className={`text-xl font-semibold ${finished ? "text-muted" : ""}`}>{event.title}</h2>
-          {finished && (
-            <span className="shrink-0 rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold">
-              Terminé
-            </span>
-          )}
-        </div>
-        <p className="text-sm first-letter:uppercase text-muted">
-          {formatDayLong(event.starts_at)}
-        </p>
-        <p className="font-medium text-accent">{formatTimeRange(event.starts_at, event.ends_at)}</p>
-        {event.location && (
-          <p className="flex items-center gap-1.5 text-sm text-muted">
-            <PinIcon className="size-4 shrink-0" />
-            <span>{event.location}</span>
-          </p>
+      <header className="flex flex-col gap-3">
+        {(finished || inProgress || relative) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {finished ? (
+              <span className="chip">Terminé</span>
+            ) : inProgress ? (
+              <span className="chip chip-accent">En cours</span>
+            ) : (
+              <span className="chip chip-accent">{relative}</span>
+            )}
+          </div>
         )}
+        <h1 className={`page-title break-words ${finished ? "text-muted" : ""}`}>{event.title}</h1>
       </header>
 
-      {event.description ? (
-        <p className="whitespace-pre-wrap text-sm">{event.description}</p>
-      ) : (
-        <p className="text-sm text-muted">Pas de description.</p>
-      )}
+      <dl className="card divide-y divide-line overflow-hidden">
+        <Fact icon={<CalendarIcon className="size-5" />} label="Date">
+          <span className="block first-letter:uppercase">{formatDayLong(event.starts_at)}</span>
+        </Fact>
+        <Fact icon={<ClockIcon className="size-5" />} label="Horaire">
+          <span className="tabular-nums">{formatTimeRange(event.starts_at, event.ends_at)}</span>
+          {duration && (
+            <span className="ml-2 text-sm font-medium text-muted tabular-nums">· {duration}</span>
+          )}
+        </Fact>
+        {event.location && (
+          <Fact icon={<PinIcon className="size-5" />} label="Lieu">
+            {event.location}
+          </Fact>
+        )}
+      </dl>
+
+      <section aria-labelledby="event-description" className="flex flex-col gap-2">
+        <h2 id="event-description" className="section-title">
+          Description
+        </h2>
+        {event.description ? (
+          <p className="card px-4 py-3.5 leading-relaxed break-words whitespace-pre-wrap text-foreground/90">
+            {event.description}
+          </p>
+        ) : (
+          <p className="card px-4 py-3.5 text-sm text-muted">Pas de description.</p>
+        )}
+      </section>
 
       {reactions && (
         <ReactionBar
@@ -84,50 +139,64 @@ export async function EventDetail({ id }: { id: string }) {
           targetId={event.id}
           state={reactions}
           canReact={session !== null}
+          className=""
         />
       )}
 
-      {canFinish && <FinishToggle id={event.id} finished={finished} />}
+      {canManage && (
+        <section aria-labelledby="event-manage" className="flex flex-col gap-3">
+          <h2 id="event-manage" className="section-title">
+            Gérer l&apos;événement
+          </h2>
 
-      {canEdit && finished && (
-        <button type="button" disabled aria-disabled="true" className="btn btn-outline opacity-50">
-          Modifier (événement terminé)
-        </button>
-      )}
+          {canFinish && <FinishToggle id={event.id} finished={finished} />}
 
-      {canEdit && !finished && (
-        <details className="card">
-          <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium">
-            Modifier
-          </summary>
-          <EventForm
-            mode="edit"
-            defaults={{
-              id: event.id,
-              title: event.title,
-              description: event.description,
-              location: event.location,
-              date: day,
-              time: formatTime(event.starts_at),
-              endTime: event.ends_at ? formatTime(event.ends_at) : "",
-            }}
-          />
-        </details>
-      )}
-
-      {canDelete && (
-        <details className="rounded-card border border-danger/30">
-          <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium text-danger">
-            Supprimer
-          </summary>
-          <form action={deleteEvent} className="flex flex-col gap-2 p-3">
-            <input type="hidden" name="id" value={event.id} />
-            <p className="text-sm">Cet événement sera supprimé définitivement.</p>
-            <button type="submit" className="btn btn-primary">
-              Confirmer la suppression
+          {canEdit && finished && (
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              className="btn btn-outline opacity-50"
+            >
+              Modifier (événement terminé)
             </button>
-          </form>
-        </details>
+          )}
+
+          {canEdit && !finished && (
+            <details className="card">
+              <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium">
+                Modifier
+              </summary>
+              <EventForm
+                mode="edit"
+                defaults={{
+                  id: event.id,
+                  title: event.title,
+                  description: event.description,
+                  location: event.location,
+                  date: day,
+                  time: formatTime(event.starts_at),
+                  endTime: event.ends_at ? formatTime(event.ends_at) : "",
+                }}
+              />
+            </details>
+          )}
+
+          {canDelete && (
+            <details className="rounded-card border border-danger/30">
+              <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium text-danger">
+                Supprimer
+              </summary>
+              <form action={deleteEvent} className="flex flex-col gap-3 p-4">
+                <input type="hidden" name="id" value={event.id} />
+                <p className="text-sm">Cet événement sera supprimé définitivement.</p>
+                <button type="submit" className="btn btn-danger">
+                  Confirmer la suppression
+                </button>
+              </form>
+            </details>
+          )}
+        </section>
       )}
     </article>
   );

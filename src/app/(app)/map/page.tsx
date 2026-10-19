@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { MapLoader, MapSkeleton } from "@/features/map/map-loader";
 import { getCurrentRoute } from "@/lib/data/map";
 import { getMapPositions } from "@/lib/data/map-positions";
 import { getSessionPermissions } from "@/server/session";
+
+export const metadata: Metadata = { title: "Carte" };
 
 async function MapContent() {
   // The shared cache holds data that does not depend on the request: read it at request time, not at build time.

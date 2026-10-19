@@ -1,3 +1,4 @@
+import "server-only";
 /**
  * What the user is told when the database refuses an action because they made too many in a short time
  * (`rate_limited`, raised by `consume_rate_limit()`, see `docs/security.md`).

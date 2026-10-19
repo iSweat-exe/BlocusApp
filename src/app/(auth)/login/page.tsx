@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { DiscordButton } from "@/features/auth/discord-button";
@@ -7,6 +8,8 @@ import { LoginBackground } from "@/features/auth/login-background";
 import { LoginError } from "@/features/auth/login-error";
 import { MemberCount } from "@/features/auth/member-count";
 import { LegalConsentNote } from "@/features/legal/legal-links";
+
+export const metadata: Metadata = { title: "Connexion" };
 
 export default function LoginPage() {
   return (

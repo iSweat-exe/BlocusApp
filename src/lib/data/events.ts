@@ -1,3 +1,4 @@
+import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import type { Database } from "@/lib/database.types";
 import { err, ok, type Result } from "@/lib/result";

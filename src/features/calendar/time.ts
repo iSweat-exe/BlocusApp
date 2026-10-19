@@ -245,3 +245,47 @@ export function formatWeekLabel(weekKey: string): string {
   if (!parsed) return weekKey;
   return `Semaine ${parsed.week}`;
 }
+
+/**
+ * Length of an event as people say it: `45 min`, `2 h`, `1 h 30`. `null` when there is no end, or when the end does
+ * not come after the start.
+ */
+export function formatDuration(startIso: string, endIso: string | null): string | null {
+  if (!endIso) return null;
+  const minutes = Math.round((new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000);
+  if (!Number.isFinite(minutes) || minutes <= 0) return null;
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest === 0 ? `${hours} h` : `${hours} h ${String(rest).padStart(2, "0")}`;
+}
+
+/** Whole days from one day key to another (positive when `toKey` is later). */
+export function daysBetween(fromKey: string, toKey: string): number {
+  const from = parseDayKey(fromKey);
+  const to = parseDayKey(toKey);
+  if (!from || !to) return 0;
+  return Math.round(
+    (Date.UTC(to.year, to.month - 1, to.day) - Date.UTC(from.year, from.month - 1, from.day)) /
+      86_400_000,
+  );
+}
+
+/**
+ * Where a day stands compared to today: `Aujourd'hui`, `Demain`, `Hier`, `Dans 3 jours`, `Il y a 2 jours`. `null`
+ * beyond a month either way, where the full date says it better.
+ */
+export function relativeDayLabel(dayKey: string, todayKey: string): string | null {
+  const days = daysBetween(todayKey, dayKey);
+  if (Math.abs(days) > 30) return null;
+  if (days === 0) return "Aujourd'hui";
+  if (days === 1) return "Demain";
+  if (days === -1) return "Hier";
+  return days > 0 ? `Dans ${days} jours` : `Il y a ${-days} jours`;
+}
+
+/** Whether an event with an end is under way at `now` (an event without an end is never "en cours"). */
+export function isInProgress(startIso: string, endIso: string | null, now: number): boolean {
+  if (!endIso) return false;
+  return new Date(startIso).getTime() <= now && now < new Date(endIso).getTime();
+}

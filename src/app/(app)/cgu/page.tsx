@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LEGAL } from "@/features/legal/legal-info";
 import { InternalLink, LegalPage, LegalSection, LegalValue } from "@/features/legal/legal-page";
 
-export const metadata: Metadata = { title: "Conditions d'utilisation · BLOCUS" };
+export const metadata: Metadata = { title: "Conditions d'utilisation" };
 
 export default function TermsPage() {
   return (

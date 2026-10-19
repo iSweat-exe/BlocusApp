@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { resolveCalendarViewMode } from "@/features/calendar/calendar-types";
@@ -10,6 +11,8 @@ import {
   parseMonthKey,
   parseWeekKey,
 } from "@/features/calendar/time";
+
+export const metadata: Metadata = { title: "Calendrier" };
 
 export async function CalendarContent({
   searchParams,

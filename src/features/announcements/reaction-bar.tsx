@@ -31,11 +31,14 @@ export function ReactionBar({
   targetId,
   state,
   canReact,
+  className = "mt-3",
 }: {
   kind: ReactionKind;
   targetId: string;
   state: ReactionState;
   canReact: boolean;
+  /** Spacing around the bar (under a post it sits 12 px below the text). */
+  className?: string;
 }) {
   const [optimistic, applyOptimistic] = useOptimistic(state, toggleReactionState);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -73,7 +76,7 @@ export function ReactionBar({
   if (used.length === 0 && !canReact) return null;
 
   return (
-    <div className="mt-3 flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${className}`}>
       <ul aria-label="Réactions" className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
         {used.map((emoji) => {
           const count = optimistic.counts[emoji] ?? 0;

@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { parseJournalParams } from "@/features/admin/audit";
 import { JournalSkeleton } from "@/features/admin/journal-skeleton";
 import { JournalView } from "@/features/admin/journal-view";
 import { getSessionPermissions } from "@/server/session";
+
+export const metadata: Metadata = { title: "Journal d'audit" };
 
 type JournalSearchParams = { category?: string; action?: string; before?: string };
 

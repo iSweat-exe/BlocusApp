@@ -54,3 +54,16 @@ export function buildCalendarHref(params: {
   const month = params.month && parseMonthKey(params.month) ? params.month : monthKeyOf(day);
   return `/calendar?view=month&month=${month}&day=${day}`;
 }
+
+/** An event of the month as the client needs it: the server has already formatted the time range. */
+export type DayEvent = {
+  id: string;
+  title: string;
+  location: string;
+  time: string;
+  finished: boolean;
+  startHour?: number;
+  endHour?: number;
+  /** Exact start (`HH:MM`, local time), shown on the right of the day timeline. Not clamped like `startHour`. */
+  startTime?: string;
+};
