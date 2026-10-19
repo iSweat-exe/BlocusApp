@@ -84,6 +84,7 @@ minimale sur `src/lib/` et `src/server/` : voir `vitest.config.ts`.
 
 Les tests E2E tournent contre un faux Supabase local (`e2e/support/fake-supabase.mjs`, lancé par
 `playwright.config.ts`) : il répond aux endpoints `authorize`, `token` (PKCE) et `user` de l'authentification et
-renvoie le profil de l'utilisateur connecté ; toutes les autres tables sont vides. Les parcours de connexion
+renvoie le profil de l'utilisateur connecté ; toutes les autres tables sont vides. Il garde aussi en mémoire des posts, des réactions et des positions (filtres, tri, limite, fonctions SQL utilisées par les
+parcours) : `e2e/journeys.spec.ts` publie, réagit et déclare la position pour de vrai. Les parcours de connexion
 et de déconnexion (`e2e/auth.spec.ts`) exécutent donc les vraies routes `/auth/*` sans appeler Discord ni
-Google. Le test avec les vrais fournisseurs reste manuel (`docs/runbook.md`).
+Google. Le scénario `manager` (cookie `e2e_scenario`) donne les permissions de publier et de déclarer. Le test avec les vrais fournisseurs reste manuel (`docs/runbook.md`).

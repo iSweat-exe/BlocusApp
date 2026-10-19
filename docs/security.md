@@ -171,6 +171,16 @@ Vercel (`VERCEL_API_TOKEN`) reste côté serveur.
 - **À faire avant la mise en production** : faire relire les textes (`src/features/legal/`) par la personne responsable, et vérifier
   l'âge minimal (15 ans), la durée de réponse (1 mois) et les clauses de transfert hors UE avec un juriste.
 
+## Double authentification (A-060)
+
+- Imposée **en base** (`has_permission()`), pas seulement dans l'interface : une session volée sans second facteur ne peut pas appeler
+  les fonctions d'administration directement. Derrière un interrupteur désactivé par défaut (voir `docs/runbook.md` pour l'ordre à suivre
+  et la récupération). L'activer exige une session AAL2 et la permission `security.manage` (super_admin seulement) ; le changement est
+  journalisé (`security.admin_mfa`).
+- Activer, vérifier et retirer un facteur ne dépendent d'aucune permission : un administrateur retenu peut toujours s'inscrire. Retirer
+  son facteur demande son code actuel.
+- Le secret TOTP et le code ne sont jamais écrits dans les journaux (seul le motif d'une erreur d'Auth l'est).
+
 ## Signalement d'une vulnérabilité
 
 Ne pas ouvrir d'issue publique : contacter directement les mainteneurs.
