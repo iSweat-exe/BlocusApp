@@ -69,7 +69,7 @@ export function AnnouncementCard({ post, now }: { post: CardPost; now: Date }) {
           height={post.imageHeight}
           unoptimized
           loading="lazy"
-          className="mt-3 h-auto w-full rounded-control border border-line"
+          className="mt-3 h-auto w-full rounded-control img-outline"
         />
       )}
 
