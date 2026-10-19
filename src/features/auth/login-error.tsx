@@ -15,7 +15,16 @@ const ERRORS: Record<string, string> = {
  * by the CDN with no function invocation. Wrap in `<Suspense>`.
  */
 export function LoginError() {
-  const error = useSearchParams().get("error");
+  const params = useSearchParams();
+  // After the deletion of an account (`/login?deleted=1`): a confirmation, not an error.
+  if (params.get("deleted") === "1") {
+    return (
+      <p role="status" className="alert border-success/30 bg-success/10 text-success">
+        Ton compte a été supprimé. À bientôt.
+      </p>
+    );
+  }
+  const error = params.get("error");
   const message = error && Object.hasOwn(ERRORS, error) ? ERRORS[error] : undefined;
   if (!message) return null;
   return (

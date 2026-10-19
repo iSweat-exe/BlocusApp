@@ -6,6 +6,7 @@ import { GuestLink } from "@/features/auth/guest-link";
 import { LoginBackground } from "@/features/auth/login-background";
 import { LoginError } from "@/features/auth/login-error";
 import { MemberCount } from "@/features/auth/member-count";
+import { LegalConsentNote } from "@/features/legal/legal-links";
 
 export default function LoginPage() {
   return (
@@ -41,6 +42,8 @@ export default function LoginPage() {
           </div>
 
           <GuestLink />
+
+          <LegalConsentNote />
         </div>
 
         <footer className="flex flex-col items-center pb-2 text-center">
@@ -54,6 +57,13 @@ export default function LoginPage() {
             className="inline-flex min-h-tap items-center px-3 text-xs text-faint underline-offset-2 [@media(hover:hover)]:hover:underline"
           >
             Crédits
+          </Link>
+          <Link
+            href="/confidentialite"
+            prefetch={false}
+            className="inline-flex min-h-tap items-center px-3 text-xs text-faint underline-offset-2 [@media(hover:hover)]:hover:underline"
+          >
+            Confidentialité
           </Link>
         </footer>
       </div>
