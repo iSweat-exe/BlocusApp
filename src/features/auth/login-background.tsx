@@ -7,9 +7,9 @@ import { useSyncExternalStore } from "react";
  * drop the new files here or change this list.
  */
 export const LOGIN_BACKGROUNDS = [
-  "/images/login/login-bg-1.webp",
-  "/images/login/login-bg-2.webp",
-  "/images/login/login-bg-3.webp",
+  "/images/login/login-bg-1.jpg",
+  "/images/login/login-bg-2.jpg",
+  "/images/login/login-bg-3.jpg",
 ] as const;
 
 let picked: number | null = null;

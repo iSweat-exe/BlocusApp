@@ -36,6 +36,9 @@ describe("buildSteps", () => {
       "look",
     ]);
     expect(buildSteps({ install: "ios", push: false, keepInstall: false })).toContain("install");
+    expect(buildSteps({ install: "android", push: false, keepInstall: false })).toContain(
+      "install",
+    );
   });
 
   it("drops the install step once installed, unless the person is on it", () => {
@@ -75,6 +78,26 @@ describe("Onboarding", () => {
     await user.click(screen.getByRole("button", { name: "C'est parti" }));
     expect(document.querySelector("dialog")).toBeNull();
     expect(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)).not.toBeNull();
+  });
+
+  it.each([
+    [
+      "iPhone",
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15",
+      "Sur l'écran d'accueil",
+    ],
+    [
+      "Android",
+      "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/126 Mobile Safari/537.36",
+      "Installer l'application",
+    ],
+  ])("explains how to install on %s", async (_name, userAgent, menuEntry) => {
+    vi.stubGlobal("navigator", { userAgent, maxTouchPoints: 5 });
+    const user = userEvent.setup();
+    render(<Onboarding vapidPublicKey={null} />);
+    await user.click(screen.getByRole("button", { name: "Commencer" }));
+    expect(screen.getByRole("heading", { name: "Installe l'application" })).toBeInTheDocument();
+    expect(screen.getByText(menuEntry)).toBeInTheDocument();
   });
 
   it("puts the focus on the title without outlining it, not on a button", () => {

@@ -40,7 +40,12 @@ export function buildSteps(options: {
   keepInstall: boolean;
 }): StepId[] {
   const steps: StepId[] = ["welcome"];
-  if (options.install === "prompt" || options.install === "ios" || options.keepInstall) {
+  if (
+    options.install === "prompt" ||
+    options.install === "ios" ||
+    options.install === "android" ||
+    options.keepInstall
+  ) {
     steps.push("install");
   }
   if (options.push) steps.push("notifications");
@@ -105,7 +110,7 @@ function WelcomeStep() {
   );
 }
 
-function IosInstruction({ position, children }: { position: number; children: ReactNode }) {
+function InstallInstruction({ position, children }: { position: number; children: ReactNode }) {
   return (
     <li className="flex items-center gap-3">
       <span
@@ -143,16 +148,37 @@ function InstallStep({ mode }: { mode: InstallMode }) {
   if (mode === "ios") {
     return (
       <ol className="card flex flex-col gap-4 p-4 text-sm">
-        <IosInstruction position={1}>
-          Touche <ShareIcon strokeWidth="2" className="mx-0.5 -mt-1 size-5 text-accent" />{" "}
-          <strong>Partager</strong> dans la barre de Safari.
-        </IosInstruction>
-        <IosInstruction position={2}>
-          Choisis <strong>Sur l&apos;écran d&apos;accueil</strong>, puis <strong>Ajouter</strong>.
-        </IosInstruction>
-        <IosInstruction position={3}>
+        <InstallInstruction position={1}>
+          Ouvre BLOCUS dans <strong>Safari</strong>, puis touche{" "}
+          <ShareIcon strokeWidth="2" className="mx-0.5 -mt-1 size-5 text-accent" />{" "}
+          <strong>Partager</strong> (en bas de l&apos;écran, ou dans le menu <strong>⋯</strong>).
+        </InstallInstruction>
+        <InstallInstruction position={2}>
+          Fais défiler et choisis <strong>Sur l&apos;écran d&apos;accueil</strong>.
+        </InstallInstruction>
+        <InstallInstruction position={3}>
+          Touche <strong>Ajouter</strong> en haut à droite.
+        </InstallInstruction>
+        <InstallInstruction position={4}>
           Ouvre BLOCUS depuis son icône : c&apos;est là que les notifications fonctionnent.
-        </IosInstruction>
+        </InstallInstruction>
+      </ol>
+    );
+  }
+  if (mode === "android") {
+    return (
+      <ol className="card flex flex-col gap-4 p-4 text-sm">
+        <InstallInstruction position={1}>
+          Touche le menu <strong aria-label="trois points">⋮</strong> de ton navigateur (en haut à
+          droite, ou en bas selon le navigateur).
+        </InstallInstruction>
+        <InstallInstruction position={2}>
+          Choisis <strong>Installer l&apos;application</strong> ou{" "}
+          <strong>Ajouter à l&apos;écran d&apos;accueil</strong>.
+        </InstallInstruction>
+        <InstallInstruction position={3}>
+          Confirme, puis ouvre BLOCUS depuis son icône.
+        </InstallInstruction>
       </ol>
     );
   }

@@ -29,6 +29,11 @@ export function isIosDevice(nav: Pick<Navigator, "userAgent" | "maxTouchPoints">
   );
 }
 
+/** Android phone or tablet. */
+export function isAndroidDevice(nav: Pick<Navigator, "userAgent">): boolean {
+  return /Android/.test(nav.userAgent);
+}
+
 /** Whether the page runs as an installed app (Home Screen / standalone window) rather than in a browser tab. */
 export function isInstalledApp(win: DeviceWindow): boolean {
   return win.navigator.standalone === true || win.matchMedia("(display-mode: standalone)").matches;

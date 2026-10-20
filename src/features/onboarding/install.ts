@@ -1,13 +1,20 @@
-import { isInstalledApp, isIosDevice, type DeviceWindow } from "@/features/push/device";
+import {
+  isAndroidDevice,
+  isInstalledApp,
+  isIosDevice,
+  type DeviceWindow,
+} from "@/features/push/device";
 
 /**
  * How this device can get the app on its Home Screen:
  * - `installed`: already running as an installed app, nothing to do;
  * - `prompt`: the browser offered a native install prompt (Chrome and Edge on Android and desktop);
- * - `ios`: Safari on iPhone / iPad, no prompt exists, the person must use Share > Add to Home Screen;
- * - `unavailable`: no way we can help with (another browser, or the prompt never came).
+ * - `ios`: iPhone / iPad, no prompt exists, the person must use Share > Add to Home Screen;
+ * - `android`: Android without a native prompt (Firefox, Samsung Internet, or Chrome that did not offer it),
+ *   the person must use the browser menu > Install app / Add to Home screen;
+ * - `unavailable`: no way we can help with (a desktop browser without the prompt).
  */
-export type InstallMode = "installed" | "prompt" | "ios" | "unavailable";
+export type InstallMode = "installed" | "prompt" | "ios" | "android" | "unavailable";
 
 /** The non-standard event Chromium fires when the app can be installed. */
 type BeforeInstallPromptEvent = Event & {
@@ -25,7 +32,8 @@ let deferred: BeforeInstallPromptEvent | null = null;
 export function detectInstallMode(win: DeviceWindow, hasPrompt: boolean): InstallMode {
   if (isInstalledApp(win)) return "installed";
   if (isIosDevice(win.navigator)) return "ios";
-  return hasPrompt ? "prompt" : "unavailable";
+  if (hasPrompt) return "prompt";
+  return isAndroidDevice(win.navigator) ? "android" : "unavailable";
 }
 
 /** Current install mode of this device (browser only). */

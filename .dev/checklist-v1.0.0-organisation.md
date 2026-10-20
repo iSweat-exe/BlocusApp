@@ -31,7 +31,7 @@
 - [x] **O-021** `commitlint` + `husky` : hook `commit-msg` qui rejette les messages invalides — _commit non conforme impossible_
 - [x] **O-022** Hook `pre-commit` (`lint-staged` : lint + prettier + typecheck rapide) — _rapide (< 10 s)_
 - [x] **O-023** Stratégie de branches : `main` (protégée, = prod), `develop` optionnel, branches `feat/…`, `fix/…`, `docs/…`, `chore/…` — _nommage documenté_
-- [ ] **O-024** Protection de `main` : PR obligatoire, 1 review min, CI verte, pas de force-push, historique linéaire (squash merge) — _réglages GitHub appliqués_
+- [x] **O-024** Protection de `main` : PR obligatoire, 1 review min, CI verte, pas de force-push, historique linéaire (squash merge) — _réglages GitHub appliqués_
 - [x] **O-025** Template de PR (`.github/pull_request_template.md`) : description, lien issue, checklist (tests, docs, migration, RLS) — _affiché à chaque PR_
 - [x] **O-026** Templates d'issues (bug, feature, tâche LLM) + labels standards — _créés sur GitHub_ ; labels versionnés (`.github/labels.yml`), synchronisés et posés automatiquement (type, area, size…), cf. `docs/git-workflow.md`
 - [x] **O-027** `CODEOWNERS` : les dossiers sensibles (`supabase/migrations`, auth, permissions) nécessitent un reviewer désigné 🔒 — _fichier actif_
