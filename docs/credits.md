@@ -15,9 +15,9 @@ détient les droits (voir le Backlog de la checklist).
 
 | Fichier (`public/images/login/`) | Photo Picsum | Auteur               | Page de la photo                        |
 | -------------------------------- | ------------ | -------------------- | --------------------------------------- |
-| `login-bg-1.webp`                | id 15        | Paul Jarvis          | https://unsplash.com/photos/NYDo21ssGao |
-| `login-bg-2.webp`                | id 47        | Christopher Sardegna | https://unsplash.com/photos/uDUiRS8YroY |
-| `login-bg-3.webp`                | id 29        | Go Wild              | https://unsplash.com/photos/V0yAek6BgGk |
+| `login-bg-1.jpg`                | id 15        | Paul Jarvis          | https://unsplash.com/photos/NYDo21ssGao |
+| `login-bg-2.jpg`                | id 47        | Christopher Sardegna | https://unsplash.com/photos/uDUiRS8YroY |
+| `login-bg-3.jpg`                | id 29        | Go Wild              | https://unsplash.com/photos/V0yAek6BgGk |
 
 - **Licence** : celle d'Unsplash (d'après Lorem Picsum). Elle autorise l'usage libre, commercial compris, sans
   permission préalable. À **vérifier sur la page de chaque photo** avant la mise en production.
