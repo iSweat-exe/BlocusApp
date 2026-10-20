@@ -20,6 +20,7 @@ const LINKS: AdminLink[] = adminLinksFor([
   "permission.manage",
   "audit.read",
   "statistics.view",
+  "security.manage",
   "monitoring.view",
 ]);
 
@@ -57,6 +58,7 @@ describe("AdminNav", () => {
       "Rôles",
       "Journal",
       "Statistiques",
+      "Sécurité",
       "Santé",
     ]);
     for (const link of links) expect(link.querySelector("svg")).not.toBeNull();

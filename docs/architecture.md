@@ -332,6 +332,12 @@ moyennes les ignorent. L'heure en cours n'est pas terminée : elle n'entre pas d
   la même pour tout le monde, **connecté ou non** (aucune garde)  ; **accès pour tout le monde, dans l'application** :
   une ligne « Crédits · Qui a développé BLOCUS. » (`CreditsLink`) dans la section **À propos** de `/settings` (onglet
   Réglages, que les invités ont aussi) et sur `/profil`, plus un petit lien en bas de `/login`.
+- **Patch notes** (`/patch-notes`, `src/features/patch-notes/`) : page publique et statique (Guests et connectés), liste de ce
+  qui change à chaque mise à jour, de la plus récente à la plus ancienne. Le contenu est dans `patch-notes.ts` (une entrée par
+  date, avec des lignes « Nouveau / Amélioré / Corrigé » en français, termes techniques, purement informatives et fonctionnelles) : **toute PR qui change ce
+  que les gens voient ou peuvent faire y ajoute une ligne** (règle de `CLAUDE.md`). Les entrées sont datées, pas numérotées
+  (la version de `package.json` est gérée par release-please). Accès : ligne « Patch notes » (`PatchNotesLink`) dans la
+  section **À propos** de `/settings`. Un test garde les dates valides, uniques et triées.
 - **Thème de profil** (`src/features/profile/profile-theme.ts`) : certains comptes ont un look à eux, repéré par l'**id du
   profil affiché** (jamais par une valeur fournie par un utilisateur). Le thème « love » recolore toute la page de `/profil`
   (variables CSS `--accent*` locales, comme les réglages de couleur), entoure l'avatar d'un cadre qui bat (`.love-ring`) et

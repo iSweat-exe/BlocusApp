@@ -21,4 +21,14 @@ describe("SettingsPage", () => {
     expect(about).toContainElement(screen.getByRole("link", { name: /Crédits/ }));
     expect(screen.getByRole("link", { name: /Crédits/ })).toHaveAttribute("href", "/credits");
   });
+
+  it("links the patch notes from the same public section", () => {
+    render(<SettingsPage />);
+    const about = screen.getByRole("region", { name: "À propos" });
+    expect(about).toContainElement(screen.getByRole("link", { name: /Patch notes/ }));
+    expect(screen.getByRole("link", { name: /Patch notes/ })).toHaveAttribute(
+      "href",
+      "/patch-notes",
+    );
+  });
 });
