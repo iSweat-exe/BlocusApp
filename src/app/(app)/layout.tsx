@@ -4,6 +4,7 @@ import { AppNav } from "@/components/app-nav";
 import { AppSidebar, AppSidebarFallback } from "@/components/app-sidebar";
 import { RefreshOnReturn } from "@/components/refresh-on-return";
 import { OnboardingGate } from "@/features/onboarding/onboarding-gate";
+import { WhatsNewGate } from "@/features/patch-notes/whats-new-gate";
 
 // Guests may read (A-022); the access guard for write actions is tracked in A-121.
 // A phone has a top bar, the page and a bottom tab bar. From 1024 px the bottom bar gives way to a sidebar on the left
@@ -14,6 +15,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <RefreshOnReturn />
       <Suspense>
         <OnboardingGate />
+      </Suspense>
+      <Suspense>
+        <WhatsNewGate />
       </Suspense>
       <div className="flex flex-1 flex-col lg:flex-row">
         {/* usePathname() needs a Suspense boundary on routes with dynamic segments (/admin/users/[id]). */}

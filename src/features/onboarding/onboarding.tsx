@@ -9,6 +9,7 @@ import {
   MapIcon,
   ShareIcon,
 } from "@/components/icons";
+import { Rise } from "@/components/rise";
 import { detectPushSupport } from "@/features/push/device";
 import { PushSettings } from "@/features/push/push-settings";
 import { AccentPicker } from "@/features/settings/accent-picker";
@@ -72,18 +73,6 @@ const FEATURES = [
   { Icon: CalendarIcon, title: "Calendrier", text: "Les événements à venir, jour par jour." },
   { Icon: MapIcon, title: "Carte", text: "Où se trouve la manifestation en ce moment." },
 ] as const;
-
-/** Staggered entrance of an element (an infrequent screen: the sequence shows the hierarchy). */
-function Rise({ order, children }: { order: number; children: ReactNode }) {
-  return (
-    <div
-      className="animate-rise-in motion-reduce:[animation-delay:0ms]"
-      style={{ animationDelay: `${order * 100}ms` }}
-    >
-      {children}
-    </div>
-  );
-}
 
 function WelcomeStep() {
   return (

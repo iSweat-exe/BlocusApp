@@ -338,6 +338,17 @@ moyennes les ignorent. L'heure en cours n'est pas terminée : elle n'entre pas d
   que les gens voient ou peuvent faire y ajoute une ligne** (règle de `CLAUDE.md`). Les entrées sont datées, pas numérotées
   (la version de `package.json` est gérée par release-please). Accès : ligne « Patch notes » (`PatchNotesLink`) dans la
   section **À propos** de `/settings`. Un test garde les dates valides, uniques et triées.
+- **Écran « Nouveautés »** (`src/features/patch-notes/whats-new*.ts(x)`, A-146) : feuille plein écran (`<dialog>` natif, comme l'onboarding ;
+  carte centrée à partir de 1024 px) affichée **une fois** après une mise à jour : date en haut à gauche, croix en haut à droite,
+  titre et changements de l'entrée la plus récente au milieu (`ChangeList`, les mêmes blocs que la page), « Continuer » en bas et un
+  lien « Voir tout l'historique » vers `/patch-notes`. `WhatsNewGate` (Server Component, dans `src/app/(app)/layout.tsx`, sous
+  `Suspense`) ne lit que la présence d'une session. **Déclencheur** : toute nouvelle **date** dans `patch-notes.ts` (une ligne
+  ajoutée à une date déjà vue ne réaffiche rien). **Mémoire** : `localStorage` (`blocus.whatsnew.v1`), par appareil, qui garde la date
+  de l'entrée la plus récente montrée ; comme seule la plus récente est comparée et stockée, une personne absente depuis longtemps
+  ne voit **qu'un seul écran** (la dernière entrée), le lien mène au reste. Règles (`decideWhatsNew`) : appareil neuf (invité sans
+  date) = rien et la date est enregistrée sans rien montrer, seule la mise à jour suivante s'affiche ; connecté qui n'a pas fini
+  l'onboarding = l'onboarding passe d'abord, rien d'autre ; connecté qui l'a fini avant l'existence de l'écran = il le voit une fois ;
+  stockage bloqué = jamais. Croix, « Continuer », Échap, geste retour et lien enregistrent tous la date. Aucune table, aucune migration.
 - **Thème de profil** (`src/features/profile/profile-theme.ts`) : certains comptes ont un look à eux, repéré par l'**id du
   profil affiché** (jamais par une valeur fournie par un utilisateur). Le thème « love » recolore toute la page de `/profil`
   (variables CSS `--accent*` locales, comme les réglages de couleur), entoure l'avatar d'un cadre qui bat (`.love-ring`) et

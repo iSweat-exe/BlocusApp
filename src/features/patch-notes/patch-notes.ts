@@ -24,6 +24,10 @@ export const PATCH_NOTES: readonly PatchNote[] = [
       { kind: "new", text: "Page Patch notes (Réglages > À propos)." },
       {
         kind: "new",
+        text: "Écran plein écran affiché une fois après une mise à jour : date, contenu de la dernière entrée, bouton Continuer.",
+      },
+      {
+        kind: "new",
         text: "Interface desktop (≥ 1024 px) : sidebar, pages sur deux colonnes, raccourcis clavier du calendrier (M, S, J, ←, →, T).",
       },
       { kind: "new", text: "Calendrier : vues Mois, Semaine et Jour." },

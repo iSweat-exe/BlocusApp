@@ -80,6 +80,17 @@ export function formatPatchDate(isoDate: string): string {
   return dateFormat.format(new Date(`${isoDate}T00:00:00Z`));
 }
 
+/** The changes of one entry as a card: one block per run of changes of the same kind. */
+export function ChangeList({ changes }: { changes: readonly PatchChange[] }) {
+  return (
+    <ul className="card divide-y divide-line overflow-hidden">
+      {groupChanges(changes).map((group) => (
+        <Change key={group.texts[0]} {...group} />
+      ))}
+    </ul>
+  );
+}
+
 function Entry({ note }: { note: PatchNote }) {
   const headingId = `patch-${note.date}`;
   return (
@@ -90,11 +101,7 @@ function Entry({ note }: { note: PatchNote }) {
         </h2>
         <p className="font-display text-lg font-bold tracking-tight">{note.title}</p>
       </header>
-      <ul className="card divide-y divide-line overflow-hidden">
-        {groupChanges(note.changes).map((group) => (
-          <Change key={group.texts[0]} {...group} />
-        ))}
-      </ul>
+      <ChangeList changes={note.changes} />
     </section>
   );
 }
