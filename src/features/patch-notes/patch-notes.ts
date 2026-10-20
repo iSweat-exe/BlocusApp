@@ -35,6 +35,10 @@ export const PATCH_NOTES: readonly PatchNote[] = [
         kind: "improved",
         text: "Onboarding : procédure d'installation PWA détaillée pour iOS (Safari) et Android.",
       },
+      {
+        kind: "improved",
+        text: "Pages CGU et confidentialité : hiérarchie typographique (séparateurs, titres, puces), largeur de ligne limitée.",
+      },
       { kind: "fixed", text: "Posts : auteur affiché avant la date." },
       {
         kind: "fixed",
