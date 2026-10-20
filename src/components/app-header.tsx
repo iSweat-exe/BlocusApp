@@ -22,7 +22,7 @@ export async function AppHeader() {
   const avatar = safeAvatarUrl(session?.avatarUrl);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line bg-bar pt-[env(safe-area-inset-top)] backdrop-blur">
       <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-4 lg:h-16 lg:max-w-6xl lg:justify-end lg:px-10">
         <Link
           href="/"

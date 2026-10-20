@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { EVENT_BOOT_SCRIPT } from "@/features/events/event-script";
+import { EventDecor } from "@/features/events/event-decor";
 import { ACCENT_BOOT_SCRIPT } from "@/features/settings/accent-script";
 import { THEME_BOOT_SCRIPT } from "@/features/settings/theme-script";
 import { NoZoom } from "@/components/no-zoom";
@@ -64,9 +66,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Apply the saved theme and accent color before first paint (no flash of the defaults). */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: ACCENT_BOOT_SCRIPT }} />
+        {/* Seasonal look (Halloween on 31 October, or ?event=halloween): sets data-event before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: EVENT_BOOT_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
         {children}
+        <EventDecor />
         <NoZoom />
         <ServiceWorkerRegister />
         <SampledAnalytics />

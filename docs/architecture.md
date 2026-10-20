@@ -349,6 +349,39 @@ moyennes les ignorent. L'heure en cours n'est pas terminée : elle n'entre pas d
   date) = rien et la date est enregistrée sans rien montrer, seule la mise à jour suivante s'affiche ; connecté qui n'a pas fini
   l'onboarding = l'onboarding passe d'abord, rien d'autre ; connecté qui l'a fini avant l'existence de l'écran = il le voit une fois ;
   stockage bloqué = jamais. Croix, « Continuer », Échap, geste retour et lien enregistrent tous la date. Aucune table, aucune migration.
+- **Événements saisonniers** (`src/features/events/`, A-147) : look de saison de toute l'application, aujourd'hui **Halloween** (31 octobre,
+  jour local de l'appareil). `EVENT_BOOT_SCRIPT` (dans le `<head>` de `src/app/layout.tsx`, comme les scripts de thème et d'accent) met
+  `data-event="halloween"` sur `<html>` **avant le premier rendu** (pas de flash) et aligne la couleur de la barre du navigateur ; le
+  serveur ne sait rien de l'événement (les pages restent statiques et en cache). La palette et les animations vivent dans `src/app/halloween.css` (importé par `globals.css`, 313 lignes
+  qui ne concernent qu'un jour par an) : chaque couleur de l'événement est un jeton `--halloween-*` défini une fois, les règles
+  n'utilisent que `var()`. Le bloc `html:root[data-event="halloween"]` (fond violet nuit, accent citrouille, vert, jaune, halos
+  violet et braise sur `body`, titres lumineux) **remplace** thèmes clair et sombre ; `html:root` le rend plus spécifique que les
+  deux blocs sombres de `globals.css`, donc l'ordre des fichiers n'a pas d'importance. L'accent est forcé avec `!important` (le
+  sélecteur de couleur écrit des variables en ligne). **Surfaces opaques pendant l'événement, sans toucher aux classes Tailwind** :
+  `--color-surface` est un jeton non `inline` (`@theme` à part dans `globals.css`) que l'événement redéfinit, et les barres
+  translucides (en-tête, barre du bas, actions de formulaire) utilisent `bg-bar` = `color-mix(background, --bar-mix 90 %)`, que
+  l'événement passe à 100 %. Aucune règle ne vise `.bg-background/85` : changer une opacité dans un composant ne casse rien.
+  `EventDecor` (petit composant du layout racine qui suit `data-event`) **charge le décor à la demande** (`next/dynamic`, `ssr: false` :
+  le dessin, les animations et le contrôleur sont un chunk à part, téléchargé seulement le jour de l'événement ou en aperçu).
+  `HalloweenDecor` (`-z-10` : **derrière** le contenu, juste au-dessus du fond, et à 40 % d'opacité pour ne jamais gêner la lecture ; `pointer-events-none`,
+  `aria-hidden`) dessine en SVG inline (`halloween-art.tsx`, dégradés, reflets, halos : rien n'est en aplat) 4 fantômes (3 teintes) qui
+  traversent l'écran **en zigzag** (une couche `halloween-zig` en va-et-vient linéaire : des diagonales aux virages nets), une citrouille
+  lumineuse, 6 bonbons (emballés, bonbon de maïs) qui tombent,
+  des étoiles qui scintillent, une toile d'araignée et son araignée qui se balance dans le coin. Seuls `translate`, `rotate`, `scale` et
+  `opacity` bougent, sur trois couches (traversée, réaction, flottement) pour que les animations ne se battent pas ; avec
+  `prefers-reduced-motion` tout ce qui bouge disparaît (la toile reste).
+  **Réaction au curseur** (`halloween-pointer.ts`) : le décor ne reçoit aucun clic (un fantôme sur un bouton ne doit pas voler le tap),
+  un seul écouteur sur la fenêtre suit le pointeur et déplace les dessins : les fantômes s'écartent, ouvrent la bouche et **suivent
+  des yeux** le curseur, les bonbons sont repoussés comme des bulles, les citrouilles brillent plus fort ;
+  un clic ou un tap sur un fantôme le fait « bouh » et le gonfle un peu plus à chaque fois ; **au 3e clic en moins de 3,5 s il explose**
+  (étincelles, onde de choc, puis il disparaît et revient 7 s plus tard) ; sur un bonbon, un tap le fait tourner. Les constantes
+  (`CLICKS_TO_EXPLODE`, `CLICK_WINDOW_MS`, `RESPAWN_MS`) sont en tête de `halloween-pointer.ts`. La boucle
+  d'animation ne tourne que si le pointeur est sur la page (ou un doigt posé) et s'arrête quand tout est revenu en place.
+  **Désactivation** : la section « Événement » de `/settings` (`EventToggle`, visible seulement pendant l'événement ou après l'avoir
+  coupé) écrit `off` dans `blocus.event` et retire l'attribut sans recharger.
+  **Tester en local** : ouvrir n'importe quelle page avec `?event=halloween` (mémorisé dans `localStorage`), `?event=off` pour couper
+  (même le 31 octobre), `?event=reset` pour revenir au calendrier ; ou changer la date du système. Ajouter un événement = une valeur
+  de `EventKey`, une date dans `eventOfDate`, un bloc CSS et un composant de décor.
 - **Thème de profil** (`src/features/profile/profile-theme.ts`) : certains comptes ont un look à eux, repéré par l'**id du
   profil affiché** (jamais par une valeur fournie par un utilisateur). Le thème « love » recolore toute la page de `/profil`
   (variables CSS `--accent*` locales, comme les réglages de couleur), entoure l'avatar d'un cadre qui bat (`.love-ring`) et

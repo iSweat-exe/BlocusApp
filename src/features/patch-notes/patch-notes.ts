@@ -24,6 +24,10 @@ export const PATCH_NOTES: readonly PatchNote[] = [
       { kind: "new", text: "Page Patch notes (Réglages > À propos)." },
       {
         kind: "new",
+        text: "Thème Halloween le 31 octobre : palette violet/orange, fantômes en zigzag (explosent au clic), citrouille et bonbons en arrière-plan ; désactivable dans Réglages > Événement.",
+      },
+      {
+        kind: "new",
         text: "Écran plein écran affiché une fois après une mise à jour : date, contenu de la dernière entrée, bouton Continuer.",
       },
       {

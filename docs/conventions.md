@@ -55,7 +55,7 @@ docs/ · .dev/                      Documentation et pilotage
 
 ## Design system (UI)
 
-Source unique : `src/app/globals.css` (voir ADR 0004). Les valeurs sombres y sont écrites deux fois (système et `data-theme="dark"`) : les modifier dans les deux blocs. Ne jamais coder en dur une couleur, un arrondi ou une
+Source unique : `src/app/globals.css` (voir ADR 0004). Les valeurs sombres y sont écrites deux fois (système et `data-theme="dark"`) : les modifier dans les deux blocs. Barres translucides (en-tête, barre du bas, actions collées) : `bg-bar` (jamais `bg-background/xx`), pour qu'un événement puisse les rendre opaques. Look saisonnier : tout dans un fichier à part importé par `globals.css`, couleurs en jetons, décor chargé à la demande. Ne jamais coder en dur une couleur, un arrondi ou une
 hauteur de bouton : utiliser les tokens et classes partagées.
 
 | Besoin                | À utiliser                                                                    |

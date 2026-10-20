@@ -1,0 +1,313 @@
+/*
+ * Event "halloween" (see features/events/): `data-event="halloween"` on <html>, set before first paint by the boot
+ * script on 31 October (or by the `?event=halloween` preview). Imported by globals.css, after Tailwind.
+ *
+ * 1. The palette: a night look that replaces the light and dark themes alike. Every colour of the event is a
+ *    `--halloween-*` token defined once below; the rules after it only use tokens.
+ * 2. The decoration: the animations of the drawings in `halloween-decor.tsx` and their reactions.
+ */
+
+/* `html:root` makes the selector more specific than the two dark-theme blocks of globals.css, so the palette wins
+   whatever the order of the files. The accent uses `!important` because the accent picker writes inline variables
+   on <html>. */
+html:root[data-event="halloween"] {
+  --halloween-night: #120a1f;
+  --halloween-ink: #f4ecff;
+  --halloween-orange: #ff8a1f;
+  --halloween-orange-strong: #e8700a;
+  --halloween-orange-ink: #1a0b00;
+  --halloween-violet: #8b5cf6;
+  --halloween-lavender: #a78bfa;
+  --halloween-glow: #fff3c4;
+
+  color-scheme: dark;
+  --background: var(--halloween-night);
+  --foreground: var(--halloween-ink);
+  --accent: var(--halloween-orange) !important;
+  --accent-strong: var(--halloween-orange-strong) !important;
+  --accent-ink: var(--halloween-orange-ink) !important;
+  --danger: #ff6b8a;
+  --success: #9be15d;
+  --warning: #ffc247;
+  --image-outline: oklch(1 0 0 / 0.1);
+
+  /* Surfaces and bars are opaque during the event. The decoration is drawn behind the page: a translucent card or
+     bar would let ghosts and sweets show through it as if they flew over the text. The violet tint is mixed into
+     the solid background instead of laid over it. */
+  --color-surface: color-mix(in srgb, var(--halloween-violet) 9%, var(--background));
+  --bar-mix: 100%;
+}
+
+html:root[data-event="halloween"] body {
+  /* A violet moon glow over the top, an ember glow under the bottom, fixed so they stay while the page scrolls. */
+  background:
+    radial-gradient(
+      120% 55% at 50% -8%,
+      color-mix(in srgb, var(--halloween-violet) 32%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      110% 45% at 50% 108%,
+      color-mix(in srgb, var(--halloween-orange) 18%, transparent),
+      transparent 62%
+    ),
+    var(--background);
+  background-attachment: fixed;
+}
+
+html:root[data-event="halloween"] .page-title {
+  text-shadow: 0 0 24px color-mix(in srgb, var(--halloween-orange) 40%, transparent);
+}
+
+html:root[data-event="halloween"] .card,
+html:root[data-event="halloween"] .card-link {
+  border-color: color-mix(in srgb, var(--halloween-lavender) 22%, transparent);
+}
+
+.halloween-cobweb {
+  opacity: 0.55;
+}
+
+/* The drawings only move with transform-like properties (translate, rotate, scale) and opacity. Each one has
+   three layers so the animations never fight: the wrapper crosses or falls (`translate`), the reacting layer is
+   moved by the pointer (`transform`, written by halloween-pointer.ts), the inner layer bobs. */
+.halloween-cross {
+  animation: halloween-cross linear infinite;
+}
+.halloween-back {
+  animation-direction: reverse;
+}
+.halloween-fall {
+  animation: halloween-fall linear infinite;
+}
+.halloween-bob {
+  animation: halloween-bob ease-in-out infinite alternate;
+}
+/* Zigzag: a straight (linear) swing up and down, so the path is made of diagonal legs with sharp turns. */
+.halloween-zig {
+  animation: halloween-zig linear infinite alternate;
+}
+.halloween-swing {
+  transform-origin: 50% 0;
+  animation: halloween-swing 4.2s ease-in-out infinite alternate;
+}
+.halloween-twinkle {
+  animation: halloween-twinkle ease-in-out infinite;
+}
+.halloween-flicker {
+  animation: halloween-flicker 2.3s ease-in-out infinite;
+}
+
+/* Glow: a halo of the color of each drawing that grows as the pointer gets close (--react goes from 0 to 1). */
+.halloween-ghost svg {
+  filter: drop-shadow(
+    0 0 calc(8px + var(--react, 0) * 16px)
+      rgb(var(--glow, 183 155 255) / calc(0.5 + var(--react, 0) * 0.4))
+  );
+}
+.halloween-pumpkin svg {
+  filter: drop-shadow(
+    0 0 calc(10px + var(--react, 0) * 16px)
+      color-mix(in srgb, var(--halloween-orange) calc(45% + var(--react, 0) * 40%), transparent)
+  );
+}
+.halloween-candy svg {
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.35))
+    drop-shadow(
+      0 0 calc(var(--react, 0) * 12px) color-mix(in srgb, var(--halloween-glow) 80%, transparent)
+    );
+}
+
+/* A ghost's eyes follow the pointer, and its mouth opens as it gets close. */
+.halloween-eyes {
+  transform: translate(calc(var(--lx, 0) * 1px), calc(var(--ly, 0) * 1px));
+}
+.halloween-mouth {
+  transform-origin: 32px 43px;
+  transform: scale(calc(1 + var(--react, 0) * 0.7));
+}
+
+/* The answer to a tap near a drawing. */
+.halloween-boo {
+  animation: halloween-boo 0.5s ease-out;
+}
+.halloween-pop {
+  animation: halloween-pop 0.6s ease-out;
+}
+
+@keyframes halloween-cross {
+  from {
+    translate: -22vw 0;
+  }
+  to {
+    translate: 122vw 0;
+  }
+}
+@keyframes halloween-fall {
+  0% {
+    translate: 0 -12dvh;
+    rotate: 0deg;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.95;
+  }
+  92% {
+    opacity: 0.95;
+  }
+  100% {
+    translate: var(--sway, 20px) 112dvh;
+    rotate: var(--spin, 360deg);
+    opacity: 0;
+  }
+}
+@keyframes halloween-bob {
+  from {
+    translate: 0 -10px;
+    rotate: -3deg;
+  }
+  to {
+    translate: 0 10px;
+    rotate: 3deg;
+  }
+}
+@keyframes halloween-zig {
+  from {
+    translate: 0 calc(var(--zig, 50px) * -1);
+  }
+  to {
+    translate: 0 var(--zig, 50px);
+  }
+}
+@keyframes halloween-swing {
+  from {
+    rotate: -7deg;
+  }
+  to {
+    rotate: 7deg;
+  }
+}
+@keyframes halloween-twinkle {
+  0%,
+  100% {
+    scale: 0.4;
+    opacity: 0.15;
+  }
+  50% {
+    scale: 1;
+    opacity: 0.95;
+  }
+}
+@keyframes halloween-flicker {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  22% {
+    opacity: 0.72;
+  }
+  48% {
+    opacity: 1;
+  }
+  71% {
+    opacity: 0.8;
+  }
+}
+@keyframes halloween-boo {
+  0% {
+    scale: 1;
+    filter: brightness(1);
+  }
+  30% {
+    scale: 1.5;
+    filter: brightness(1.7);
+  }
+  100% {
+    scale: 1;
+    filter: brightness(1);
+  }
+}
+@keyframes halloween-pop {
+  0% {
+    scale: 1;
+    rotate: 0deg;
+  }
+  40% {
+    scale: 1.55;
+    rotate: 200deg;
+  }
+  100% {
+    scale: 1;
+    rotate: 360deg;
+  }
+}
+
+/* A ghost clicked a few times explodes: it vanishes in a flash, sparks fly out, and it fades back in later. */
+.halloween-react {
+  position: relative;
+}
+.halloween-react > .halloween-bob {
+  transition:
+    opacity 0.6s ease-out,
+    scale 0.6s cubic-bezier(0.2, 0, 0, 1);
+}
+.halloween-exploded > .halloween-bob {
+  opacity: 0 !important;
+  scale: 0.2;
+  transition-duration: 0.12s;
+}
+.halloween-spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--size, 6px);
+  height: var(--size, 6px);
+  margin: calc(var(--size, 6px) / -2) 0 0 calc(var(--size, 6px) / -2);
+  border-radius: 9999px;
+  background: radial-gradient(circle, white 0%, rgb(var(--glow, 183 155 255)) 70%);
+  box-shadow: 0 0 8px rgb(var(--glow, 183 155 255) / 0.9);
+  animation: halloween-burst 0.85s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+.halloween-spark-ember {
+  background: radial-gradient(circle, var(--halloween-glow) 0%, var(--halloween-orange) 70%);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--halloween-orange) 90%, transparent);
+}
+.halloween-shock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 9999px;
+  border: 2px solid rgb(var(--glow, 183 155 255) / 0.9);
+  animation: halloween-shock 0.6s ease-out forwards;
+}
+@keyframes halloween-burst {
+  from {
+    translate: 0 0;
+    scale: 1;
+    opacity: 1;
+  }
+  to {
+    translate: var(--dx, 0) var(--dy, 0);
+    scale: 0;
+    opacity: 0;
+  }
+}
+@keyframes halloween-shock {
+  from {
+    scale: 0.3;
+    opacity: 0.9;
+  }
+  to {
+    scale: 3.2;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halloween-moving {
+    display: none;
+  }
+}
