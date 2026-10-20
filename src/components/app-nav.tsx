@@ -36,7 +36,7 @@ export function AppNav() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="sticky bottom-0 z-30 border-t border-line bg-background/90 pb-safe-bottom backdrop-blur lg:hidden"
+      className="sticky bottom-0 z-30 border-t border-line bg-bar pb-safe-bottom backdrop-blur lg:hidden"
     >
       <ul className="mx-auto flex max-w-3xl">
         {NAV_ITEMS.map(({ href, label, Icon, animClass }) => {

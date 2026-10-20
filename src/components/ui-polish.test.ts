@@ -25,5 +25,7 @@ describe("interface polish", () => {
     const css = read("src/app/globals.css");
     expect(css).toContain("--image-outline: oklch(0 0 0 / 0.1)");
     expect(css.match(/--image-outline: oklch\(1 0 0 \/ 0\.1\)/g)).toHaveLength(2);
+    // The Halloween event (its own file) has a dark palette too.
+    expect(read("src/app/halloween.css")).toContain("--image-outline: oklch(1 0 0 / 0.1)");
   });
 });

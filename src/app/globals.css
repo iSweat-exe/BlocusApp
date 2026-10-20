@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./halloween.css";
 
 /*
  * BlocusApp design system: the single place for colors, radii, spacing, fonts and the shared component
@@ -66,8 +67,10 @@
   --color-warning: var(--warning);
   --color-discord: var(--discord);
   --color-discord-strong: var(--discord-strong);
-  /* Neutral surfaces and text, derived from the foreground so they follow light and dark. */
-  --color-surface: color-mix(in srgb, var(--foreground) 3%, transparent);
+  /* Translucent bars (header, tab bar, pinned form actions): they blur the page behind them. `--bar-mix` is the
+     share of the background kept (90 %); an event makes it 100 % so that nothing drawn behind shows through. */
+  --color-bar: color-mix(in srgb, var(--background) var(--bar-mix, 90%), transparent);
+  /* Neutral text and lines, derived from the foreground so they follow light and dark. */
   --color-line: color-mix(in srgb, var(--foreground) 10%, transparent);
   --color-line-strong: color-mix(in srgb, var(--foreground) 15%, transparent);
   --color-muted: color-mix(in srgb, var(--foreground) 60%, transparent);
@@ -229,6 +232,11 @@
   }
 }
 
+/* The surface color is NOT inline: utilities keep `var(--color-surface)`, so an event can swap it (see halloween.css). */
+@theme {
+  --color-surface: color-mix(in srgb, var(--foreground) 3%, transparent);
+}
+
 /* 3. Shared component classes. */
 @layer components {
   .page-title {
@@ -272,7 +280,7 @@
   }
   /* Primary actions of a sheet form: pinned to the bottom of the sheet while the form scrolls. */
   .form-actions {
-    @apply sticky bottom-0 -mx-4 mt-auto border-t border-line bg-background/90 px-4 pt-3 pb-safe-bottom backdrop-blur;
+    @apply sticky bottom-0 -mx-4 mt-auto border-t border-line bg-bar px-4 pt-3 pb-safe-bottom backdrop-blur;
   }
   .field-label {
     @apply flex min-w-0 flex-col gap-1.5 text-sm font-medium;

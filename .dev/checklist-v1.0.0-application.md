@@ -196,6 +196,7 @@ L'application sert à **gérer une manifestation dans une ville X** :
 - [~] **A-144** Support complet du bureau (à partir de 1024 px) : barre latérale à la place de la barre du bas, contenu élargi, accueil avec panneau « À venir », calendrier / événement / réglages sur deux colonnes, fenêtres centrées, raccourcis clavier du calendrier (M, S, J, ←, →, T), curseur, survols et barres de défilement 🆕 — _fait, à valider sur de vrais écrans (clair et sombre)_
 - [~] **A-145** Page « Patch notes » dans les réglages (`/patch-notes`, publique) + règle `CLAUDE.md` : chaque PR visible par les utilisateurs met la page à jour ; icône manquante de « Sécurité » dans la navigation de l'administration 🆕 — _fait, à valider sur de vrais téléphones_
 - [~] **A-146** Écran « Nouveautés » plein écran après une mise à jour (date, croix, contenu de la dernière entrée des patch notes, « Continuer », lien vers l'historique), une fois par appareil, un seul écran même après une longue absence, invités compris 🆕 — _fait, à valider sur de vrais téléphones et écrans_
+- [~] **A-147** Thème saisonnier Halloween (31 octobre, ou `?event=halloween` pour tester) : palette violet/orange, fantômes en zigzag qui explosent au clic, citrouille, bonbons et toile d'araignée animés, désactivable dans les réglages, `prefers-reduced-motion` respecté 🆕 — _fait, à valider sur de vrais téléphones et écrans (clair et sombre)_
 
 ## Étape 1.11 — Finalisation v1.0.0
 - [ ] **A-110** Revue sécurité complète (RLS, secrets, en-têtes, dépendances) 🔒 — _rapport signé_

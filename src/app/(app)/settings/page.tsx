@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { NotificationsSection } from "@/features/push/notifications-section";
 import { CreditsLink } from "@/features/credits/credits-link";
+import { EventToggle } from "@/features/events/event-toggle";
 import { AccentPicker } from "@/features/settings/accent-picker";
 import { ThemePicker } from "@/features/settings/theme-picker";
 import { AccountSection } from "@/features/settings/account-section";
@@ -35,6 +36,8 @@ export default function SettingsPage() {
           </p>
           <AccentPicker />
         </section>
+
+        <EventToggle />
 
         <Suspense fallback={null}>
           <NotificationsSection />
