@@ -201,12 +201,32 @@ une pastille d'accent derrière l'icône active, un fond flouté et la marge `pb
 `max(env(safe-area-inset-bottom), 2rem)`) pour ne pas passer sous l'indicateur d'accueil de l'iPhone (`viewport-fit=cover`
 est déjà activé) ni coller au bord sur Android, dont les navigateurs et PWA renvoient souvent 0 pour `env()` alors que
 la barre de gestes ou de navigation occupe le bas de l'écran. Même token pour les feuilles (`Select`, dialogues). Les survols ne s'appliquent
-qu'aux pointeurs qui survolent (`@media (hover: hover)`). Le contenu est une colonne centrée de `max-w-3xl`
-(identique sur mobile, centrée sur desktop ; les pages `/profil` et `/admin` y sont aussi).
+qu'aux pointeurs qui survolent (`@media (hover: hover)`). Sur téléphone et tablette, le contenu est une colonne centrée de `max-w-3xl` ; à partir de 1024 px, voir « Bureau ».
 `globals.css` : variable `--accent`, `min-height: 100dvh`, pas de délai ni de zoom au double toucher
 (`touch-action: manipulation`), pas de surbrillance grise au toucher, anneau de focus clavier visible,
 `prefers-reduced-motion` respecté. Les dates françaises n'ont que leur première lettre en majuscule
 (`first-letter:uppercase`, pas `capitalize`).
+
+## Bureau (à partir de 1024 px, A-144)
+
+Un seul point de rupture, `lg` (1024 px) : en dessous, rien ne change.
+
+- **Navigation** : `src/components/app-sidebar.tsx` (barre latérale collante de 16 rem : marque, quatre sections,
+  liens Crédits / Confidentialité / Conditions) remplace la barre du bas (`lg:hidden`). Les sections viennent de
+  `src/components/nav-items.ts` (`NAV_ITEMS`, `isActivePath`), partagées avec `app-nav.tsx`. L'en-tête garde ses
+  boutons, alignés à droite, sans la marque. Le contenu passe à `lg:max-w-6xl lg:px-10`.
+- **Pages** : accueil = fil + panneau « À venir cette semaine » (`upcoming-events.tsx`, serveur, `connection()`,
+  sept jours, 5 événements) ; calendrier = grille à gauche, jour sélectionné à droite (collant) ; événement = texte
+  à gauche, faits et gestion à droite (les `order-*` gardent l'ordre du téléphone) ; réglages sur deux colonnes ;
+  textes (légal, crédits, profil) restent en `max-w-3xl`.
+- **Fenêtres** : `FullScreenDialog` devient un panneau centré, l'onboarding une carte sur fond assombri, la page de
+  connexion une carte sur la photo.
+- **Clavier** (`use-calendar-shortcuts.ts`) : `M` / `S` / `J` changent de vue, `←` / `→` changent de période, `T` revient
+  à aujourd'hui. Ignorés avec Ctrl/Cmd/Alt, dans un champ ou un menu, et sous un dialogue. Les flèches et `T`
+  cliquent les liens `data-calendar-nav` : même effet qu'un clic. Les raccourcis sont annoncés (`aria-keyshortcuts`,
+  `<kbd>` dans le menu des vues).
+- **Souris** : `cursor: pointer` sur les contrôles (règle de base de `globals.css`), survols des `.btn*` et
+  `.card-link` derrière `@media (hover: hover)`, barres de défilement fines pour un pointeur précis.
 
 ## En-tête de l'application
 

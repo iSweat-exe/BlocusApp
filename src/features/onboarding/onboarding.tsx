@@ -205,9 +205,9 @@ function Sheet({ vapidPublicKey }: { vapidPublicKey: string | null }) {
         event.preventDefault();
         markOnboardingDone();
       }}
-      className="fixed inset-0 m-0 h-dvh max-h-none w-dvw max-w-none flex-col bg-background p-0 text-foreground open:flex open:animate-fade-in"
+      className="fixed inset-0 m-0 h-dvh max-h-none w-dvw max-w-none flex-col bg-background p-0 text-foreground backdrop:bg-black/50 open:flex open:animate-fade-in lg:items-center lg:justify-center lg:bg-transparent"
     >
-      <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col">
+      <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col lg:h-[40rem] lg:max-h-[90dvh] lg:flex-none lg:overflow-hidden lg:rounded-sheet lg:border lg:border-line lg:bg-background lg:shadow-2xl">
         <header className="flex items-center gap-4 px-gutter pt-[max(env(safe-area-inset-top),1rem)]">
           <ol aria-label={`Étape ${index + 1} sur ${steps.length}`} className="flex flex-1 gap-1.5">
             {steps.map((id, position) => (

@@ -43,7 +43,7 @@ export function LegalPage({
   children: ReactNode;
 }) {
   return (
-    <article className="flex flex-col gap-section">
+    <article className="mx-auto flex w-full max-w-3xl flex-col gap-section">
       <header className="flex flex-col gap-1">
         <h1 className="page-title">{title}</h1>
         <p className="text-sm text-muted">{intro}</p>

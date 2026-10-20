@@ -19,6 +19,7 @@ import {
   monthKeyOf,
   weekKeyOf,
 } from "./time";
+import { useCalendarShortcuts } from "./use-calendar-shortcuts";
 import { usePinchZoom } from "./use-pinch-zoom";
 import { ViewSwitcher } from "./view-switcher";
 import { WeekView } from "./week-view";
@@ -119,6 +120,9 @@ export function MonthView({
   const navigatePrev = (targetDay: string) => slideTo(targetDay, "animate-slide-right");
   const navigateNext = (targetDay: string) => slideTo(targetDay, "animate-slide-left");
 
+  // Desktop: M / S / J change the view, the arrows and T move in time.
+  useCalendarShortcuts(changeView);
+
   // Pinch zoom (2 fingers on touch screens, or trackpad pinch) moves between the views.
   const { containerRef, touchHandlers } = usePinchZoom(view, changeView);
 
@@ -136,315 +140,346 @@ export function MonthView({
         </p>
       )}
 
-      {/* Fixed-height calendar container to prevent layout shifts across view modes */}
-      <div
-        ref={containerRef}
-        {...touchHandlers}
-        className="flex h-[396px] flex-col gap-3 overflow-hidden select-none touch-pan-x touch-pan-y"
-      >
-        {/* Navigation bar depending on active view mode */}
-        {view === "month" && (
-          <div className="flex items-center justify-between">
-            <Link
-              href={buildCalendarHref({
-                view: "month",
-                day: `${shiftMonth(month, -1)}-01`,
-                month: shiftMonth(month, -1),
-              })}
-              prefetch={false}
-              aria-label="Mois précédent"
-              className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
-            >
-              ‹
-            </Link>
-            <div className="flex flex-col items-center">
-              <h2 className="text-lg font-semibold first-letter:uppercase">
-                {formatMonthLabel(month)}
-              </h2>
-              {monthKeyOf(today) !== month && (
-                <Link
-                  href={buildCalendarHref({ view: "month", day: today, month: monthKeyOf(today) })}
-                  prefetch={false}
-                  className="relative text-xs underline after:absolute after:-inset-x-3 after:-inset-y-3.5 after:content-['']"
-                >
-                  Aujourd&apos;hui
-                </Link>
-              )}
-            </div>
-            <Link
-              href={buildCalendarHref({
-                view: "month",
-                day: `${shiftMonth(month, 1)}-01`,
-                month: shiftMonth(month, 1),
-              })}
-              prefetch={false}
-              aria-label="Mois suivant"
-              className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
-            >
-              ›
-            </Link>
-          </div>
-        )}
-
-        {view === "week" && (
-          <div className="flex items-center justify-between">
-            <Link
-              href={buildCalendarHref({
-                view: "week",
-                day: addDays(day, -7),
-                week: weekKeyOf(addDays(day, -7)),
-              })}
-              prefetch={false}
-              aria-label="Semaine précédente"
-              onClick={(e) => {
-                const target = addDays(day, -7);
-                if (monthKeyOf(target) === month) {
-                  e.preventDefault();
-                  navigatePrev(target);
-                }
-              }}
-              className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
-            >
-              ‹
-            </Link>
-            <div className="flex flex-col items-center">
-              <h2 className="text-lg font-semibold">{formatWeekLabel(weekKeyOf(day))}</h2>
-              <span className="text-xs text-muted">{formatWeekRange(day)}</span>
-              {weekKeyOf(today) !== weekKeyOf(day) && (
-                <Link
-                  href={buildCalendarHref({ view: "week", day: today, week: weekKeyOf(today) })}
-                  prefetch={false}
-                  onClick={(e) => {
-                    if (monthKeyOf(today) === month) {
-                      e.preventDefault();
-                      select(today);
-                    }
-                  }}
-                  className="relative mt-0.5 text-xs underline after:absolute after:-inset-x-3 after:-inset-y-3 after:content-['']"
-                >
-                  Cette semaine
-                </Link>
-              )}
-            </div>
-            <Link
-              href={buildCalendarHref({
-                view: "week",
-                day: addDays(day, 7),
-                week: weekKeyOf(addDays(day, 7)),
-              })}
-              prefetch={false}
-              aria-label="Semaine suivante"
-              onClick={(e) => {
-                const target = addDays(day, 7);
-                if (monthKeyOf(target) === month) {
-                  e.preventDefault();
-                  navigateNext(target);
-                }
-              }}
-              className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
-            >
-              ›
-            </Link>
-          </div>
-        )}
-
-        {view === "day" && (
-          <div className="flex items-center justify-between">
-            <Link
-              href={buildCalendarHref({ view: "day", day: addDays(day, -1) })}
-              prefetch={false}
-              aria-label="Jour précédent"
-              onClick={(e) => {
-                const target = addDays(day, -1);
-                if (monthKeyOf(target) === month) {
-                  e.preventDefault();
-                  navigatePrev(target);
-                }
-              }}
-              className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
-            >
-              ‹
-            </Link>
-            <div className="flex flex-col items-center text-center">
-              <h2 className="text-lg font-semibold first-letter:uppercase">
-                {formatDayKeyLong(day)}
-              </h2>
-              {day !== today && (
-                <Link
-                  href={buildCalendarHref({ view: "day", day: today })}
-                  prefetch={false}
-                  onClick={(e) => {
-                    if (monthKeyOf(today) === month) {
-                      e.preventDefault();
-                      select(today);
-                    }
-                  }}
-                  className="relative mt-0.5 text-xs underline after:absolute after:-inset-x-3 after:-inset-y-3 after:content-['']"
-                >
-                  Aujourd&apos;hui
-                </Link>
-              )}
-            </div>
-            <Link
-              href={buildCalendarHref({ view: "day", day: addDays(day, 1) })}
-              prefetch={false}
-              aria-label="Jour suivant"
-              onClick={(e) => {
-                const target = addDays(day, 1);
-                if (monthKeyOf(target) === month) {
-                  e.preventDefault();
-                  navigateNext(target);
-                }
-              }}
-              className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
-            >
-              ›
-            </Link>
-          </div>
-        )}
-
-        {/* Animated View body container */}
-        <div key={anim.key} className={`flex min-h-0 flex-1 flex-col ${anim.className}`}>
-          {/* Month view: evenly distributed weeks stretching down to the bottom of the container */}
+      {/* From 1024 px: the calendar on the left, the selected day (list and creation) on the right. */}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8">
+        {/* Fixed-height calendar container to prevent layout shifts across view modes */}
+        <div
+          ref={containerRef}
+          {...touchHandlers}
+          className="flex h-[396px] flex-col gap-3 overflow-hidden select-none touch-pan-x touch-pan-y lg:h-[560px]"
+        >
+          {/* Navigation bar depending on active view mode */}
           {view === "month" && (
-            <div
-              role="grid"
-              aria-label={`Calendrier ${formatMonthLabel(month)}`}
-              className="flex flex-1 min-h-0 flex-col gap-1.5"
-            >
-              <div
-                role="row"
-                className="grid grid-cols-7 gap-1 text-center text-xs text-muted shrink-0"
+            <div className="flex items-center justify-between">
+              <Link
+                href={buildCalendarHref({
+                  view: "month",
+                  day: `${shiftMonth(month, -1)}-01`,
+                  month: shiftMonth(month, -1),
+                })}
+                prefetch={false}
+                aria-label="Mois précédent"
+                data-calendar-nav="prev"
+                aria-keyshortcuts="ArrowLeft"
+                className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
               >
-                {WEEKDAYS.map((name) => (
-                  <span key={name} role="columnheader">
-                    {name}
-                  </span>
-                ))}
-              </div>
-              <div className="flex flex-1 min-h-0 flex-col gap-1">
-                {weeks.map((week) => (
-                  <div
-                    key={week[0]?.key}
-                    role="row"
-                    className="grid grid-cols-7 gap-1 flex-1 min-h-0"
-                  >
-                    {week.map((cell) => {
-                      const dayEvents = eventsByDay[cell.key] ?? [];
-                      const count = dayEvents.length;
-                      const open = dayEvents.filter((event) => !event.finished).length;
-                      const isSelected = cell.key === day;
-                      const isToday = cell.key === today;
-                      return (
-                        <a
-                          key={cell.key}
-                          role="gridcell"
-                          href={buildCalendarHref({ view: "month", day: cell.key, month })}
-                          onClick={(event) => {
-                            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
-                              return;
-                            if (event.button !== 0) return;
-                            event.preventDefault();
-                            select(cell.key);
-                          }}
-                          aria-selected={isSelected}
-                          aria-current={isToday ? "date" : undefined}
-                          aria-label={`${formatDayKeyLong(cell.key)}${count ? `, ${count} événement${count > 1 ? "s" : ""}` : ""}`}
-                          className={`flex h-full min-h-0 flex-col items-center justify-center rounded-control text-sm transition-colors ${
-                            isSelected
-                              ? "bg-accent text-accent-ink"
-                              : isToday
-                                ? "border border-accent"
-                                : "bg-foreground/5 [@media(hover:hover)]:hover:bg-foreground/10"
-                          } ${cell.inMonth ? "" : "opacity-40"}`}
-                        >
-                          <span>{cell.day}</span>
-                          <span
-                            aria-hidden="true"
-                            className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
-                              count
-                                ? isSelected
-                                  ? "bg-white"
-                                  : open > 0
-                                    ? "bg-accent"
-                                    : "bg-foreground/40"
-                                : "bg-transparent"
-                            }`}
-                          />
-                        </a>
-                      );
+                ‹
+              </Link>
+              <div className="flex flex-col items-center">
+                <h2 className="text-lg font-semibold first-letter:uppercase">
+                  {formatMonthLabel(month)}
+                </h2>
+                {monthKeyOf(today) !== month && (
+                  <Link
+                    href={buildCalendarHref({
+                      view: "month",
+                      day: today,
+                      month: monthKeyOf(today),
                     })}
-                  </div>
-                ))}
+                    prefetch={false}
+                    data-calendar-nav="today"
+                    aria-keyshortcuts="T"
+                    className="relative text-xs underline after:absolute after:-inset-x-3 after:-inset-y-3.5 after:content-['']"
+                  >
+                    Aujourd&apos;hui
+                  </Link>
+                )}
               </div>
+              <Link
+                href={buildCalendarHref({
+                  view: "month",
+                  day: `${shiftMonth(month, 1)}-01`,
+                  month: shiftMonth(month, 1),
+                })}
+                prefetch={false}
+                aria-label="Mois suivant"
+                data-calendar-nav="next"
+                aria-keyshortcuts="ArrowRight"
+                className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
+              >
+                ›
+              </Link>
             </div>
           )}
 
           {view === "week" && (
-            <WeekView day={day} today={today} eventsByDay={eventsByDay} onSelect={select} />
+            <div className="flex items-center justify-between">
+              <Link
+                href={buildCalendarHref({
+                  view: "week",
+                  day: addDays(day, -7),
+                  week: weekKeyOf(addDays(day, -7)),
+                })}
+                prefetch={false}
+                aria-label="Semaine précédente"
+                data-calendar-nav="prev"
+                aria-keyshortcuts="ArrowLeft"
+                onClick={(e) => {
+                  const target = addDays(day, -7);
+                  if (monthKeyOf(target) === month) {
+                    e.preventDefault();
+                    navigatePrev(target);
+                  }
+                }}
+                className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
+              >
+                ‹
+              </Link>
+              <div className="flex flex-col items-center">
+                <h2 className="text-lg font-semibold">{formatWeekLabel(weekKeyOf(day))}</h2>
+                <span className="text-xs text-muted">{formatWeekRange(day)}</span>
+                {weekKeyOf(today) !== weekKeyOf(day) && (
+                  <Link
+                    href={buildCalendarHref({ view: "week", day: today, week: weekKeyOf(today) })}
+                    prefetch={false}
+                    onClick={(e) => {
+                      if (monthKeyOf(today) === month) {
+                        e.preventDefault();
+                        select(today);
+                      }
+                    }}
+                    data-calendar-nav="today"
+                    aria-keyshortcuts="T"
+                    className="relative mt-0.5 text-xs underline after:absolute after:-inset-x-3 after:-inset-y-3 after:content-['']"
+                  >
+                    Cette semaine
+                  </Link>
+                )}
+              </div>
+              <Link
+                href={buildCalendarHref({
+                  view: "week",
+                  day: addDays(day, 7),
+                  week: weekKeyOf(addDays(day, 7)),
+                })}
+                prefetch={false}
+                aria-label="Semaine suivante"
+                data-calendar-nav="next"
+                aria-keyshortcuts="ArrowRight"
+                onClick={(e) => {
+                  const target = addDays(day, 7);
+                  if (monthKeyOf(target) === month) {
+                    e.preventDefault();
+                    navigateNext(target);
+                  }
+                }}
+                className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
+              >
+                ›
+              </Link>
+            </div>
           )}
 
-          {view === "day" && <DayTimeline day={day} today={today} events={selected} />}
+          {view === "day" && (
+            <div className="flex items-center justify-between">
+              <Link
+                href={buildCalendarHref({ view: "day", day: addDays(day, -1) })}
+                prefetch={false}
+                aria-label="Jour précédent"
+                data-calendar-nav="prev"
+                aria-keyshortcuts="ArrowLeft"
+                onClick={(e) => {
+                  const target = addDays(day, -1);
+                  if (monthKeyOf(target) === month) {
+                    e.preventDefault();
+                    navigatePrev(target);
+                  }
+                }}
+                className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
+              >
+                ‹
+              </Link>
+              <div className="flex flex-col items-center text-center">
+                <h2 className="text-lg font-semibold first-letter:uppercase">
+                  {formatDayKeyLong(day)}
+                </h2>
+                {day !== today && (
+                  <Link
+                    href={buildCalendarHref({ view: "day", day: today })}
+                    prefetch={false}
+                    onClick={(e) => {
+                      if (monthKeyOf(today) === month) {
+                        e.preventDefault();
+                        select(today);
+                      }
+                    }}
+                    data-calendar-nav="today"
+                    aria-keyshortcuts="T"
+                    className="relative mt-0.5 text-xs underline after:absolute after:-inset-x-3 after:-inset-y-3 after:content-['']"
+                  >
+                    Aujourd&apos;hui
+                  </Link>
+                )}
+              </div>
+              <Link
+                href={buildCalendarHref({ view: "day", day: addDays(day, 1) })}
+                prefetch={false}
+                aria-label="Jour suivant"
+                data-calendar-nav="next"
+                aria-keyshortcuts="ArrowRight"
+                onClick={(e) => {
+                  const target = addDays(day, 1);
+                  if (monthKeyOf(target) === month) {
+                    e.preventDefault();
+                    navigateNext(target);
+                  }
+                }}
+                className="flex h-tap w-tap items-center justify-center rounded-full text-xl active:bg-foreground/10"
+              >
+                ›
+              </Link>
+            </div>
+          )}
+
+          {/* Animated View body container */}
+          <div key={anim.key} className={`flex min-h-0 flex-1 flex-col ${anim.className}`}>
+            {/* Month view: evenly distributed weeks stretching down to the bottom of the container */}
+            {view === "month" && (
+              <div
+                role="grid"
+                aria-label={`Calendrier ${formatMonthLabel(month)}`}
+                className="flex flex-1 min-h-0 flex-col gap-1.5"
+              >
+                <div
+                  role="row"
+                  className="grid grid-cols-7 gap-1 text-center text-xs text-muted shrink-0"
+                >
+                  {WEEKDAYS.map((name) => (
+                    <span key={name} role="columnheader">
+                      {name}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex flex-1 min-h-0 flex-col gap-1">
+                  {weeks.map((week) => (
+                    <div
+                      key={week[0]?.key}
+                      role="row"
+                      className="grid grid-cols-7 gap-1 flex-1 min-h-0"
+                    >
+                      {week.map((cell) => {
+                        const dayEvents = eventsByDay[cell.key] ?? [];
+                        const count = dayEvents.length;
+                        const open = dayEvents.filter((event) => !event.finished).length;
+                        const isSelected = cell.key === day;
+                        const isToday = cell.key === today;
+                        return (
+                          <a
+                            key={cell.key}
+                            role="gridcell"
+                            href={buildCalendarHref({ view: "month", day: cell.key, month })}
+                            onClick={(event) => {
+                              if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+                                return;
+                              if (event.button !== 0) return;
+                              event.preventDefault();
+                              select(cell.key);
+                            }}
+                            aria-selected={isSelected}
+                            aria-current={isToday ? "date" : undefined}
+                            aria-label={`${formatDayKeyLong(cell.key)}${count ? `, ${count} événement${count > 1 ? "s" : ""}` : ""}`}
+                            className={`flex h-full min-h-0 flex-col items-center justify-center rounded-control text-sm transition-colors ${
+                              isSelected
+                                ? "bg-accent text-accent-ink"
+                                : isToday
+                                  ? "border border-accent"
+                                  : "bg-foreground/5 [@media(hover:hover)]:hover:bg-foreground/10"
+                            } ${cell.inMonth ? "" : "opacity-40"}`}
+                          >
+                            <span>{cell.day}</span>
+                            <span
+                              aria-hidden="true"
+                              className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
+                                count
+                                  ? isSelected
+                                    ? "bg-white"
+                                    : open > 0
+                                      ? "bg-accent"
+                                      : "bg-foreground/40"
+                                  : "bg-transparent"
+                              }`}
+                            />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {view === "week" && (
+              <WeekView day={day} today={today} eventsByDay={eventsByDay} onSelect={select} />
+            )}
+
+            {view === "day" && <DayTimeline day={day} today={today} events={selected} />}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto">
+          {/* Selected day events section */}
+          <section aria-labelledby="day-title" className="flex flex-col gap-2">
+            <h3 id="day-title" className="font-semibold first-letter:uppercase">
+              {formatDayKeyLong(day)}
+            </h3>
+            {selected.length === 0 ? (
+              <EmptyState
+                compact
+                icon={<CalendarIcon className="size-5" />}
+                title="Journée tranquille"
+              >
+                Rien de prévu ce jour-là.
+              </EmptyState>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {selected.map((event) => (
+                  <li key={event.id}>
+                    <Link
+                      href={`/calendar/${event.id}`}
+                      prefetch={false}
+                      aria-disabled={event.finished ? true : undefined}
+                      className={`card-link flex flex-col p-4 ${
+                        event.finished ? "bg-foreground/5 opacity-60" : ""
+                      }`}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-2">
+                          <span
+                            aria-hidden="true"
+                            style={dotStyle(hues.get(event.id) ?? EVENT_HUES[0], event.finished)}
+                            className="size-2.5 shrink-0 rounded-full"
+                          />
+                          <span className="text-sm font-medium tabular-nums">{event.time}</span>
+                        </span>
+                        {event.finished && (
+                          <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-semibold">
+                            Terminé
+                          </span>
+                        )}
+                      </span>
+                      <span className={`font-semibold ${event.finished ? "line-through" : ""}`}>
+                        {event.title}
+                      </span>
+                      {event.location && (
+                        <span className="flex items-center gap-1.5 text-sm text-muted">
+                          <PinIcon className="size-3.5 shrink-0" />
+                          <span>{event.location}</span>
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {canCreate && (
+            <FullScreenDialog triggerLabel="Ajouter un événement" title="Nouvel événement">
+              <EventForm mode="create" day={day} />
+            </FullScreenDialog>
+          )}
         </div>
       </div>
-
-      {/* Selected day events section */}
-      <section aria-labelledby="day-title" className="flex flex-col gap-2">
-        <h3 id="day-title" className="font-semibold first-letter:uppercase">
-          {formatDayKeyLong(day)}
-        </h3>
-        {selected.length === 0 ? (
-          <EmptyState compact icon={<CalendarIcon className="size-5" />} title="Journée tranquille">
-            Rien de prévu ce jour-là.
-          </EmptyState>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {selected.map((event) => (
-              <li key={event.id}>
-                <Link
-                  href={`/calendar/${event.id}`}
-                  prefetch={false}
-                  aria-disabled={event.finished ? true : undefined}
-                  className={`card-link flex flex-col p-4 ${
-                    event.finished ? "bg-foreground/5 opacity-60" : ""
-                  }`}
-                >
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="flex items-center gap-2">
-                      <span
-                        aria-hidden="true"
-                        style={dotStyle(hues.get(event.id) ?? EVENT_HUES[0], event.finished)}
-                        className="size-2.5 shrink-0 rounded-full"
-                      />
-                      <span className="text-sm font-medium tabular-nums">{event.time}</span>
-                    </span>
-                    {event.finished && (
-                      <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-semibold">
-                        Terminé
-                      </span>
-                    )}
-                  </span>
-                  <span className={`font-semibold ${event.finished ? "line-through" : ""}`}>
-                    {event.title}
-                  </span>
-                  {event.location && (
-                    <span className="flex items-center gap-1.5 text-sm text-muted">
-                      <PinIcon className="size-3.5 shrink-0" />
-                      <span>{event.location}</span>
-                    </span>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {canCreate && (
-        <FullScreenDialog triggerLabel="Ajouter un événement" title="Nouvel événement">
-          <EventForm mode="create" day={day} />
-        </FullScreenDialog>
-      )}
     </div>
   );
 }

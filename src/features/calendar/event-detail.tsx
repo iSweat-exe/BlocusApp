@@ -85,119 +85,134 @@ export async function EventDetail({ id }: { id: string }) {
   const canManage = canFinish || canEdit || canDelete;
 
   return (
-    <article className="flex animate-fade-in flex-col gap-section">
-      <EventBackLink href={`/calendar?month=${monthKeyOf(day)}&day=${day}`} />
+    <article className="flex animate-fade-in flex-col gap-section lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-x-10">
+      {/* Title and way back, over the two columns. */}
+      <div className="flex flex-col gap-section lg:col-span-2 lg:gap-4">
+        <EventBackLink href={`/calendar?month=${monthKeyOf(day)}&day=${day}`} />
 
-      <header className="flex flex-col gap-3">
-        {(finished || inProgress || relative) && (
-          <div className="flex flex-wrap items-center gap-2">
-            {finished ? (
-              <span className="chip">Terminé</span>
-            ) : inProgress ? (
-              <span className="chip chip-accent">En cours</span>
-            ) : (
-              <span className="chip chip-accent">{relative}</span>
-            )}
-          </div>
-        )}
-        <h1 className={`page-title break-words ${finished ? "text-muted" : ""}`}>{event.title}</h1>
-      </header>
-
-      <dl className="card divide-y divide-line overflow-hidden">
-        <Fact icon={<CalendarIcon className="size-5" />} label="Date">
-          <span className="block first-letter:uppercase">{formatDayLong(event.starts_at)}</span>
-        </Fact>
-        <Fact icon={<ClockIcon className="size-5" />} label="Horaire">
-          <span className="tabular-nums">{formatTimeRange(event.starts_at, event.ends_at)}</span>
-          {duration && (
-            <span className="ml-2 text-sm font-medium text-muted tabular-nums">· {duration}</span>
+        <header className="flex flex-col gap-3">
+          {(finished || inProgress || relative) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {finished ? (
+                <span className="chip">Terminé</span>
+              ) : inProgress ? (
+                <span className="chip chip-accent">En cours</span>
+              ) : (
+                <span className="chip chip-accent">{relative}</span>
+              )}
+            </div>
           )}
-        </Fact>
-        {event.location && (
-          <Fact icon={<PinIcon className="size-5" />} label="Lieu">
-            {event.location}
-          </Fact>
-        )}
-      </dl>
+          <h1 className={`page-title break-words ${finished ? "text-muted" : ""}`}>
+            {event.title}
+          </h1>
+        </header>
+      </div>
 
-      <section aria-labelledby="event-description" className="flex flex-col gap-2">
-        <h2 id="event-description" className="section-title">
-          Description
-        </h2>
-        {event.description ? (
-          <p className="card px-4 py-3.5 leading-relaxed break-words whitespace-pre-wrap text-foreground/90">
-            {event.description}
-          </p>
-        ) : (
-          <p className="card px-4 py-3.5 text-sm text-muted">Pas de description.</p>
-        )}
-      </section>
-
-      {reactions && (
-        <ReactionBar
-          kind="event"
-          targetId={event.id}
-          state={reactions}
-          canReact={session !== null}
-          className=""
-        />
-      )}
-
-      {canManage && (
-        <section aria-labelledby="event-manage" className="flex flex-col gap-3">
-          <h2 id="event-manage" className="section-title">
-            Gérer l&apos;événement
+      {/* On a phone the blocks follow one another (the `order` classes: facts, description, reactions, controls).
+          From 1024 px the text is on the left, and the facts and the controls on the right. The wrappers
+          disappear (`contents`) until then. */}
+      <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-section">
+        <section
+          aria-labelledby="event-description"
+          className="order-2 flex flex-col gap-2 lg:order-none"
+        >
+          <h2 id="event-description" className="section-title">
+            Description
           </h2>
-
-          {canFinish && <FinishToggle id={event.id} finished={finished} />}
-
-          {canEdit && finished && (
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              className="btn btn-outline opacity-50"
-            >
-              Modifier (événement terminé)
-            </button>
-          )}
-
-          {canEdit && !finished && (
-            <details className="card">
-              <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium">
-                Modifier
-              </summary>
-              <EventForm
-                mode="edit"
-                defaults={{
-                  id: event.id,
-                  title: event.title,
-                  description: event.description,
-                  location: event.location,
-                  date: day,
-                  time: formatTime(event.starts_at),
-                  endTime: event.ends_at ? formatTime(event.ends_at) : "",
-                }}
-              />
-            </details>
-          )}
-
-          {canDelete && (
-            <details className="rounded-card border border-danger/30">
-              <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium text-danger">
-                Supprimer
-              </summary>
-              <form action={deleteEvent} className="flex flex-col gap-3 p-4">
-                <input type="hidden" name="id" value={event.id} />
-                <p className="text-sm">Cet événement sera supprimé définitivement.</p>
-                <button type="submit" className="btn btn-danger">
-                  Confirmer la suppression
-                </button>
-              </form>
-            </details>
+          {event.description ? (
+            <p className="card px-4 py-3.5 leading-relaxed break-words whitespace-pre-wrap text-foreground/90">
+              {event.description}
+            </p>
+          ) : (
+            <p className="card px-4 py-3.5 text-sm text-muted">Pas de description.</p>
           )}
         </section>
-      )}
+        {reactions && (
+          <ReactionBar
+            kind="event"
+            targetId={event.id}
+            state={reactions}
+            canReact={session !== null}
+            className="order-3 lg:order-none"
+          />
+        )}
+      </div>
+      <div className="contents lg:sticky lg:top-24 lg:flex lg:flex-col lg:gap-section lg:self-start">
+        <dl className="card order-1 divide-y divide-line overflow-hidden lg:order-none">
+          <Fact icon={<CalendarIcon className="size-5" />} label="Date">
+            <span className="block first-letter:uppercase">{formatDayLong(event.starts_at)}</span>
+          </Fact>
+          <Fact icon={<ClockIcon className="size-5" />} label="Horaire">
+            <span className="tabular-nums">{formatTimeRange(event.starts_at, event.ends_at)}</span>
+            {duration && (
+              <span className="ml-2 text-sm font-medium text-muted tabular-nums">· {duration}</span>
+            )}
+          </Fact>
+          {event.location && (
+            <Fact icon={<PinIcon className="size-5" />} label="Lieu">
+              {event.location}
+            </Fact>
+          )}
+        </dl>
+        {canManage && (
+          <section
+            aria-labelledby="event-manage"
+            className="order-4 flex flex-col gap-3 lg:order-none"
+          >
+            <h2 id="event-manage" className="section-title">
+              Gérer l&apos;événement
+            </h2>
+
+            {canFinish && <FinishToggle id={event.id} finished={finished} />}
+
+            {canEdit && finished && (
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                className="btn btn-outline opacity-50"
+              >
+                Modifier (événement terminé)
+              </button>
+            )}
+
+            {canEdit && !finished && (
+              <details className="card">
+                <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium">
+                  Modifier
+                </summary>
+                <EventForm
+                  mode="edit"
+                  defaults={{
+                    id: event.id,
+                    title: event.title,
+                    description: event.description,
+                    location: event.location,
+                    date: day,
+                    time: formatTime(event.starts_at),
+                    endTime: event.ends_at ? formatTime(event.ends_at) : "",
+                  }}
+                />
+              </details>
+            )}
+
+            {canDelete && (
+              <details className="rounded-card border border-danger/30">
+                <summary className="flex min-h-control cursor-pointer items-center justify-center px-4 font-medium text-danger">
+                  Supprimer
+                </summary>
+                <form action={deleteEvent} className="flex flex-col gap-3 p-4">
+                  <input type="hidden" name="id" value={event.id} />
+                  <p className="text-sm">Cet événement sera supprimé définitivement.</p>
+                  <button type="submit" className="btn btn-danger">
+                    Confirmer la suppression
+                  </button>
+                </form>
+              </details>
+            )}
+          </section>
+        )}
+      </div>
     </article>
   );
 }

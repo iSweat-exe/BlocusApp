@@ -52,7 +52,7 @@ export async function ProfileView({ session }: { session: SessionPermissions }) 
 
   return (
     <div
-      className="relative isolate flex flex-col gap-6"
+      className="relative isolate mx-auto flex w-full max-w-3xl flex-col gap-6"
       style={theme ? profileThemeStyle(theme) : undefined}
       data-profile-theme={theme?.key}
     >

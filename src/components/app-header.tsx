@@ -9,7 +9,7 @@ import { ShieldIcon, UserIcon } from "./icons";
 
 /** Placeholder with the header's height, shown while the session is read (no layout shift). */
 export function AppHeaderFallback() {
-  return <div aria-hidden="true" className="h-14" />;
+  return <div aria-hidden="true" className="h-14 lg:h-16" />;
 }
 
 /**
@@ -23,11 +23,11 @@ export async function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-4">
+      <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-4 lg:h-16 lg:max-w-6xl lg:justify-end lg:px-10">
         <Link
           href="/"
           prefetch={false}
-          className="inline-flex min-h-tap items-center font-display text-xl font-extrabold tracking-tighter text-foreground transition-opacity active:opacity-80"
+          className="inline-flex min-h-tap items-center font-display text-xl font-extrabold tracking-tighter text-foreground transition-opacity active:opacity-80 lg:hidden"
         >
           BLOCUS
           <span aria-hidden="true" className="text-accent">

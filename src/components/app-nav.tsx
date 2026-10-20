@@ -3,20 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarIcon, HomeIcon, MapIcon, SettingsIcon } from "./icons";
+import { isActivePath, NAV_ITEMS } from "./nav-items";
 
 /** Duration of the longest tap animation (`--animate-*` tokens in `globals.css`), plus a margin. */
 const ANIMATION_MS = 600;
 
-const ITEMS = [
-  { href: "/", label: "Accueil", Icon: HomeIcon, animClass: "animate-home-bounce" },
-  { href: "/calendar", label: "Calendrier", Icon: CalendarIcon, animClass: "animate-calendar-pop" },
-  { href: "/map", label: "Carte", Icon: MapIcon, animClass: "animate-map-fold" },
-  { href: "/settings", label: "Réglages", Icon: SettingsIcon, animClass: "animate-gear-spin" },
-] as const;
-
 /**
- * Bottom navigation of the app (mobile first). Each item is at least 64 px tall (Android asks for 48 px,
+ * Bottom navigation of the app (mobile first; from 1024 px the sidebar, `AppSidebar`, takes over and this bar is hidden). Each item is at least 64 px tall (Android asks for 48 px,
  * iOS for 44 px), shows an icon above its label, and the bar keeps clear of the iPhone home indicator and of the
  * Android gesture / navigation bar with the `pb-safe-bottom` token (`env(safe-area-inset-bottom)`, at least
  * 2 rem). The active section has an accent pill behind its icon. Tapping an item plays a short animation on its
@@ -43,11 +36,11 @@ export function AppNav() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="sticky bottom-0 z-30 border-t border-line bg-background/90 pb-safe-bottom backdrop-blur"
+      className="sticky bottom-0 z-30 border-t border-line bg-background/90 pb-safe-bottom backdrop-blur lg:hidden"
     >
       <ul className="mx-auto flex max-w-3xl">
-        {ITEMS.map(({ href, label, Icon, animClass }) => {
-          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+        {NAV_ITEMS.map(({ href, label, Icon, animClass }) => {
+          const active = isActivePath(pathname, href);
           const isAnimating = animatingHref === href;
           return (
             <li key={href} className="flex-1">
