@@ -188,7 +188,8 @@ test.describe("app shell", () => {
   }) => {
     for (const path of ["/login", "/settings"]) {
       await page.goto(path);
-      await page.getByRole("link", { name: "Crédits" }).click();
+      // On a desktop the sidebar also links to the credits: either link will do.
+      await page.getByRole("link", { name: "Crédits" }).first().click();
       await page.waitForURL("**/credits");
     }
   });
@@ -239,11 +240,15 @@ test.describe("app shell", () => {
     await expect(page.getByRole("region", { name: "Événements imminents" })).toHaveCount(0);
   });
 
-  test("the header offers sign-in to Guests and never a sign-out button", async ({ page }) => {
+  test("the header offers sign-in to Guests and never a sign-out button", async ({
+    page,
+  }, testInfo) => {
     await page.goto("/");
     const header = page.getByRole("banner");
     // The brand link is named by what it shows (« BLOCUS. », the dot is decorative), not by an aria-label.
-    await expect(header.getByRole("link", { name: "BLOCUS", exact: true })).toBeVisible();
+    // From 1024 px the brand lives in the sidebar instead.
+    const brand = testInfo.project.name === "mobile" ? header : page.getByRole("complementary");
+    await expect(brand.getByRole("link", { name: "BLOCUS", exact: true })).toBeVisible();
     await expect(header.getByRole("link", { name: "Se connecter" })).toHaveAttribute(
       "href",
       "/login",

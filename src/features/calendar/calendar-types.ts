@@ -8,12 +8,14 @@ export type ViewOption = {
   id: CalendarViewMode;
   label: string;
   Icon: ComponentType<SVGProps<SVGSVGElement>>;
+  /** The key that opens this view on a keyboard (a letter, in the language of the labels). */
+  shortcut: string;
 };
 
 export const VIEW_OPTIONS: readonly ViewOption[] = [
-  { id: "month", label: "Mois", Icon: ViewMonthIcon },
-  { id: "week", label: "Semaine", Icon: ViewWeekIcon },
-  { id: "day", label: "Jour", Icon: ViewDayIcon },
+  { id: "month", label: "Mois", Icon: ViewMonthIcon, shortcut: "M" },
+  { id: "week", label: "Semaine", Icon: ViewWeekIcon, shortcut: "S" },
+  { id: "day", label: "Jour", Icon: ViewDayIcon, shortcut: "J" },
 ] as const;
 
 /** Resolves the view mode from search parameters with safe fallback to month. */

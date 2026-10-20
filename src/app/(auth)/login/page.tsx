@@ -17,8 +17,8 @@ export default function LoginPage() {
       <LoginBackground />
 
       {/* `min-h-dvh` and no fixed height: on a short screen (landscape, large system font) the page scrolls. */}
-      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-safe-top pb-safe-bottom">
-        <header className="mt-10 mb-5 text-center sm:mt-16">
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-safe-top pb-safe-bottom lg:my-12 lg:min-h-0 lg:rounded-sheet lg:border lg:border-line lg:bg-background/85 lg:px-10 lg:py-10 lg:shadow-xl lg:backdrop-blur-md">
+        <header className="mt-10 mb-5 text-center sm:mt-16 lg:mt-0">
           <h1 className="sr-only">Connexion</h1>
 
           <p

@@ -253,7 +253,7 @@
     outline-offset: -1px;
   }
   .card-link {
-    @apply rounded-card border border-line bg-surface active:bg-foreground/10;
+    @apply rounded-card border border-line bg-surface transition-colors [@media(hover:hover)]:hover:bg-foreground/5 active:bg-foreground/10;
   }
 
   /* Form fields. */
@@ -286,16 +286,16 @@
     @apply inline-flex min-h-control items-center justify-center rounded-control px-5 text-base font-semibold transition-[scale,background-color,opacity] active:scale-[0.96] disabled:opacity-60;
   }
   .btn-primary {
-    @apply bg-accent text-accent-ink active:bg-accent-strong;
+    @apply bg-accent text-accent-ink [@media(hover:hover)]:hover:bg-accent-strong active:bg-accent-strong;
   }
   .btn-secondary {
-    @apply bg-foreground/10 font-medium text-foreground active:bg-foreground/15;
+    @apply bg-foreground/10 font-medium text-foreground [@media(hover:hover)]:hover:bg-foreground/15 active:bg-foreground/15;
   }
   .btn-outline {
-    @apply border border-line-strong font-medium text-foreground active:bg-foreground/5;
+    @apply border border-line-strong font-medium text-foreground [@media(hover:hover)]:hover:bg-foreground/5 active:bg-foreground/5;
   }
   .btn-danger {
-    @apply border border-danger/40 text-danger active:bg-danger/10;
+    @apply border border-danger/40 text-danger [@media(hover:hover)]:hover:bg-danger/10 active:bg-danger/10;
   }
   .btn-sm {
     @apply min-h-control-sm px-4 text-sm;
@@ -335,6 +335,16 @@
   p,
   li {
     text-wrap: pretty;
+  }
+  /* Tailwind 4 leaves the arrow on buttons: with a mouse, what can be pressed says so. */
+  button:not(:disabled),
+  summary,
+  [role="button"]:not([aria-disabled="true"]),
+  [role="menuitem"],
+  [role="radio"],
+  [role="switch"],
+  [role="gridcell"] {
+    cursor: pointer;
   }
 }
 
@@ -376,6 +386,14 @@ label {
   textarea,
   select {
     font-size: 16px;
+  }
+}
+
+/* Desktop: slim scrollbars that stay out of the way of the content (the timeline, the lists, the sheets). */
+@media (hover: hover) and (pointer: fine) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--foreground) 28%, transparent) transparent;
   }
 }
 

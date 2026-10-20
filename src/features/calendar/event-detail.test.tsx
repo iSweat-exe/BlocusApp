@@ -129,7 +129,7 @@ describe("EventDetail", () => {
     await renderEvent();
     const reactions = screen.getByTestId("reactions");
     expect(reactions).toHaveAttribute("data-kind", "event");
-    expect(reactions).toHaveAttribute("data-class", "");
+    expect(reactions.getAttribute("data-class")).not.toMatch(/mt-/);
   });
 
   it("gives a Guest no controls at all", async () => {

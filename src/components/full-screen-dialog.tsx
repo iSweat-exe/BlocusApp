@@ -197,7 +197,7 @@ export function FullScreenDialog({ triggerLabel, title, triggerClassName, childr
         <DialogContext.Provider value={contextValue}>
           <div
             ref={sheetRef}
-            className="absolute inset-x-0 bottom-0 top-[max(0.75rem,env(safe-area-inset-top))] mx-auto flex w-full max-w-2xl flex-col overflow-hidden rounded-t-sheet border border-b-0 border-line bg-background shadow-2xl"
+            className="absolute inset-x-0 bottom-0 top-[max(0.75rem,env(safe-area-inset-top))] mx-auto flex w-full max-w-2xl flex-col overflow-hidden rounded-t-sheet border border-b-0 border-line bg-background shadow-2xl lg:inset-y-10 lg:rounded-sheet lg:border-b"
           >
             <header className="flex flex-col border-b border-line">
               <div aria-hidden="true" className="flex justify-center pb-1 pt-2">

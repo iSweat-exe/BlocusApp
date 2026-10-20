@@ -41,7 +41,7 @@ function Stats({ stats }: { stats: ContributorStats }) {
  */
 export function CreditsView({ stats = {} }: { stats?: ContributorStatsByLogin }) {
   return (
-    <div className="flex flex-col gap-section">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-section">
       <header className="flex flex-col gap-1">
         <h1 className="page-title">Crédits</h1>
         <p className="text-sm text-muted">

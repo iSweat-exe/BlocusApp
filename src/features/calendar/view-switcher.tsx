@@ -78,6 +78,7 @@ export function ViewSwitcher({
                 role="menuitem"
                 type="button"
                 aria-current={isSelected ? "true" : undefined}
+                aria-keyshortcuts={option.shortcut}
                 onClick={() => selectOption(option)}
                 className={`flex min-h-tap w-full items-center justify-between rounded-lg px-3 text-sm transition-colors ${
                   isSelected
@@ -91,7 +92,15 @@ export function ViewSwitcher({
                   />
                   <span>{option.label}</span>
                 </div>
-                {isSelected && <CheckIcon className="size-3.5 text-accent shrink-0" />}
+                <span className="flex shrink-0 items-center gap-2">
+                  <kbd
+                    aria-hidden="true"
+                    className="hidden rounded border border-line px-1.5 text-[11px] font-medium text-faint lg:inline"
+                  >
+                    {option.shortcut}
+                  </kbd>
+                  {isSelected && <CheckIcon className="size-3.5 text-accent shrink-0" />}
+                </span>
               </button>
             );
           })}
