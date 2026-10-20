@@ -304,6 +304,25 @@ export function ShareIcon(props: IconProps) {
   );
 }
 
+/** Plus sign: something added, new. */
+export function PlusIcon(props: IconProps) {
+  return (
+    <Icon strokeWidth="2" {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </Icon>
+  );
+}
+
+/** Line rising to the right, with an arrow head: something got better. */
+export function TrendUpIcon(props: IconProps) {
+  return (
+    <Icon strokeWidth="2" {...props}>
+      <path d="m3 17 6-6 4 4 8-8" />
+      <path d="M15 7h6v6" />
+    </Icon>
+  );
+}
+
 /** Clock: the time of an event. */
 export function ClockIcon(props: IconProps) {
   return (

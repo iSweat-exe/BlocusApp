@@ -22,6 +22,11 @@ Also read [AGENTS.md](./AGENTS.md): this Next.js version has breaking changes, c
 - Do not invent APIs, tables, env vars, keys or library behaviour. If unsure, read the docs/code or ask.
 - Ask before adding a dependency; prefer what the stack already provides.
 - Keep PRs small (~400 lines max).
+- **Patch notes**: every PR that changes what people see or can do (feature, improvement, user-visible fix) adds a line
+  to `src/features/patch-notes/patch-notes.ts` in the same PR, newest entry first. Style: French, technical terms
+  (sidebar, PWA, push, timeline, scale…), purely informative and functional: one factual statement per line (what
+  changed, where, with which values), no marketing wording, no address to the reader ("tu"), no filler. Purely
+  internal changes (refactor, tests, CI, docs) do not get a line.
 
 ## Language
 
@@ -76,7 +81,7 @@ npm run build        # production build
 
 When behaviour, schema, permissions or conventions change, update in the **same PR**:
 `docs/architecture.md`, `docs/database.md`, `docs/permissions.md`, `docs/security.md`,
-`docs/runbook.md`, the checklist, and add an ADR in `docs/adr/` for structural decisions.
+`docs/runbook.md`, the checklist, the patch notes (user-visible changes only), and add an ADR in `docs/adr/` for structural decisions.
 
 ## Recipes
 

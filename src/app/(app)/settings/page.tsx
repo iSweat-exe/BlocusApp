@@ -8,6 +8,7 @@ import { AccountSection } from "@/features/settings/account-section";
 import { TwoFactorSection } from "@/features/mfa/two-factor-section";
 import { LegalLinks } from "@/features/legal/legal-links";
 import { MyDataSection } from "@/features/legal/my-data-section";
+import { PatchNotesLink } from "@/features/patch-notes/patch-notes-link";
 
 export const metadata: Metadata = { title: "Réglages" };
 
@@ -56,6 +57,7 @@ export default function SettingsPage() {
           <h2 id="about-title" className="section-title">
             À propos
           </h2>
+          <PatchNotesLink />
           <CreditsLink />
           <LegalLinks />
         </section>
